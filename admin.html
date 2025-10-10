@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - High School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .admin-section {
+            border-left: 4px solid #e74c3c;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .admin-panel {
+            display: none; /* Hidden by default */
+        }
+        
+        .access-denied {
+            text-align: center;
+            padding: 50px 0;
+        }
+        
+        .access-denied i {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>High School Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="input-student.html"><i class="fas fa-list me-1"></i> Add Student</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="input-student.html" id="inputStudentLink" style="display: none;">
+                            <i class="fas fa-user-plus me-1"></i> Input Student
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+       <div class="login-container">
+        <div class="login-form">
+            <div class="login-header">
+                <h2>Admin Login</h2>
+                <p class="text-muted">Access the administration panel</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="adminUsername" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="adminUsername" placeholder="Enter username" value="admin" required>
+                </div>
+                <div class="mb-3">
+                    <label for="adminPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="adminPassword" placeholder="Enter password" value="admin123" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-login" id="adminLoginBtn">Login</button>
+                
+                <div class="credentials-note">
+                    <small>Default credentials: admin / admin123</small>
+                </div>
+                
+                <div class="message-container" id="loginMessage">
+                    <!-- Messages will appear here -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const loginMessage = document.getElementById('loginMessage');
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('adminUsername').value;
+                const password = document.getElementById('adminPassword').value;
+                
+                // Clear previous messages
+                loginMessage.innerHTML = '';
+                
+                // Simple validation
+                if (!username || !password) {
+                    showMessage('Please fill in all fields', 'error');
+                    return;
+                }
+                
+                // Simulate login validation
+                if (username === 'admin' && password === 'admin123') {
+                    
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(function() {
+                         // Redirect to input-student.html after login
+                    }, 1500);
+                } else {
+                    showMessage('Invalid username or password. Please try again.', 'error');
+                }
+            });
+            
+            function showMessage(message, type) {
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const icon = type === 'success' ? '✅' : '❌';
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `alert ${alertClass} d-flex align-items-center`;
+                messageDiv.innerHTML = `
+                    <span class="${type}-icon">${icon}</span>
+                    <span>${message}</span>
+                `;
+                
+                loginMessage.appendChild(messageDiv);
+                
+                // Auto-remove message after 5 seconds (for error messages)
+                if (type === 'error') {
+                    setTimeout(function() {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
+                        }
+                    }, 5000);
+                }
+            }
+        });
+    </script>
+
+    <!-- Login Section (Visible by default) -->
+
+    <!-- <section class="py-5 bg-light" id="loginSection">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="login-form">
+                        <h2 class="text-center mb-4">Admin Login</h2>
+                        <div class="mb-3">
+                            <label for="adminUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="adminUsername" placeholder="Enter username" value="admin">
+                        </div>
+                        <div class="mb-3">
+                            <label for="adminPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="adminPassword" placeholder="Enter password" value="admin123">
+                        </div>
+                        <button class="btn btn-primary w-100" id="adminLoginBtn">Login</button>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Default credentials: admin / admin123</small>
+                        </div>
+                        <div id="loginMessage" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- Admin Panel Section (Hidden by default) -->
+    <section class="py-5 bg-light admin-panel" id="adminPanel">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title">Admin Panel - Student Management</h2>
+                <div>
+                    <span class="me-3 text-success">
+                        <i class="fas fa-user me-1"></i>Welcome, Admin!
+                    </span>
+                    <button class="btn btn-outline-danger" id="adminLogoutBtn">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <div id="successMessage" class="alert alert-success alert-dismissible fade show" style="display: none;">
+                <span id="successText"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <!-- Admin Dashboard Cards -->
+            <div class="row mb-5">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="card-title" id="totalStudentsCount">0</h3>
+                            <p class="card-text">Total Students</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="card-title" id="grade7Count">0</h3>
+                            <p class="card-text">Grade 7 Students</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="card-title" id="grade12Count">0</h3>
+                            <p class="card-text">Grade 12 Students</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="card-title" id="currentYear">2023</h3>
+                            <p class="card-text">Current Year</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="admin-section">
+                <h4>Quick Actions</h4>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="input-student.html" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i>Add New Student
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="student-list.html" class="btn btn-success w-100">
+                            <i class="fas fa-list me-2"></i>View All Students
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-info w-100" id="exportDataBtn">
+                            <i class="fas fa-file-excel me-2"></i>Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Students -->
+            <div class="admin-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Recent Students</h4>
+                    <a href="student-list.html" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Gender</th>
+                                <th>Date Added</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentStudentsTable">
+                            <!-- Recent students will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- System Management -->
+            <div class="admin-section">
+                <h4>System Management</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Database Management</h5>
+                                <p class="card-text">Export student data or clear all records.</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary" id="backupBtn">
+                                        <i class="fas fa-download me-2"></i>Export Data
+                                    </button>
+                                    <button class="btn btn-outline-danger" id="clearDataBtn">
+                                        <i class="fas fa-trash me-2"></i>Clear All Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Account Settings</h5>
+                                <p class="card-text">Update your admin password.</p>
+                                <button class="btn btn-outline-warning w-100" id="changePasswordBtn">
+                                    <i class="fas fa-key me-2"></i>Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Change Admin Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="savePasswordBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clear Data Confirmation Modal -->
+    <div class="modal fade" id="clearDataModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger">Confirm Data Clear</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone. All student data will be permanently deleted.
+                    </div>
+                    <p>Are you sure you want to clear all student data?</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirmClear">
+                        <label class="form-check-label" for="confirmClear">
+                            I understand this action cannot be undone
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmClearBtn" disabled>Clear All Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>High School Portal</h5>
+                    <p>Providing quality education since 1995.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
+                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Home</a></li>
+                        <li><a href="student-list.html" class="text-white">Student List</a></li>
+                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
+                        <li><a href="admin.html" class="text-white">Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 High School Portal. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="database.js"></script>
+    <script>
+        // Show login section
+        function showLoginSection() {
+            document.querySelector('.login-container').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            localStorage.setItem('adminLoggedIn', 'false');
+            // Show logout message
+            const messageDiv = document.getElementById('loginMessage');
+            if (messageDiv) {
+                messageDiv.innerHTML = '<div class="alert alert-info">You have been logged out.</div>';
+            }
+        }
+
+        // Show admin panel
+        function showAdminPanel() {
+            document.querySelector('.login-container').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            localStorage.setItem('adminLoggedIn', 'true');
+            loadAdminDashboard();
+        }
+
+        // Show input-student link in navigation
+        function showInputStudentLink() {
+            document.getElementById('inputStudentLink').style.display = 'block';
+        }
+
+        // Hide input-student link in navigation
+        function hideInputStudentLink() {
+            document.getElementById('inputStudentLink').style.display = 'none';
+        }
+
+        // Check login status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+            if (isLoggedIn) {
+                showAdminPanel();
+                showInputStudentLink();
+            } else {
+                showLoginSection();
+                hideInputStudentLink();
+            }
+
+            // Login form handler
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const username = document.getElementById('adminUsername').value.trim();
+                const password = document.getElementById('adminPassword').value.trim();
+                const messageDiv = document.getElementById('loginMessage');
+
+                if (!username || !password) {
+                    messageDiv.innerHTML = '<div class="alert alert-warning">Please enter both username and password.</div>';
+                    return;
+                }
+
+                if (username === 'admin' && password === 'admin123') {
+                    localStorage.setItem('adminLoggedIn', 'true');
+                    messageDiv.innerHTML = '<div class="alert alert-success">Login successful! Redirecting...</div>';
+                    setTimeout(function() {
+                        window.location.href = 'input-student.html';
+                    }, 1000);
+                } else {
+                    messageDiv.innerHTML = '<div class="alert alert-danger">Invalid username or password. Please try again.</div>';
+                }
+            });
+
+            // Logout handler
+            document.getElementById('adminLogoutBtn').addEventListener('click', function() {
+                if (confirm('Are you sure you want to logout?')) {
+                    localStorage.setItem('adminLoggedIn', 'false');
+                    // Show logout message and redirect to login.html
+                    alert('You have been logged out.');
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

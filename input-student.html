@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Student</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        // If logged in, stay on this page (do nothing)
+    </script>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="mb-4">Add Student</h2>
+        <form id="addStudentForm">
+            <div class="mb-3">
+                <label for="studentId" class="form-label">Student ID</label>
+                <input type="text" class="form-control" id="studentId" required>
+            </div>
+            <div class="mb-3">
+                <label for="studentName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="studentName" required>
+            </div>
+            <div class="mb-3">
+                <label for="studentClass" class="form-label">Class</label>
+                <input type="number" class="form-control" id="studentClass" required>
+            </div>
+            <div class="mb-3">
+                <label for="studentGender" class="form-label">Gender</label>
+                <select class="form-select" id="studentGender" required>
+                    <option value="">Select</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="studentDob" class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" id="studentDob" required>
+            </div>
+            <div class="mb-3">
+                <label for="studentAddress" class="form-label">Address</label>
+                <input type="text" class="form-control" id="studentAddress">
+            </div>
+            <div class="mb-3">
+                <label for="studentPhone" class="form-label">Phone</label>
+                <input type="text" class="form-control" id="studentPhone">
+            </div>
+            <div class="mb-3">
+                <label for="studentFather" class="form-label">Father</label>
+                <input type="text" class="form-control" id="studentFather">
+            </div>
+            <div class="mb-3">
+                <label for="studentMother" class="form-label">Mother</label>
+                <input type="text" class="form-control" id="studentMother">
+            </div>
+            <div class="mb-3">
+                <label for="studentPhoto" class="form-label">Photo</label>
+                <input type="file" class="form-control" id="studentPhoto" accept="image/*">
+                <img id="photoPreview" src="" alt="Photo Preview" style="max-width:120px; margin-top:10px; display:none;">
+            </div>
+            <div class="mb-3">
+                <label for="studyYear" class="form-label">Study Year</label>
+                <input type="number" class="form-control" id="studyYear">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Student</button>
+            <a href="student-list.html" class="btn btn-secondary ms-2">Cancel</a>
+            <a href="index.html" class="btn btn-outline-success ms-2">Back to Home</a>
+        </form>
+    </div>
+    <script>
+        // Preview photo
+        document.getElementById('studentPhoto').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('photoPreview');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    preview.src = evt.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        });
+
+        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newStudent = {
+                id: document.getElementById('studentId').value,
+                name: document.getElementById('studentName').value,
+                class: document.getElementById('studentClass').value,
+                gender: document.getElementById('studentGender').value,
+                dob: document.getElementById('studentDob').value,
+                address: document.getElementById('studentAddress').value,
+                phone: document.getElementById('studentPhone').value,
+                father: document.getElementById('studentFather').value,
+                mother: document.getElementById('studentMother').value,
+                photo: '', // Will be set below
+                studyYear: document.getElementById('studyYear').value
+            };
+
+            const photoInput = document.getElementById('studentPhoto');
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    newStudent.photo = evt.target.result;
+                    saveStudent(newStudent);
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                newStudent.photo = '';
+                saveStudent(newStudent);
+            }
+        });
+
+        function saveStudent(newStudent) {
+            let students = JSON.parse(localStorage.getItem('students')) || [];
+            // Prevent duplicate ID
+            if (students.some(s => s.id === newStudent.id)) {
+                alert('A student with this ID already exists!');
+                return;
+            }
+            students.push(newStudent);
+            localStorage.setItem('students', JSON.stringify(students));
+            alert('Student added successfully!');
+            window.location.href = 'student-list.html';
+        }
+    </script>
+</body>
+</html>

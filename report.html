@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Report - High School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table thead {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .export-options {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-card {
+            border-left: 4px solid var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>High School Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="report.html"><i class="fas fa-file-excel me-1"></i> Reports</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Report Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">Export Student Data to Excel</h2>
+            <p class="mb-4">Generate and export student reports in Excel format</p>
+            
+            <div class="row mb-5">
+                <div class="col-md-8">
+                    <div class="export-options">
+                        <h4 class="mb-3">Export Options</h4>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="reportClass" class="form-label">Filter by Class</label>
+                                <select class="form-select" id="reportClass">
+                                    <option value="all">All Classes</option>
+                                    <option value="7">Grade 7</option>
+                                    <option value="8">Grade 8</option>
+                                    <option value="9">Grade 9</option>
+                                    <option value="10">Grade 10</option>
+                                    <option value="11">Grade 11</option>
+                                    <option value="12">Grade 12</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reportYear" class="form-label">Study Year</label>
+                                <select class="form-select" id="reportYear">
+                                    <option value="all">All Years</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2021">2021</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportColumns" class="form-label">Include Columns</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="id" id="colId" checked>
+                                <label class="form-check-label" for="colId">Student ID</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="name" id="colName" checked>
+                                <label class="form-check-label" for="colName">Full Name</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="class" id="colClass" checked>
+                                <label class="form-check-label" for="colClass">Class</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="gender" id="colGender">
+                                <label class="form-check-label" for="colGender">Gender</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="dob" id="colDob">
+                                <label class="form-check-label" for="colDob">Date of Birth</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="phone" id="colPhone">
+                                <label class="form-check-label" for="colPhone">Phone</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-success" id="generateReport">
+                            <i class="fas fa-file-excel me-2"></i>Generate Excel Report
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card stats-card">
+                        <div class="card-body">
+                            <h5 class="card-title">Report Statistics</h5>
+                            <div class="mb-3">
+                                <h6>Total Students</h6>
+                                <h3 id="totalStudents">0</h3>
+                            </div>
+                            <div class="mb-3">
+                                <h6>By Class</h6>
+                                <div id="classStats">
+                                    <!-- Class statistics will be populated here -->
+                                </div>
+                            </div>
+                            <div>
+                                <h6>By Gender</h6>
+                                <div id="genderStats">
+                                    <!-- Gender statistics will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="mb-3">Student Data Preview</h3>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Class</th>
+                            <th>Gender</th>
+                            <th>Date of Birth</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Study Year</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <!-- Report data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4">
+                <a href="student-list.html" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Student List
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>High School Portal</h5>
+                    <p>Providing quality education since 1995.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
+                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Home</a></li>
+                        <li><a href="student-list.html" class="text-white">Student List</a></li>
+                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
+                        <li><a href="admin.html" class="text-white">Admin</a></li>
+                        <li><a href="report.html" class="text-white">Reports</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 High School Portal. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample student data
+        const students = JSON.parse(localStorage.getItem('students')) || [
+            {
+                id: "HS2023001",
+                name: "John Smith",
+                gender: "Male",
+                dob: "2007-05-15",
+                class: "10",
+                address: "123 Main Street, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7890",
+                father: "Robert Smith",
+                mother: "Mary Smith",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023002",
+                name: "Emily Johnson",
+                gender: "Female",
+                dob: "2007-08-22",
+                class: "10",
+                address: "456 Oak Avenue, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7891",
+                father: "Michael Johnson",
+                mother: "Sarah Johnson",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023003",
+                name: "David Williams",
+                gender: "Male",
+                dob: "2006-11-10",
+                class: "11",
+                address: "789 Pine Road, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7892",
+                father: "James Williams",
+                mother: "Lisa Williams",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023004",
+                name: "Sophia Brown",
+                gender: "Female",
+                dob: "2008-03-30",
+                class: "9",
+                address: "321 Elm Street, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7893",
+                father: "William Brown",
+                mother: "Jennifer Brown",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023005",
+                name: "Daniel Miller",
+                gender: "Male",
+                dob: "2005-12-05",
+                class: "12",
+                address: "654 Maple Lane, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7894",
+                father: "Thomas Miller",
+                mother: "Karen Miller",
+                studyYear: 2023
+            }
+        ];
+
+        // Populate report table and statistics
+        function populateReportTable(studentList = students) {
+            const tableBody = document.getElementById('reportTableBody');
+            
+            tableBody.innerHTML = '';
+            
+            studentList.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>Grade ${student.class}</td>
+                    <td>${student.gender}</td>
+                    <td>${student.dob}</td>
+                    <td>${student.phone}</td>
+                    <td>${student.address}</td>
+                    <td>${student.studyYear}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            updateStatistics(studentList);
+        }
+
+        // Update statistics
+        function updateStatistics(studentList) {
+            document.getElementById('totalStudents').textContent = studentList.length;
+            
+            // Class statistics
+            const classStats = {};
+            studentList.forEach(student => {
+                if (!classStats[student.class]) {
+                    classStats[student.class] = 0;
+                }
+                classStats[student.class]++;
+            });
+            
+            let classStatsHTML = '';
+            for (const [className, count] of Object.entries(classStats)) {
+                classStatsHTML += `<div>Grade ${className}: ${count} students</div>`;
+            }
+            document.getElementById('classStats').innerHTML = classStatsHTML;
+            
+            // Gender statistics
+            const genderStats = {};
+            studentList.forEach(student => {
+                if (!genderStats[student.gender]) {
+                    genderStats[student.gender] = 0;
+                }
+                genderStats[student.gender]++;
+            });
+            
+            let genderStatsHTML = '';
+            for (const [gender, count] of Object.entries(genderStats)) {
+                genderStatsHTML += `<div>${gender}: ${count} students</div>`;
+            }
+            document.getElementById('genderStats').innerHTML = genderStatsHTML;
+        }
+
+        // Generate Excel Report
+        document.getElementById('generateReport').addEventListener('click', function() {
+            // Get filter values
+            const selectedClass = document.getElementById('reportClass').value;
+            const selectedYear = document.getElementById('reportYear').value;
+            
+            // Filter students
+            let filteredStudents = students;
+            
+            if (selectedClass !== 'all') {
+                filteredStudents = filteredStudents.filter(student => student.class === selectedClass);
+            }
+            
+            if (selectedYear !== 'all') {
+                filteredStudents = filteredStudents.filter(student => student.studyYear.toString() === selectedYear);
+            }
+            
+            // Get selected columns
+            const selectedColumns = [];
+            if (document.getElementById('colId').checked) selectedColumns.push('id');
+            if (document.getElementById('colName').checked) selectedColumns.push('name');
+            if (document.getElementById('colClass').checked) selectedColumns.push('class');
+            if (document.getElementById('colGender').checked) selectedColumns.push('gender');
+            if (document.getElementById('colDob').checked) selectedColumns.push('dob');
+            if (document.getElementById('colPhone').checked) selectedColumns.push('phone');
+            
+            // Prepare data for Excel
+            const excelData = filteredStudents.map(student => {
+                const row = {};
+                if (selectedColumns.includes('id')) row['Student ID'] = student.id;
+                if (selectedColumns.includes('name')) row['Full Name'] = student.name;
+                if (selectedColumns.includes('class')) row['Class'] = `Grade ${student.class}`;
+                if (selectedColumns.includes('gender')) row['Gender'] = student.gender;
+                if (selectedColumns.includes('dob')) row['Date of Birth'] = student.dob;
+                if (selectedColumns.includes('phone')) row['Phone'] = student.phone;
+                return row;
+            });
+            
+            // Create worksheet
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            
+            // Create workbook
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+            
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            let filename = `students_report_${timestamp}`;
+            if (selectedClass !== 'all') filename += `_grade${selectedClass}`;
+            if (selectedYear !== 'all') filename += `_${selectedYear}`;
+            filename += '.xlsx';
+            
+            // Export to Excel
+            XLSX.writeFile(workbook, filename);
+            
+            // Update the preview table
+            populateReportTable(filteredStudents);
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            populateReportTable();
+        });
+    </script>
+</body>
+</html>

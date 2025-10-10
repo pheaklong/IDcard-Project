@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Student - High School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .admin-section {
+            border-left: 4px solid #e74c3c;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>High School Portal
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="admin.html"><i class="fas fa-user-shield me-1"></i> Input Student</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Input Student Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Add New Student</h2>
+            <p class="mb-4">Fill out the form below to add a new student to the system.</p>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form id="studentForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentId" class="form-label">Student ID *</label>
+                                <input type="text" class="form-control" id="studentId" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentName" class="form-label">Full Name *</label>
+                                <input type="text" class="form-control" id="studentName" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentGender" class="form-label">Gender *</label>
+                                <select class="form-select" id="studentGender" required>
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentDob" class="form-label">Date of Birth *</label>
+                                <input type="date" class="form-control" id="studentDob" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentClass" class="form-label">Class *</label>
+                                <select class="form-select" id="studentClass" required>
+                                    <option value="">Select Class</option>
+                                    <option value="7">Grade 7</option>
+                                    <option value="8">Grade 8</option>
+                                    <option value="9">Grade 9</option>
+                                    <option value="10">Grade 10</option>
+                                    <option value="11">Grade 11</option>
+                                    <option value="12">Grade 12</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="studentYear" class="form-label">Study Year *</label>
+                                <input type="number" class="form-control" id="studentYear" min="2020" max="2030" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentAddress" class="form-label">Address *</label>
+                            <textarea class="form-control" id="studentAddress" rows="2" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="studentPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="studentPhone">
+                            </div>
+                             <div class="mb-3">
+                            <label class="form-label">Student Photo</label>
+                            <div class="photo-upload-container" id="editPhotoUploadArea">
+                                <div class="photo-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <p class="mb-2">Click to upload a new photo</p>
+                                <p class="text-muted small">JPG, PNG or GIF (Max 2MB)</p>
+                                <input type="file" id="editStudentPhoto" class="upload-btn" accept="image/*">
+                                <img id="editPhotoPreview" class="photo-preview" alt="Preview">
+                            </div>
+                        </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fatherName" class="form-label">Father's Name</label>
+                                <input type="text" class="form-control" id="fatherName">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="motherName" class="form-label">Mother's Name</label>
+                                <input type="text" class="form-control" id="motherName">
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="reset" class="btn btn-secondary">Clear</button>
+                            <button type="submit" class="btn btn-primary">Add Student</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-5">
+                <a href="index.html" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back 
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>High School Portal</h5>
+                    <p>Providing quality education since 1995.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
+                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Home</a></li>
+                        <li><a href="student-list.html" class="text-white">Student List</a></li>
+                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
+                        <li><a href="admin.html" class="text-white">Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 High School Portal. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add or Edit student
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const newStudent = {
+                id: document.getElementById('studentId').value,
+                name: document.getElementById('studentName').value,
+                gender: document.getElementById('studentGender').value,
+                dob: document.getElementById('studentDob').value,
+                class: document.getElementById('studentClass').value,
+                address: document.getElementById('studentAddress').value,
+                photo: '', // Will be set below
+                phone: document.getElementById('studentPhone').value,
+                father: document.getElementById('fatherName').value,
+                mother: document.getElementById('motherName').value,
+                studyYear: document.getElementById('studentYear').value
+            };
+
+            // Handle photo upload preview (if any)
+            const photoInput = document.getElementById('editStudentPhoto');
+            if (photoInput && photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    newStudent.photo = e.target.result;
+                    saveStudent(newStudent);
+                };
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                newStudent.photo = 'https://via.placeholder.com/150';
+                saveStudent(newStudent);
+            }
+        });
+
+        function saveStudent(newStudent) {
+            // Check if editing (editStudent exists in localStorage)
+            const editStudent = JSON.parse(localStorage.getItem('editStudent'));
+            let students = JSON.parse(localStorage.getItem('students')) || [];
+
+            if (editStudent && editStudent.id === newStudent.id) {
+                // Edit mode: update existing student
+                const index = students.findIndex(s => s.id === newStudent.id);
+                if (index !== -1) {
+                    students[index] = newStudent;
+                    localStorage.setItem('students', JSON.stringify(students));
+                    localStorage.removeItem('editStudent');
+                    alert('Student updated successfully!');
+                    window.location.href = 'student-list.html';
+                    return;
+                }
+            } else {
+                // Add mode: check for duplicate ID
+                if (students.some(s => s.id === newStudent.id)) {
+                    alert('A student with this ID already exists!');
+                    return;
+                }
+                students.push(newStudent);
+                localStorage.setItem('students', JSON.stringify(students));
+                alert('Student added successfully!');
+                document.getElementById('studentForm').reset();
+            }
+        }
+
+        // If editing, pre-fill form
+        window.addEventListener('DOMContentLoaded', function() {
+            const editStudent = JSON.parse(localStorage.getItem('editStudent'));
+            if (editStudent) {
+                document.querySelector('h2.section-title').textContent = 'Edit Student';
+                document.querySelector('p.mb-4').textContent = 'Update the student information below.';
+                document.getElementById('studentId').value = editStudent.id || '';
+                document.getElementById('studentId').readOnly = true;
+                document.getElementById('studentName').value = editStudent.name || '';
+                document.getElementById('studentGender').value = editStudent.gender || '';
+                document.getElementById('studentDob').value = editStudent.dob ? editStudent.dob.split(' ')[0] : '';
+                document.getElementById('studentClass').value = editStudent.class || '';
+                document.getElementById('studentYear').value = editStudent.studyYear || '';
+                document.getElementById('studentAddress').value = editStudent.address || '';
+                document.getElementById('studentPhone').value = editStudent.phone || '';
+                document.getElementById('fatherName').value = editStudent.father || '';
+                document.getElementById('motherName').value = editStudent.mother || '';
+                // Show photo preview if exists
+                if (editStudent.photo) {
+                    const preview = document.getElementById('editPhotoPreview');
+                    preview.src = editStudent.photo;
+                    preview.style.display = 'block';
+                }
+                // Change button text
+                document.querySelector('button[type="submit"]').textContent = 'Update Student';
+            }
+        });
+    </script>
+</body>
+</html>

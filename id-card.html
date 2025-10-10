@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card - High School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3287dd;
+            --secondary-color: #3498db;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .id-card {
+            width: 350px;
+            height: 220px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(115, 200, 249, 0.2);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .id-card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .id-card-body {
+            padding: 15px;
+        }
+        
+        .id-card-photo {
+            width: 80px;
+            height: 120px;
+            border-radius: 8px;
+            border: 2px solid var(--secondary-color);
+            object-fit: cover;
+            background-color: #f8f9fa;
+        }
+        
+        .student-info p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .qr-code-container {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background-color: white;
+        }
+        
+        #qrcode {
+            display: inline-block;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .full-info-card {
+            border-left: 4px solid var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>វិទ្យាល័យកំរៀង
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <!--
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    -->
+                    <li class="nav-item">
+                        <a class="nav-link active" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ID Card Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title text-center">ទំព័រកាតសិស្ស នៃវិទ្យាល័យកំរៀង</h2>
+            <p class="text-center mb-5">នេះជាទំព័រសម្រាប់ស្វែងរក និងបញ្ជាក់ថាសិស្សនេះជាសិស្យនៃវិទ្យាល័យកំរៀង</p>
+            
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="studentIdInput" class="form-label">សូមបញ្ញូល ID របស់ខ្លួន</label>
+                                <input type="text" class="form-control" id="studentIdInput" placeholder="Enter student ID">
+                            </div>
+                            <button class="btn btn-primary w-100" id="generateIdCard">
+                                <i class="fas fa-id-card me-2"></i>ស្វែករក កាតសិស្ស
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div id="idCardContainer" class="d-none">
+                        <h4 class="text-center mb-4">Student ID Card</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="id-card mx-auto">
+                                    <div class="id-card-header">
+                                        វិទ្យាល័យកំរៀង
+                                    </div>
+                                    <div class="id-card-body">
+                                        <div class="row">
+                                            <div class="col-5">
+                                                <img src="" alt="Student Photo" class="id-card-photo w-100" id="idCardPhoto">
+                                            </div>
+                                            <div class="col-7 student-info">
+                                                <p class="mb-1"><strong>ID:</strong> <span id="idCardId"></span></p>
+                                                <p class="mb-1"><strong>ឈ្មោះ:</strong> <span id="idCardName"></span></p>
+                                                <p class="mb-1"><strong>ថ្នាក់ទី:</strong> <span id="idCardClass"></span></p>
+                                                <p class="mb-1"><strong>ឆ្នាំសិក្សា:</strong> <span id="idCardValid"></span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-primary" id="printIdCard">
+                                        <i class="fas fa-print me-2"></i>Print ID Card
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="qr-code-container">
+                                    <h5>Scan QR Code for Full Information</h5>
+                                    <div id="qrcode" class="my-3"></div>
+                                    <p class="text-muted small">Scan this QR code to view complete student information</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Full Student Information -->
+                        <div class="card full-info-card mt-5" id="fullInfoCard">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Complete Student Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="fullStudentInfo">
+                                    <!-- Full student info will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>High School Portal</h5>
+                    <p>Providing quality education since 1995.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
+                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Home</a></li>
+                        <li><a href="student-list.html" class="text-white">Student List</a></li>
+                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
+                        <li><a href="admin.html" class="text-white">Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 High School Portal. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample student data
+        const students = JSON.parse(localStorage.getItem('students')) || [
+            {
+                id: "HS2023001",
+                name: "John Smith",
+                gender: "Male",
+                dob: "2007-05-15",
+                class: "10",
+                address: "123 Main Street, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7890",
+                father: "Robert Smith",
+                mother: "Mary Smith",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023002",
+                name: "Emily Johnson",
+                gender: "Female",
+                dob: "2007-08-22",
+                class: "10",
+                address: "456 Oak Avenue, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7891",
+                father: "Michael Johnson",
+                mother: "Sarah Johnson",
+                studyYear: 2023
+            },
+            {
+                id: "HS2023003",
+                name: "David Williams",
+                gender: "Male",
+                dob: "2006-11-10",
+                class: "11",
+                address: "789 Pine Road, City, State 12345",
+                photo: "https://via.placeholder.com/150",
+                phone: "(123) 456-7892",
+                father: "James Williams",
+                mother: "Lisa Williams",
+                studyYear: 2023
+            },
+            {
+            id: "1",
+            name: "ឆៀង អានីតា",
+            gender: "M",
+            dob: "2001-02-09 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982589",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "2",
+            name: "ជាតិ គីមហេង",
+            gender: "M",
+            dob: "2001-02-10 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982590",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "3",
+            name: "ជីន សុខចម្រើន",
+            gender: "M",
+            dob: "2001-02-11 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982591",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "4",
+            name: "ជុំ ម៉េងជីវ",
+            gender: "M",
+            dob: "2001-02-12 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982592",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "5",
+            name: "ឌឿន សៀវលីង",
+            gender: "M",
+            dob: "2001-02-13 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982593",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "6",
+            name: "ណាក់ ស្រីនីត",
+            gender: "M",
+            dob: "2001-02-14 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982594",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "7",
+            name: "ណាង សុខហេង",
+            gender: "M",
+            dob: "2001-02-15 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982595",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "8",
+            name: "ត្រា ស្រីនាថ",
+            gender: "M",
+            dob: "2001-02-16 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982596",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "9",
+            name: "ទូច ពន្លឺ",
+            gender: "M",
+            dob: "2001-02-17 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982597",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "10",
+            name: "ធា ស្រីធិ",
+            gender: "M",
+            dob: "2001-02-18 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982598",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "11",
+            name: "ធឿន ចេងហេង",
+            gender: "M",
+            dob: "2001-02-19 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982599",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "12",
+            name: "ប៊ួ សារ៉ាន់យូ",
+            gender: "M",
+            dob: "2001-02-20 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982600",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "13",
+            name: "ប៉ែត ស្រីណែត",
+            gender: "M",
+            dob: "2001-02-21 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982601",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "14",
+            name: "ពន ចន្នី",
+            gender: "M",
+            dob: "2001-02-22 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982602",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "15",
+            name: "ព្រឿន ឆៃយ៉ា",
+            gender: "M",
+            dob: "2001-02-23 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982603",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "16",
+            name: "មុនី សក្តា",
+            gender: "M",
+            dob: "2001-02-24 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982604",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "17",
+            name: "ម៉ៅ សៀងហ្វុង",
+            gender: "M",
+            dob: "2001-02-25 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982605",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "18",
+            name: "យ៉ាំ ជូអើ",
+            gender: "M",
+            dob: "2001-02-26 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982606",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "19",
+            name: "យ៉ែន ថាត",
+            gender: "M",
+            dob: "2001-02-27 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982607",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "20",
+            name: "រ៉ា សុខដែន",
+            gender: "M",
+            dob: "2001-02-28 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982608",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "21",
+            name: "រ៉ាន់ សុវណ្ណប៊ុនហេង",
+            gender: "M",
+            dob: "2001-03-01 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982609",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "22",
+            name: "រិត អ៊ីអឺ",
+            gender: "M",
+            dob: "2001-03-02 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982610",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "23",
+            name: "រិន រចនា",
+            gender: "M",
+            dob: "2001-03-03 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982611",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "24",
+            name: "រុន បញ្ញាវឌ្ឍន៌",
+            gender: "M",
+            dob: "2001-03-04 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982612",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "25",
+            name: "រ៉ុប ឆានុន",
+            gender: "M",
+            dob: "2001-03-05 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982613",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "26",
+            name: "រៀង សោភា",
+            gender: "M",
+            dob: "2001-03-06 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982614",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "27",
+            name: "សំបូរ និរន្តរៈ",
+            gender: "M",
+            dob: "2001-03-07 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982615",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "28",
+            name: "សុខ ហេង",
+            gender: "M",
+            dob: "2001-03-08 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982616",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "29",
+            name: "សុជាតិ រតន​:",
+            gender: "M",
+            dob: "2001-03-09 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982617",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "30",
+            name: "ស៊ុន សៀវអឺ",
+            gender: "M",
+            dob: "2001-03-10 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982618",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "31",
+            name: "សុភ័័ណ ចន្ថាវី",
+            gender: "M",
+            dob: "2001-03-11 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982619",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "32",
+            name: "សុភា សុខខុម",
+            gender: "M",
+            dob: "2001-03-12 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982620",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "33",
+            name: "សឿន រ៉ាវីន",
+            gender: "M",
+            dob: "2001-03-13 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982621",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "34",
+            name: "សេង ច័ន្ទសុដា",
+            gender: "M",
+            dob: "2001-03-14 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982622",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "35",
+            name: "ស្លាត លីហេង",
+            gender: "M",
+            dob: "2001-03-15 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982623",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "36",
+            name: "ហ៊ត ដានីត",
+            gender: "M",
+            dob: "2001-03-16 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982624",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "37",
+            name: "សុដ្ឋ លីជីង",
+            gender: "M",
+            dob: "2001-03-17 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982625",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "38",
+            name: "អឿង ចរិយ៉ា",
+            gender: "M",
+            dob: "2001-03-18 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982626",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "39",
+            name: "គឹម រិទ្ធី",
+            gender: "M",
+            dob: "2001-03-19 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982627",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "40",
+            name: "គូរ វត្តា",
+            gender: "M",
+            dob: "2001-03-20 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982628",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "41",
+            name: "ងន ឃាងជីញគាន់",
+            gender: "M",
+            dob: "2001-03-21 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982629",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "42",
+            name: "ជាតិ ចាន់រ៉ា",
+            gender: "M",
+            dob: "2001-03-22 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982630",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "43",
+            name: "ឈឺន សាលវ័ន",
+            gender: "M",
+            dob: "2001-03-23 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982631",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "44",
+            name: "ញឹល សុធា",
+            gender: "M",
+            dob: "2001-03-24 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982632",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "45",
+            name: "ថៃ យ៉ះម៉ុន",
+            gender: "M",
+            dob: "2001-03-25 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982633",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "46",
+            name: "ធន់ ចាន់ថា",
+            gender: "M",
+            dob: "2001-03-26 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982634",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "47",
+            name: "ធឿន រតន:",
+            gender: "M",
+            dob: "2001-03-27 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982635",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "48",
+            name: "ប៊ន ប៊ុន",
+            gender: "M",
+            dob: "2001-03-28 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982636",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "49",
+            name: "ប៊ុន សំណង",
+            gender: "M",
+            dob: "2001-03-29 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982637",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "50",
+            name: "ប្រាក់ គីមជ័ង",
+            gender: "M",
+            dob: "2001-03-30 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982638",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "51",
+            name: "ផាត់ ភក្តី",
+            gender: "M",
+            dob: "2001-03-31 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982639",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "52",
+            name: "ភាព ស្រីពេជ្រ",
+            gender: "M",
+            dob: "2001-04-01 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982640",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "53",
+            name: "ភិរុណ យ៉តឆាយ",
+            gender: "M",
+            dob: "2001-04-02 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982641",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "54",
+            name: "ម៉ាង សុម៉េង",
+            gender: "M",
+            dob: "2001-04-03 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982642",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "55",
+            name: "មិន សូលីតា",
+            gender: "M",
+            dob: "2001-04-04 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982643",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "56",
+            name: "យោគ ស្រីពៅ",
+            gender: "M",
+            dob: "2001-04-05 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982644",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "57",
+            name: "រិល ស្រីលីន",
+            gender: "M",
+            dob: "2001-04-06 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982645",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "58",
+            name: "រុន ឆេងអ័រ",
+            gender: "M",
+            dob: "2001-04-07 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982646",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "59",
+            name: "លី ស៊ូនិជ",
+            gender: "M",
+            dob: "2001-04-08 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982647",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "60",
+            name: "លី លីហុង",
+            gender: "M",
+            dob: "2001-04-09 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982648",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "61",
+            name: "លឿត ធារីន",
+            gender: "M",
+            dob: "2001-04-10 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982649",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "62",
+            name: "វណ្ណា រ៉ានុន",
+            gender: "M",
+            dob: "2001-04-11 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982650",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "63",
+            name: "វ៉ាត ពីសី",
+            gender: "M",
+            dob: "2001-04-12 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982651",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "64",
+            name: "វី សុខវីន",
+            gender: "M",
+            dob: "2001-04-13 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982652",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "65",
+            name: "វៃ វិ",
+            gender: "M",
+            dob: "2001-04-14 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982653",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "66",
+            name: "សល សៀវម៉ី",
+            gender: "M",
+            dob: "2001-04-15 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982654",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "67",
+            name: "សាន ស៊ីណា",
+            gender: "M",
+            dob: "2001-04-16 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982655",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "68",
+            name: "សារុន រ៉ាយុត",
+            gender: "M",
+            dob: "2001-04-17 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982656",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "69",
+            name: "សុខ ម៉េង",
+            gender: "M",
+            dob: "2001-04-18 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982657",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "70",
+            name: "សុភ័ក្រ្ត មួយគីម",
+            gender: "M",
+            dob: "2001-04-19 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982658",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "71",
+            name: "ហ៊ត សុខហេង",
+            gender: "M",
+            dob: "2001-04-20 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982659",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "72",
+            name: "ហ៊ន ស៊ូខេម",
+            gender: "M",
+            dob: "2001-04-21 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982660",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "73",
+            name: "ហួរ សុវិឆ្ឆ័យ",
+            gender: "M",
+            dob: "2001-04-22 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982661",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "74",
+            name: "ឡា ម៉ានី",
+            gender: "M",
+            dob: "2001-04-23 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982662",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "75",
+            name: "ឡោ សៀវហ័រ",
+            gender: "M",
+            dob: "2001-04-24 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982663",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "76",
+            name: "អ៊ុង ម៉ីលិញ",
+            gender: "M",
+            dob: "2001-04-25 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982664",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "77",
+            name: "អ៊ុត សំណាង",
+            gender: "M",
+            dob: "2001-04-26 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982665",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "78",
+            name: "អេង ផានិត",
+            gender: "M",
+            dob: "2001-04-27 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982666",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "79",
+            name: "សល់ ស្រីវិន",
+            gender: "M",
+            dob: "2001-04-28 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982667",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "80",
+            name: "គន្ធា សៀវម៉ី",
+            gender: "M",
+            dob: "2001-04-29 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982668",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "81",
+            name: "ឃីម ទិ",
+            gender: "M",
+            dob: "2001-04-30 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982669",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "82",
+            name: "ឆេង ស្រីណាង",
+            gender: "M",
+            dob: "2001-05-01 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982670",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "83",
+            name: "ឈុំ ពុទ្ធីដែន",
+            gender: "M",
+            dob: "2001-05-02 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982671",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "84",
+            name: "ណាក់់ លីតា",
+            gender: "M",
+            dob: "2001-05-03 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982672",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "85",
+            name: "ណាក់​ ស្រីណាន់",
+            gender: "M",
+            dob: "2001-05-04 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982673",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "86",
+            name: "ណែត លីហេង",
+            gender: "M",
+            dob: "2001-05-05 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982674",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "87",
+            name: "ទុយ ដាឡែន",
+            gender: "M",
+            dob: "2001-05-06 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982675",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "88",
+            name: "ប៉ាន់ ពិសី",
+            gender: "M",
+            dob: "2001-05-07 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982676",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "89",
+            name: "ប៉ុណ្ណា សូភារ៉ា",
+            gender: "M",
+            dob: "2001-05-08 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982677",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "90",
+            name: "បុត្រ សុខឡា",
+            gender: "M",
+            dob: "2001-05-09 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982678",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "91",
+            name: "ផា សុខស្រីពៅ",
+            gender: "M",
+            dob: "2001-05-10 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982679",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "92",
+            name: "ផាត ស្រីផៅ",
+            gender: "M",
+            dob: "2001-05-11 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982680",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "93",
+            name: "ពេជ្រ ប៊ុនហេង",
+            gender: "M",
+            dob: "2001-05-12 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982681",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        },
+        {
+            id: "94",
+            name: "ពេជ្រ ស្រីឃីម",
+            gender: "M",
+            dob: "2001-05-13 00:00:00",
+            class: 10,
+            address: "BTB",
+            photo: "long_pheak.jpg",
+            phone: "0969982682",
+            father: "father",
+            mother: "mother",
+            studyYear: 2026
+        }
+        ];
+
+        // Generate ID Card
+        document.getElementById('generateIdCard').addEventListener('click', function() {
+            const studentId = document.getElementById('studentIdInput').value;
+            const student = students.find(s => s.id === studentId);
+            
+            if (student) {
+                // Update ID Card
+                document.getElementById('idCardId').textContent = student.id;
+                document.getElementById('idCardName').textContent = student.name;
+                document.getElementById('idCardClass').textContent = `Grade ${student.class}`;
+                document.getElementById('idCardPhoto').src = student.photo;
+                
+                // Calculate validity (current year + 1)
+                const currentYear = new Date().getFullYear();
+                document.getElementById('idCardValid').textContent = `June ${currentYear + 1}`;
+                
+                // Generate QR Code
+                const qrContainer = document.getElementById('qrcode');
+                qrContainer.innerHTML = '';
+                
+                // Create URL for this student's information
+                const studentUrl = `${window.location.origin}${window.location.pathname}?studentId=${student.id}`;
+                
+                new QRCode(qrContainer, {
+                    text: studentUrl,
+                    width: 150,
+                    height: 150,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                
+                // Display full student information
+                displayFullStudentInfo(student);
+                
+                // Show the ID card container
+                document.getElementById('idCardContainer').classList.remove('d-none');
+                
+                // Scroll to ID card
+                document.getElementById('idCardContainer').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                alert('Student ID not found. Please check the ID and try again.');
+            }
+        });
+
+        // Display full student information
+        function displayFullStudentInfo(student) {
+            const fullInfoContainer = document.getElementById('fullStudentInfo');
+            
+            fullInfoContainer.innerHTML = `
+                <div class="col-md-6">
+                    <p><strong>Student ID:</strong> ${student.id}</p>
+                    <p><strong>Full Name:</strong> ${student.name}</p>
+                    <p><strong>Gender:</strong> ${student.gender}</p>
+                    <p><strong>Date of Birth:</strong> ${student.dob}</p>
+                    <p><strong>Class:</strong> Grade ${student.class}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Address:</strong> ${student.address}</p>
+                    <p><strong>Phone:</strong> ${student.phone}</p>
+                    <p><strong>Father's Name:</strong> ${student.father}</p>
+                    <p><strong>Mother's Name:</strong> ${student.mother}</p>
+                    <p><strong>Study Year:</strong> ${student.studyYear}</p>
+                </div>
+            `;
+        }
+         // Generate ID Card
+        document.getElementById('generateIdCard').addEventListener('click', function() {
+            const studentId = document.getElementById('studentIdInput').value;
+            const student = students.find(s => s.id === studentId);
+            
+            if (student) {
+                document.getElementById('idCardId').textContent = student.id;
+                document.getElementById('idCardName').textContent = student.name;
+                document.getElementById('idCardClass').textContent = `Grade ${student.class}`;
+                document.getElementById('idCardPhoto').src = student.photo;
+                
+                // Calculate validity (current year + 1)
+                const currentYear = new Date().getFullYear();
+                document.getElementById('idCardValid').textContent = `June ${currentYear + 1}`;
+                
+                document.getElementById('idCardContainer').classList.remove('d-none');
+            } 
+            else {
+                alert('Student ID not found. Please check the ID and try again.');
+            }
+        }
+        );
+
+        // Print ID Card
+        document.getElementById('printIdCard').addEventListener('click', function() {
+            const printContent = document.querySelector('.id-card').outerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = printContent;
+            window.print();
+            document.body.innerHTML = originalContent;
+            window.location.reload();
+        });
+
+        // Check if student ID is provided in URL parameters
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentId = urlParams.get('studentId');
+            
+            if (studentId) {
+                document.getElementById('studentIdInput').value = studentId;
+                document.getElementById('generateIdCard').click();
+            }
+        });
+    </script>
+</body>
+</html>

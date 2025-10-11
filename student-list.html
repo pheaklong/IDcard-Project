@@ -380,10 +380,10 @@
     </div>
 
     <script>
-      // Load students from localStorage or fallback to students.json
+      // Load students from localStorage or fallback to on
       async function getStudents() {
         try {
-          const response = await fetch("students.json");
+          const response = await fetch("on");
           if (!response.ok) throw new Error("Failed to load JSON");
           students = await response.json();
           // Save to localStorage for future use

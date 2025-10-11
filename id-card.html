@@ -6,7 +6,8 @@
     <title>ID Card - High School</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- QR Code Library - Local file -->
+    <script src="qrcode.min.js"></script>
    <style>
         :root {
             --primary-color: #3287dd;
@@ -99,6 +100,52 @@
         .full-info-card {
             border-left: 4px solid var(--secondary-color);
         }
+        
+        .student-card-item {
+            margin-bottom: 20px;
+        }
+        
+        .student-card-item .id-card {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .student-card-item .qr-code-container {
+            margin-top: 10px;
+            padding: 10px;
+        }
+        
+        .student-card-item .qr-code-container h6 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .student-card-item #qrcode {
+            width: 80px !important;
+            height: 80px !important;
+        }
+        
+        .student-card-item #qrcode canvas {
+            width: 80px !important;
+            height: 80px !important;
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .id-card {
+                break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            
+            .student-card-item {
+                break-inside: avoid;
+                margin-bottom: 30px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -138,24 +185,49 @@
             <p class="text-center mb-5">នេះជាទំព័រសម្រាប់ស្វែងរក និងបញ្ជាក់ថាសិស្សនេះជាសិស្យនៃវិទ្យាល័យកំរៀង</p>
             
             <div class="row justify-content-center mb-5">
-                <div class="col-md-6">
+                <div class="col-md-8">
                     <div class="card">
                         <div class="card-body">
-                            <div class="mb-3">
-                                <label for="studentIdInput" class="form-label">សូមបញ្ញូល ID របស់ខ្លួន</label>
-                                <input type="text" class="form-control" id="studentIdInput" placeholder="Enter student ID">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="studentSelect" class="form-label">ជ្រើសរើសសិស្ស</label>
+                                    <select class="form-select" id="studentSelect">
+                                        <option value="">-- ជ្រើសរើសសិស្ស --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="studentIdInput" class="form-label">ឬបញ្ចូល ID ដោយផ្ទាល់</label>
+                                    <input type="text" class="form-control" id="studentIdInput" placeholder="Enter student ID">
+                                </div>
                             </div>
-                            <button class="btn btn-primary w-100" id="generateIdCard">
-                                <i class="fas fa-id-card me-2"></i>ស្វែករក កាតសិស្ស
-                            </button>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button class="btn btn-primary w-100" id="generateIdCard">
+                                        <i class="fas fa-id-card me-2"></i>ស្វែករក កាតសិស្ស
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-success w-100" id="showAllCards">
+                                        <i class="fas fa-th-large me-2"></i>បង្ហាញកាតទាំងអស់
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <button class="btn btn-warning btn-sm w-100" id="testQRCode">
+                                        <i class="fas fa-qrcode me-2"></i>Test QR Code Generation
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div id="idCardContainer" class="d-none">
+            <!-- Single Student Card Display -->
+            <div id="singleCardContainer" class="d-none">
+                <div class="row justify-content-center">
+                    <div class="col-md-10">
                         <h4 class="text-center mb-4">Student ID Card</h4>
                         
                         <div class="row">
@@ -209,6 +281,24 @@
                     </div>
                 </div>
             </div>
+
+            <!-- All Student Cards Display -->
+            <div id="allCardsContainer" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>All Student ID Cards</h4>
+                    <div>
+                        <button class="btn btn-primary" id="printAllCards">
+                            <i class="fas fa-print me-2"></i>Print All Cards
+                        </button>
+                        <button class="btn btn-secondary" id="backToSingle">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Single View
+                        </button>
+                    </div>
+                </div>
+                <div id="allCardsGrid" class="row">
+                    <!-- All student cards will be populated here -->
+                </div>
+            </div>
         </div>
     </section>
 
@@ -249,17 +339,170 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize the page
+        initializePage();
+
+        function initializePage() {
+            populateStudentSelect();
+            setupEventListeners();
+            testQRLibrary();
+        }
+
+        function testQRLibrary() {
+            console.log('Testing QR Code library...');
+            console.log('QRCode available:', typeof QRCode !== 'undefined');
+            console.log('window.QRCode available:', typeof window.QRCode !== 'undefined');
+            console.log('QRCode object:', QRCode);
+            
+            if (typeof QRCode !== 'undefined') {
+                console.log('QRCode library is ready!');
+                console.log('QRCode.CorrectLevel:', QRCode.CorrectLevel);
+                testQRGeneration();
+            } else {
+                console.warn('QRCode library not loaded! This might be due to network issues.');
+                console.log('QR codes will show as text fallback until library loads.');
+                
+                // Try to wait a bit and check again
+                setTimeout(() => {
+                    console.log('Rechecking QRCode library after delay...');
+                    console.log('QRCode available:', typeof QRCode !== 'undefined');
+                    if (typeof QRCode !== 'undefined') {
+                        console.log('QRCode library loaded after delay!');
+                        testQRGeneration();
+                    }
+                }, 1000);
+            }
+        }
+
+        function testQRGeneration() {
+            // Test QR code generation with a simple test
+            setTimeout(() => {
+                const testElement = document.createElement('div');
+                testElement.id = 'test-qr';
+                testElement.style.display = 'none';
+                document.body.appendChild(testElement);
+                
+                const testStudent = {
+                    id: 999,
+                    name: 'Test Student',
+                    class: 10,
+                    studyYear: 2026
+                };
+                
+                generateQRCode('test-qr', testStudent);
+                
+                // Clean up test element
+                setTimeout(() => {
+                    if (document.getElementById('test-qr')) {
+                        document.body.removeChild(document.getElementById('test-qr'));
+                    }
+                }, 1000);
+            }, 500);
+        }
+
+        function populateStudentSelect() {
+            const studentSelect = document.getElementById('studentSelect');
+            if (typeof students === "undefined" || !Array.isArray(students)) {
+                console.error("students.js not loaded or students array not found!");
+                return;
+            }
+            
+            // Clear existing options
+            studentSelect.innerHTML = '<option value="">-- ជ្រើសរើសសិស្ស --</option>';
+            
+            // Add student options
+            students.forEach(student => {
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.id} - ${student.name}`;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        function setupEventListeners() {
+            // Generate single ID card
+            document.getElementById('generateIdCard').addEventListener('click', generateSingleIdCard);
+            
+            // Show all cards
+            document.getElementById('showAllCards').addEventListener('click', showAllIdCards);
+            
+            // Print single card
+            document.getElementById('printIdCard').addEventListener('click', () => window.print());
+            
+            // Print all cards
+            document.getElementById('printAllCards').addEventListener('click', () => window.print());
+            
+            // Back to single view
+            document.getElementById('backToSingle').addEventListener('click', backToSingleView);
+            
+            // Test QR Code button
+            document.getElementById('testQRCode').addEventListener('click', testQRCodeGeneration);
+            
+            // Student select change
+            document.getElementById('studentSelect').addEventListener('change', function() {
+                if (this.value) {
+                    document.getElementById('studentIdInput').value = this.value;
+                }
+            });
+            
+            // Student ID input change
+            document.getElementById('studentIdInput').addEventListener('input', function() {
+                if (this.value) {
+                    document.getElementById('studentSelect').value = this.value;
+                }
+            });
+        }
+
         function showError(msg) {
             alert(msg);
         }
 
-        function fillIdCard(student) {
-            document.getElementById('idCardContainer').classList.remove('d-none');
-            document.getElementById('idCardPhoto').src = student.photo || '';
+        function generateSingleIdCard() {
+            const studentId = document.getElementById('studentIdInput').value.trim();
+            if (!studentId) {
+                showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID)');
+                return;
+            }
+            
+            const student = findStudentById(studentId);
+            if (!student) {
+                showError('រកមិនឃើញសិស្សនេះទេ!');
+                return;
+            }
+            
+            showSingleCard(student);
+        }
+
+        function findStudentById(studentId) {
+            if (typeof students === "undefined" || !Array.isArray(students)) {
+                showError("students.js មិនត្រូវបានបញ្ចូលឬ students array មិនមាន!");
+                return null;
+            }
+            return students.find((s) => String(s.id) === studentId);
+        }
+
+        function showSingleCard(student) {
+            // Hide all cards container
+            document.getElementById('allCardsContainer').classList.add('d-none');
+            
+            // Show single card container
+            document.getElementById('singleCardContainer').classList.remove('d-none');
+            
+            // Fill the card with student data
+            fillSingleIdCard(student);
+        }
+
+        function fillSingleIdCard(student) {
+            console.log('Filling single ID card for student:', student);
+            
+            // Fill basic card info
+            document.getElementById('idCardPhoto').src = student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCA2MEMyMCA1NS41ODE3IDIzLjU4MTcgNTIgMjggNTJINjJDNjYuNDE4MyA1MiA3MCA1NS41ODE3IDcwIDYwVjgwSDIwVjYwWiIgZmlsbD0iI0NDQyIvPgo8L3N2Zz4K';
             document.getElementById('idCardId').textContent = student.id || '';
             document.getElementById('idCardName').textContent = student.name || '';
             document.getElementById('idCardClass').textContent = student.class || '';
             document.getElementById('idCardValid').textContent = student.studyYear || '';
+            
+            // Fill full student info
             document.getElementById('fullStudentInfo').innerHTML = `
                 <div class="col-md-6">
                     <p><strong>Gender:</strong> ${student.gender || ''}</p>
@@ -273,39 +516,222 @@
                     <p><strong>Study Year:</strong> ${student.studyYear || ''}</p>
                 </div>
             `;
-            // Generate QR code
-            if (window.QRCode) {
-                document.getElementById('qrcode').innerHTML = '';
-                new QRCode(document.getElementById('qrcode'), {
-                    text: JSON.stringify(student),
-                    width: 128,
-                    height: 128
-                });
-            }
+            
+            // Generate QR code with a small delay to ensure DOM is ready
+            setTimeout(() => {
+                console.log('Generating QR code for single card...');
+                generateQRCode('qrcode', student);
+            }, 100);
         }
 
-        document.getElementById('generateIdCard').addEventListener('click', function() {
-            const studentId = document.getElementById('studentIdInput').value.trim();
-            if (!studentId) {
-                showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID)');
-                return;
-            }
+        function showAllIdCards() {
             if (typeof students === "undefined" || !Array.isArray(students)) {
                 showError("students.js មិនត្រូវបានបញ្ចូលឬ students array មិនមាន!");
                 return;
             }
-            const student = students.find((s) => String(s.id) === studentId);
-            if (!student) {
-                showError('រកមិនឃើញសិស្សនេះទេ!');
-                document.getElementById('idCardContainer').classList.add('d-none');
+            
+            // Hide single card container
+            document.getElementById('singleCardContainer').classList.add('d-none');
+            
+            // Show all cards container
+            document.getElementById('allCardsContainer').classList.remove('d-none');
+            
+            // Populate all cards
+            populateAllCards();
+        }
+
+        function populateAllCards() {
+            const allCardsGrid = document.getElementById('allCardsGrid');
+            allCardsGrid.innerHTML = '';
+            
+            students.forEach(student => {
+                const cardElement = createStudentCardElement(student);
+                allCardsGrid.appendChild(cardElement);
+            });
+        }
+
+        function createStudentCardElement(student) {
+            const col = document.createElement('div');
+            col.className = 'col-lg-3 col-md-4 col-sm-6 student-card-item';
+            
+            const cardId = `card-${student.id}`;
+            const qrId = `qr-${student.id}`;
+            
+            col.innerHTML = `
+                <div class="card h-100">
+                    <div class="card-body p-2">
+                        <div class="id-card mx-auto">
+                            <div class="id-card-header">
+                                វិទ្យាល័យកំរៀង
+                            </div>
+                            <div class="id-card-body">
+                                <div class="row">
+                                    <div class="col-5">
+                                        <img src="${student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCA2MEMyMCA1NS41ODE3IDIzLjU4MTcgNTIgMjggNTJINjJDNjYuNDE4MyA1MiA3MCA1NS41ODE3IDcwIDYwVjgwSDIwVjYwWiIgZmlsbD0iI0NDQyIvPgo8L3N2Zz4K'}" 
+                                             alt="Student Photo" class="id-card-photo w-100">
+                                    </div>
+                                    <div class="col-7 student-info">
+                                        <p class="mb-1"><strong>ID:</strong> ${student.id || ''}</p>
+                                        <p class="mb-1"><strong>ឈ្មោះ:</strong> ${student.name || ''}</p>
+                                        <p class="mb-1"><strong>ថ្នាក់ទី:</strong> ${student.class || ''}</p>
+                                        <p class="mb-1"><strong>ឆ្នាំសិក្សា:</strong> ${student.studyYear || ''}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="qr-code-container text-center">
+                            <h6>QR Code</h6>
+                            <div id="${qrId}" class="my-2"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Generate QR code for this card
+            setTimeout(() => {
+                generateQRCode(qrId, student);
+            }, 200);
+            
+            return col;
+        }
+
+        function generateQRCode(elementId, student) {
+            console.log('Generating QR code for element:', elementId, 'Student:', student);
+            
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error('Element not found:', elementId);
                 return;
             }
-            fillIdCard(student);
-        });
+            
+            // Clear the element
+            element.innerHTML = '';
+            
+            // Create QR code with link to digital card page
+            const currentUrl = window.location.origin + window.location.pathname.replace('id-card.html', '');
+            const qrData = `${currentUrl}digital-card.html?id=${student.id}`;
+            
+            const qrText = qrData;
+            console.log('QR Code text:', qrText);
+            console.log('QRCode library available:', typeof QRCode !== 'undefined');
+            
+            const size = elementId.includes('qr-') ? 80 : 128;
+            
+            // Check if QRCode library is available (QRCode.js from davidshimjs)
+            if (typeof QRCode !== 'undefined') {
+                console.log('QRCode library is available, generating QR code...');
+                console.log('Element:', element);
+                console.log('Size:', size);
+                
+                try {
+                    // Use QRCode.js library (davidshimjs.github.io)
+                    const qr = new QRCode(element, {
+                        text: qrText,
+                        width: size,
+                        height: size,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    
+                    console.log('QR Code object created:', qr);
+                    console.log('QR Code generated successfully for:', elementId);
+                    
+                    // Check if QR code was actually created
+                    setTimeout(() => {
+                        if (element.children.length === 0) {
+                            console.warn('No QR code elements found in container, using fallback');
+                            element.innerHTML = createTextFallback(student);
+                        } else {
+                            console.log('QR code elements found:', element.children.length);
+                        }
+                    }, 200);
+                    
+                } catch (error) {
+                    console.error('QR Code generation failed:', error);
+                    // Fallback to text
+                    element.innerHTML = createTextFallback(student);
+                }
+                
+            } else {
+                console.log('QRCode library not available, using text fallback');
+                element.innerHTML = createTextFallback(student);
+            }
+        }
+        
+        function createTextFallback(student) {
+            return `
+                <div style="border: 1px solid #ccc; padding: 8px; text-align: center; font-size: 9px; background: #f8f9fa; border-radius: 4px;">
+                    <div><strong>ID:</strong> ${student.id}</div>
+                    <div><strong>Name:</strong> ${student.name}</div>
+                    <div><strong>Class:</strong> ${student.class}</div>
+                    <div><strong>Year:</strong> ${student.studyYear}</div>
+                </div>
+            `;
+        }
 
-        document.getElementById('printIdCard').addEventListener('click', function () {
-            window.print();
-        });
+        function backToSingleView() {
+            document.getElementById('allCardsContainer').classList.add('d-none');
+            document.getElementById('singleCardContainer').classList.add('d-none');
+        }
+        
+        // Manual function to reload QR library if needed
+        function reloadQRLibrary() {
+            console.log('Manually reloading QR Code library...');
+            const script = document.createElement('script');
+            script.src = 'qrcode.min.js';
+            script.onload = function() {
+                console.log('QRCode library reloaded successfully!');
+                // Regenerate all visible QR codes
+                if (document.getElementById('singleCardContainer').classList.contains('d-none') === false) {
+                    const studentId = document.getElementById('studentIdInput').value;
+                    if (studentId) {
+                        const student = findStudentById(studentId);
+                        if (student) {
+                            generateQRCode('qrcode', student);
+                        }
+                    }
+                }
+            };
+            script.onerror = function() {
+                console.error('Failed to reload QRCode library');
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Test QR Code generation function
+        function testQRCodeGeneration() {
+            console.log('Testing QR Code generation...');
+            console.log('QRCode available:', typeof QRCode !== 'undefined');
+            
+            if (typeof QRCode === 'undefined') {
+                alert('QRCode library is not loaded! Check console for details.');
+                return;
+            }
+            
+            // Create a test element
+            const testDiv = document.createElement('div');
+            testDiv.id = 'test-qr-display';
+            testDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 9999; text-align: center;';
+            testDiv.innerHTML = '<h5>QR Code Test</h5><div id="test-qr-element"></div><button onclick="this.parentElement.remove()" style="margin-top: 10px;">Close</button>';
+            
+            document.body.appendChild(testDiv);
+            
+            // Generate test QR code
+            const testStudent = {
+                id: 999,
+                name: 'Test Student',
+                class: 10,
+                studyYear: 2026
+            };
+            
+            generateQRCode('test-qr-element', testStudent);
+        }
+        
+        // Make functions available globally for debugging
+        window.reloadQRLibrary = reloadQRLibrary;
+        window.testQRCodeGeneration = testQRCodeGeneration;
     });
     </script>
 </body>

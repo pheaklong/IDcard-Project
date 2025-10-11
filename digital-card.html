@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Student ID Card</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3287dd;
+            --secondary-color: #3498db;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .digital-card {
+            width: 400px;
+            height: 250px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--primary-color);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+        
+        .digital-card:hover {
+            transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            position: relative;
+        }
+        
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #34495e;
+        }
+        
+        .card-body {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            height: calc(100% - 80px);
+        }
+        
+        .student-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            border: 3px solid var(--secondary-color);
+            object-fit: cover;
+            background-color: #f8f9fa;
+            margin-right: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .student-info {
+            flex: 1;
+        }
+        
+        .student-info p {
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: #333;
+        }
+        
+        .student-info strong {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .qr-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-left: 20px;
+        }
+        
+        .qr-code {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        
+        .qr-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+        
+        
+        @media (max-width: 768px) {
+            .digital-card {
+                width: 350px;
+                height: 250px;
+                transform: none;
+            }
+            
+            .card-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .card-header {
+                padding: 12px;
+                font-size: 1rem;
+            }
+            
+            .card-body {
+                padding: 15px;
+                height: calc(100% - 70px);
+            }
+            
+            .student-photo {
+                width: 80px;
+                height: 80px;
+                margin-right: 15px;
+            }
+            
+            .student-info p {
+                margin-bottom: 6px;
+                font-size: 0.9rem;
+            }
+            
+            .qr-code {
+                width: 70px;
+                height: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-container">
+        <div class="digital-card" id="digitalCard">
+            <div class="card-header">
+                វិទ្យាល័យកំរៀង
+                <div style="font-size: 0.8rem; margin-top: 5px;">Student ID Card</div>
+            </div>
+            <div class="card-body">
+                <img src="" alt="Student Photo" class="student-photo" id="studentPhoto">
+                <div class="student-info">
+                    <p><strong>ID:</strong> <span id="studentId">--</span></p>
+                    <p><strong>Name:</strong> <span id="studentName">--</span></p>
+                    <p><strong>Class:</strong> <span id="studentClass">--</span></p>
+                    <p><strong>Year:</strong> <span id="studentYear">--</span></p>
+                </div>
+                <div class="qr-section">
+                    <div class="qr-code" id="qrCode">
+                        <div style="color: #999; font-size: 0.8rem;">QR Code</div>
+                    </div>
+                    <div class="qr-label">Scan for Info</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load students data -->
+    <script src="students.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+        });
+
+        function initializePage() {
+            checkUrlParameters();
+        }
+
+        function findStudentById(studentId) {
+            if (typeof students === "undefined" || !Array.isArray(students)) {
+                return null;
+            }
+            return students.find(s => String(s.id) === studentId);
+        }
+
+        function fillCardData(student) {
+            // Set placeholder image if no photo
+            const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjZjhmOWZhIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzY2NjY2NiIvPgo8cGF0aCBkPSJNMjUgNzVDMjUgNjUuMDU5NCAzMy4wNTk0IDU3IDQzIDU3SDU3QzY2Ljk0MDYgNTcgNzUgNjUuMDU5NCA3NSA3NVYxMDBIMjVWNzVaIiBmaWxsPSIjNjY2NjY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5OTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QaG90bzwvdGV4dD4KPC9zdmc+';
+            
+            const photoElement = document.getElementById('studentPhoto');
+            if (student.photo && student.photo.trim() !== '') {
+                photoElement.src = student.photo;
+                photoElement.onerror = function() {
+                    // If the image fails to load, use placeholder
+                    this.src = placeholderImage;
+                };
+            } else {
+                photoElement.src = placeholderImage;
+            }
+            
+            document.getElementById('studentId').textContent = student.id || '--';
+            document.getElementById('studentName').textContent = student.name || '--';
+            document.getElementById('studentClass').textContent = student.class || '--';
+            document.getElementById('studentYear').textContent = student.studyYear || '--';
+        }
+
+        function generateQRCode(student) {
+            const qrElement = document.getElementById('qrCode');
+            qrElement.innerHTML = '';
+            
+            // Create QR code with link to digital card page (same as id-card.html)
+            const currentUrl = window.location.origin + window.location.pathname.replace('digital-card.html', '');
+            const qrData = `${currentUrl}digital-card.html?id=${student.id}`;
+            console.log('QR Data (Link):', qrData);
+            
+            if (typeof QRCode !== 'undefined') {
+                try {
+                    new QRCode(qrElement, {
+                        text: qrData,
+                        width: 76,
+                        height: 76,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                    console.log('QR Code generated successfully');
+                } catch (error) {
+                    console.error('QR Code generation failed:', error);
+                    qrElement.innerHTML = '<div style="color: #999; font-size: 0.7rem;">QR Error</div>';
+                }
+            } else {
+                qrElement.innerHTML = '<div style="color: #999; font-size: 0.7rem;">No QR Library</div>';
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+        }
+
+        function clearError() {
+            document.getElementById('error').textContent = '';
+        }
+
+        function checkUrlParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const studentId = urlParams.get('id');
+            
+            if (studentId) {
+                console.log('Found student ID in URL:', studentId);
+                
+                // Auto-generate card if student ID is in URL
+                setTimeout(() => {
+                    generateDigitalCard(studentId);
+                }, 500);
+            } else {
+                // If no ID in URL, show default message
+                fillCardData({
+                    id: '--',
+                    name: 'No Student Selected',
+                    class: '--',
+                    studyYear: '--'
+                });
+            }
+        }
+
+        function generateDigitalCard(studentId) {
+            const student = findStudentById(studentId);
+            if (!student) {
+                console.error('Student not found:', studentId);
+                fillCardData({
+                    id: studentId,
+                    name: 'Student Not Found',
+                    class: '--',
+                    studyYear: '--'
+                });
+                return;
+            }
+            
+            // Fill card data
+            fillCardData(student);
+            
+            // Generate QR code
+            generateQRCode(student);
+        }
+
+    </script>
+</body>
+</html>

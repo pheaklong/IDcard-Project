@@ -379,19 +379,14 @@
       </div>
     </div>
 
+    <!-- Import students data -->
+    <script src="students.js"></script>
+    
     <script>
-      // Load students from localStorage or fallback to students.json
-      async function getStudents() {
-        try {
-          const response = await fetch("students.js");
-          if (!response.ok) throw new Error("Failed to load JSON");
-          students = await response.json();
-          // Save to localStorage for future use
-          localStorage.setItem("students", JSON.stringify(students));
-          return students;
-        } catch (e) {
-          return [];
-        }
+      // Load students from the imported students.js file
+      function getStudents() {
+        // The students variable is now available globally from students.js
+        return students || [];
       }
 
       // Render student table

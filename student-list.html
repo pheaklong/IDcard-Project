@@ -1,486 +1,312 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student List - High School</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <style>
-      :root {
-        --primary-color: #2c3e50;
-        --secondary-color: #3498db;
-      }
-
-      .navbar {
-        background-color: var(--primary-color);
-      }
-
-      .section-title {
-        position: relative;
-        margin-bottom: 30px;
-        padding-bottom: 15px;
-      }
-
-      .section-title:after {
-        content: "";
-        position: absolute;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 80px;
-        height: 3px;
-        background-color: var(--secondary-color);
-      }
-
-      .table-responsive {
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-      }
-
-      .table thead {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      footer {
-        background-color: var(--primary-color);
-        color: white;
-        padding: 30px 0;
-        margin-top: 50px;
-      }
-
-      .student-photo {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #e9ecef;
-      }
-
-      .action-buttons {
-        white-space: nowrap;
-      }
-
-      .modal-header {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .modal-photo {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin: 0 auto 20px;
-        display: block;
-        border: 3px solid var(--secondary-color);
-      }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Card - High School</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+   <style>
+        :root {
+            --primary-color: #3287dd;
+            --secondary-color: #3498db;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .section-title {
+            position: relative;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--secondary-color);
+        }
+        
+        .id-card {
+            width: 350px;
+            height: 220px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(115, 200, 249, 0.2);
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .id-card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .id-card-body {
+            padding: 15px;
+        }
+        
+        .id-card-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            border: 2px solid var(--secondary-color);
+            object-fit: cover;
+            background-color: #f8f9fa;
+        }
+        
+        .student-info p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .qr-code-container {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background-color: white;
+        }
+        
+        #qrcode {
+            display: inline-block;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .full-info-card {
+            border-left: 4px solid var(--secondary-color);
+        }
     </style>
-  </head>
-  <body>
-    <!-- Navigation -->
+</head>
+<body>
+    <!-- Navigation and main content unchanged ... -->
+ <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-      <div class="container">
-        <a class="navbar-brand" href="index.html">
-          <i class="fas fa-graduation-cap me-2"></i>High School Portal
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="index.html"
-                ><i class="fas fa-home me-1"></i> Home</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="student-list.html"
-                ><i class="fas fa-list me-1"></i> Student List</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="id-card.html"
-                ><i class="fas fa-id-card me-1"></i> ID Card</a
-              >
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="admin.html"
-                ><i class="fas fa-user-shield me-1"></i> Admin</a
-              >
-            </li>
-          </ul>
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>វិទ្យាល័យកំរៀង
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-      </div>
     </nav>
 
-    <!-- Student List Section -->
-    <section class="py-5 bg-light">
-      <div class="container">
-        <h2 class="section-title text-center">Student Directory</h2>
-        <p class="text-center mb-5">
-          Browse our student directory by class or search for specific students
-        </p>
-
-        <div class="row mb-4">
-          <div class="col-md-6">
-            <div class="input-group mb-3">
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Search by name or ID..."
-                id="searchInput"
-              />
-              <button class="btn btn-primary" type="button" id="searchButton">
-                Search
-              </button>
+    <!-- ID Card Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title text-center">ទំព័រកាតសិស្ស នៃវិទ្យាល័យកំរៀង</h2>
+            <p class="text-center mb-5">នេះជាទំព័រសម្រាប់ស្វែងរក និងបញ្ជាក់ថាសិស្សនេះជាសិស្យនៃវិទ្យាល័យកំរៀង</p>
+            
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="studentIdInput" class="form-label">សូមបញ្ញូល ID របស់ខ្លួន</label>
+                                <input type="text" class="form-control" id="studentIdInput" placeholder="Enter student ID">
+                            </div>
+                            <button class="btn btn-primary w-100" id="generateIdCard">
+                                <i class="fas fa-id-card me-2"></i>ស្វែករក កាតសិស្ស
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="col-md-6">
-            <div class="input-group mb-3">
-              <select class="form-select" id="classFilter">
-                <option value="">All Classes</option>
-                <option value="7">Grade 7</option>
-                <option value="8">Grade 8</option>
-                <option value="9">Grade 9</option>
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-              </select>
-              <button
-                class="btn btn-outline-primary"
-                type="button"
-                id="filterButton"
-              >
-                Filter
-              </button>
+            
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div id="idCardContainer" class="d-none">
+                        <h4 class="text-center mb-4">Student ID Card</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="id-card mx-auto">
+                                    <div class="id-card-header">
+                                        វិទ្យាល័យកំរៀង
+                                    </div>
+                                    <div class="id-card-body">
+                                        <div class="row">
+                                            <div class="col-5">
+                                                <img src="" alt="Student Photo" class="id-card-photo w-100" id="idCardPhoto">
+                                            </div>
+                                            <div class="col-7 student-info">
+                                                <p class="mb-1"><strong>ID:</strong> <span id="idCardId"></span></p>
+                                                <p class="mb-1"><strong>ឈ្មោះ:</strong> <span id="idCardName"></span></p>
+                                                <p class="mb-1"><strong>ថ្នាក់ទី:</strong> <span id="idCardClass"></span></p>
+                                                <p class="mb-1"><strong>ឆ្នាំសិក្សា:</strong> <span id="idCardValid"></span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-primary" id="printIdCard">
+                                        <i class="fas fa-print me-2"></i>Print ID Card
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="qr-code-container">
+                                    <h5>Scan QR Code for Full Information</h5>
+                                    <div id="qrcode" class="my-3"></div>
+                                    <p class="text-muted small">Scan this QR code to view complete student information</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Full Student Information -->
+                        <div class="card full-info-card mt-5" id="fullInfoCard">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Complete Student Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="fullStudentInfo">
+                                    <!-- Full student info will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-
-        <div class="table-responsive">
-          <table class="table table-striped table-hover">
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Student ID</th>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Gender</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentTableBody">
-              <!-- Student data will be populated here -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="text-center mt-4">
-          <a href="report.html" class="btn btn-success">
-            <i class="fas fa-file-excel me-2"></i>Export to Excel
-          </a>
-        </div>
-      </div>
     </section>
 
     <!-- Footer -->
     <footer>
-      <div class="container">
-        <div class="row">
-          <div class="col-md-4 mb-4 mb-md-0">
-            <h5>High School Portal</h5>
-            <p>Providing quality education since 1995.</p>
-          </div>
-          <div class="col-md-4 mb-4 mb-md-0">
-            <h5>Contact Info</h5>
-            <p>
-              <i class="fas fa-map-marker-alt me-2"></i> 123 Education Street
-            </p>
-            <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
-            <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
-          </div>
-          <div class="col-md-4">
-            <h5>Quick Links</h5>
-            <ul class="list-unstyled">
-              <li><a href="index.html" class="text-white">Home</a></li>
-              <li>
-                <a href="student-list.html" class="text-white">Student List</a>
-              </li>
-              <li><a href="id-card.html" class="text-white">ID Card</a></li>
-              <li><a href="admin.html" class="text-white">Admin</a></li>
-            </ul>
-          </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>High School Portal</h5>
+                    <p>Providing quality education since 1995.</p>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5>Contact Info</h5>
+                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
+                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html" class="text-white">Home</a></li>
+                        <li><a href="student-list.html" class="text-white">Student List</a></li>
+                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
+                        <li><a href="admin.html" class="text-white">Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p>&copy; 2023 High School Portal. All rights reserved.</p>
+            </div>
         </div>
-        <hr class="my-4 bg-light" />
-        <div class="text-center">
-          <p>&copy; 2023 High School Portal. All rights reserved.</p>
-        </div>
-      </div>
     </footer>
 
-    <!-- Student Details Modal -->
-    <div
-      class="modal fade"
-      id="studentModal"
-      tabindex="-1"
-      aria-labelledby="studentModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="studentModalLabel">Student Details</h5>
-            <button
-              type="button"
-              class="btn-close btn-close-white"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body" id="studentModalBody">
-            <!-- Student details will be populated here -->
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Student Modal -->
-    <div
-      class="modal fade"
-      id="editStudentModal"
-      tabindex="-1"
-      aria-labelledby="editStudentModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <form id="editStudentForm">
-              <input type="hidden" id="editStudentId" />
-              <div class="mb-3">
-                <label for="editStudentName" class="form-label">Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="editStudentName"
-                  required
-                />
-              </div>
-              <div class="mb-3">
-                <label for="editStudentClass" class="form-label">Class</label>
-                <select class="form-select" id="editStudentClass" required>
-                  <option value="7">Grade 7</option>
-                  <option value="8">Grade 8</option>
-                  <option value="9">Grade 9</option>
-                  <option value="10">Grade 10</option>
-                  <option value="11">Grade 11</option>
-                  <option value="12">Grade 12</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="editStudentGender" class="form-label">Gender</label>
-                <select class="form-select" id="editStudentGender" required>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="editStudentPhoto" class="form-label"
-                  >Photo URL</label
-                >
-                <input type="text" class="form-control" id="editStudentPhoto" />
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button type="button" class="btn btn-primary" id="saveStudentBtn">
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div
-      class="modal fade"
-      id="deleteModal"
-      tabindex="-1"
-      aria-labelledby="deleteModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            Are you sure you want to delete this student record? This action
-            cannot be undone.
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
-            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-              Delete
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Load students.js before your main JS -->
+    <script src="students.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-      // Load students from localStorage or fallback to on
-      async function getStudents() {
-        try {
-          const response = await fetch("on");
-          if (!response.ok) throw new Error("Failed to load JSON");
-          students = await response.json();
-          // Save to localStorage for future use
-          localStorage.setItem("students", JSON.stringify(students));
-          return students;
-        } catch (e) {
-          return [];
-        }
-      }
-
-      // Render student table
-      async function populateStudentTable() {
-        const students = await getStudents();
-        const tableBody = document.getElementById("studentTableBody");
-        tableBody.innerHTML = "";
-
-        if (students.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" class="text-center">No students found.</td></tr>`;
-          return;
+    document.addEventListener('DOMContentLoaded', function () {
+        function showError(msg) {
+            alert(msg);
         }
 
-        students.forEach((student) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-                <td><img src="${student.photo}" alt="${student.name}" class="student-photo"></td>
-                <td>${student.id}</td>
-                <td>${student.name}</td>
-                <td>${student.class}</td>
-                <td>${student.gender}</td>
-                <td>
-                    <button class="btn btn-sm btn-info view-student" data-id="${student.id}">View</button>
-                    <button class="btn btn-sm btn-warning edit-student" data-id="${student.id}">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger delete-student" data-id="${student.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
+        function fillIdCard(student) {
+            document.getElementById('idCardContainer').classList.remove('d-none');
+            document.getElementById('idCardPhoto').src = student.photo || '';
+            document.getElementById('idCardId').textContent = student.id || '';
+            document.getElementById('idCardName').textContent = student.name || '';
+            document.getElementById('idCardClass').textContent = student.class || '';
+            document.getElementById('idCardValid').textContent = student.studyYear || '';
+            document.getElementById('fullStudentInfo').innerHTML = `
+                <div class="col-md-6">
+                    <p><strong>Gender:</strong> ${student.gender || ''}</p>
+                    <p><strong>Date of Birth:</strong> ${student.dob || ''}</p>
+                    <p><strong>Address:</strong> ${student.address || ''}</p>
+                    <p><strong>Phone:</strong> ${student.phone || ''}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Father:</strong> ${student.father || ''}</p>
+                    <p><strong>Mother:</strong> ${student.mother || ''}</p>
+                    <p><strong>Study Year:</strong> ${student.studyYear || ''}</p>
+                </div>
             `;
-          tableBody.appendChild(row);
-        });
-
-        // Add event listeners for view, edit, and delete
-        document.querySelectorAll(".view-student").forEach((button) => {
-          button.addEventListener("click", function () {
-            const studentId = this.getAttribute("data-id");
-            viewStudentDetails(studentId);
-          });
-        });
-
-        document.querySelectorAll(".edit-student").forEach((button) => {
-          button.addEventListener("click", function () {
-            const studentId = this.getAttribute("data-id");
-            editStudent(studentId);
-          });
-        });
-
-        document.querySelectorAll(".delete-student").forEach((button) => {
-          button.addEventListener("click", function () {
-            const studentId = this.getAttribute("data-id");
-            deleteStudent(studentId);
-          });
-        });
-      }
-
-      // View student details (redirect to a view page or show modal)
-      function viewStudentDetails(studentId) {
-        window.location.href = `id-card.html?studentId=${studentId}`;
-      }
-
-      // Edit student (save to localStorage and redirect)
-      function editStudent(studentId) {
-        getStudents().then((students) => {
-          const student = students.find((s) => s.id === studentId);
-          if (student) {
-            localStorage.setItem("editStudent", JSON.stringify(student));
-            window.location.href = `edit-student.html?studentId=${studentId}`;
-          }
-        });
-      }
-
-      // Delete student
-      function deleteStudent(studentId) {
-        let students = JSON.parse(localStorage.getItem("students")) || [];
-        const index = students.findIndex((s) => s.id === studentId);
-        if (index !== -1) {
-          if (confirm("Are you sure you want to delete this student?")) {
-            students.splice(index, 1);
-            localStorage.setItem("students", JSON.stringify(students));
-            populateStudentTable();
-          }
+            // Generate QR code
+            if (window.QRCode) {
+                document.getElementById('qrcode').innerHTML = '';
+                new QRCode(document.getElementById('qrcode'), {
+                    text: JSON.stringify(student),
+                    width: 128,
+                    height: 128
+                });
+            }
         }
-      }
 
-      // Initial population
-      document.addEventListener("DOMContentLoaded", populateStudentTable);
+        document.getElementById('generateIdCard').addEventListener('click', function() {
+            const studentId = document.getElementById('studentIdInput').value.trim();
+            if (!studentId) {
+                showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID)');
+                return;
+            }
+            if (typeof students === "undefined" || !Array.isArray(students)) {
+                showError("students.js មិនត្រូវបានបញ្ចូលឬ students array មិនមាន!");
+                return;
+            }
+            const student = students.find((s) => String(s.id) === studentId);
+            if (!student) {
+                showError('រកមិនឃើញសិស្សនេះទេ!');
+                document.getElementById('idCardContainer').classList.add('d-none');
+                return;
+            }
+            fillIdCard(student);
+        });
+
+        document.getElementById('printIdCard').addEventListener('click', function () {
+            window.print();
+        });
+    });
     </script>
-    <!-- ...existing code... -->
-  </body>
+</body>
 </html>

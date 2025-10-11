@@ -383,7 +383,7 @@
       // Load students from localStorage or fallback to students.json
       async function getStudents() {
         try {
-          const response = await fetch("students.json");
+          const response = await fetch("students.js");
           if (!response.ok) throw new Error("Failed to load JSON");
           students = await response.json();
           // Save to localStorage for future use

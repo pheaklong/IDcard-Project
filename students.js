@@ -1,4 +1,4 @@
-[
+const students = [
   {
     "id": 1,
     "name": "ឆៀង អានីតា",

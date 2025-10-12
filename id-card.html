@@ -212,13 +212,6 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="row mt-2">
-                                <div class="col-12">
-                                    <button class="btn btn-warning btn-sm w-100" id="testQRCode">
-                                        <i class="fas fa-qrcode me-2"></i>Test QR Code Generation
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -434,9 +427,6 @@
             
             // Back to single view
             document.getElementById('backToSingle').addEventListener('click', backToSingleView);
-            
-            // Test QR Code button
-            document.getElementById('testQRCode').addEventListener('click', testQRCodeGeneration);
             
             // Student select change
             document.getElementById('studentSelect').addEventListener('change', function() {
@@ -700,38 +690,9 @@
             document.head.appendChild(script);
         }
         
-        // Test QR Code generation function
-        function testQRCodeGeneration() {
-            console.log('Testing QR Code generation...');
-            console.log('QRCode available:', typeof QRCode !== 'undefined');
-            
-            if (typeof QRCode === 'undefined') {
-                alert('QRCode library is not loaded! Check console for details.');
-                return;
-            }
-            
-            // Create a test element
-            const testDiv = document.createElement('div');
-            testDiv.id = 'test-qr-display';
-            testDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 9999; text-align: center;';
-            testDiv.innerHTML = '<h5>QR Code Test</h5><div id="test-qr-element"></div><button onclick="this.parentElement.remove()" style="margin-top: 10px;">Close</button>';
-            
-            document.body.appendChild(testDiv);
-            
-            // Generate test QR code
-            const testStudent = {
-                id: 999,
-                name: 'Test Student',
-                class: 10,
-                studyYear: 2026
-            };
-            
-            generateQRCode('test-qr-element', testStudent);
-        }
         
         // Make functions available globally for debugging
         window.reloadQRLibrary = reloadQRLibrary;
-        window.testQRCodeGeneration = testQRCodeGeneration;
     });
     </script>
 </body>

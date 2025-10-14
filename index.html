@@ -21,18 +21,31 @@
 
         }
         
+        
         .navbar {
             background-color: var(--primary-color);
             box-shadow: 0 2px 10px rgba(88, 173, 243, 0.1);
         }
         
         .hero-section {
-            background-image:url('001.jpg')
-            background-size: cover;
-            background-position: center;
             color: white;
-            padding: 100px 0;
             text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            margin-bottom: 50px;
+            overflow: hidden; /* Important for containing the blurred background */
+        }
+
+        .hero-section::before {
+            content: '';
+            background: url('khlong_tvea.jpg') no-repeat center center/cover;
+            filter: blur(5px);
+            position: absolute;
+            top: 0;
+            left: 15px;
+            right: 0;
+            bottom: 0;
+            z-index: -1; /* Places it behind the content */
         }
         
         .section-title {
@@ -44,6 +57,8 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
             margin-bottom: 20px;
+            text-align: center;
+            background-color: var(--light-color);
         }
         
         .section-title:after {
@@ -64,7 +79,9 @@
             transition: transform 0.3s;
             margin-bottom: 20px;
         }
-        
+        .card-text {
+            text-align: justify;
+        }
         .card:hover {
             transform: translateY(-5px);
         }
@@ -83,11 +100,91 @@
         
         }
         .col-lg-8 {
-            background-image: url('001.jpg');
+            background-color: white;
             padding: 20px;
             border-radius: 10px;
+            color:black;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(8, 8, 8, 0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+            
+
         }
         
+        /* News Section */
+        .news {
+            padding: 80px 0;
+            background-color: #f8f9fa;
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .news-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .news-image {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .news-card:hover .news-image img {
+            transform: scale(1.05);
+        }
+        
+        .news-content {
+            padding: 20px;
+        }
+        
+        .news-date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .news-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #1a4a8d;
+        }
+        
+        .news-content p {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .read-more {
+            color: #1a4a8d;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .read-more i {
+            margin-left: 5px;
+            transition: transform 0.3s;
+        }
+        
+        .read-more:hover i {
+            transform: translateX(5px);
+        }
     </style>
 </head>
 <body>
@@ -139,50 +236,80 @@
         </div>
     </section>
 
+    <!-- News Section -->
+    <section class="news">
+        <div class="container">
+            <div class="section-title">
+                <h2>ការជូនដំណឹងថ្មីៗ</h2>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-image">
+                        <img src="khlong_tvea.jpg" alt="Science Fair">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">០១​ តុលា​ ២០២៥</div>
+                        <h3>ការទទួលពាក្យចូលរៀន</h3>
+                        <p>វិទ្យាល័យកំរៀងចាប់ផ្តើមទទួលពាក្យចូលរៀនចាប់ពីការជូនដំណឹងនេះតទៅ រហូតដល់ថ្ងៃទី ១៨ តុលា ២០២៥
+                        </p>
+                        <a href="#" class="read-more">ព័ត៌មានលម្អិត <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-image">
+                        <img src="news2.png" alt="News 2">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">១៤ តុលា 202៥</div>
+                        <h3>ជូនដំណឹង</h3>
+                        <p>ការទទួលពាក្យចូលរៀននៅសល់តែ​ ០៤ថ្ងែទៀតប៉ុណ្ណោះ សូមប្រញាប់រុសរាន់ឡើង សូមអរគុណ!
+                        </p>
+                        <a href="#" class="read-more">ព័ត៌មានលម្អិត <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-image">
+                        <img src="https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="Graduation Ceremony">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">May 28, 2023</div>
+                        <h3>Class of 2023 Graduation Ceremony</h3>
+                        <p>Join us in celebrating the achievements of our graduating class at the annual commencement ceremony.</p>
+                        <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <!-- Dashboard Section -->
     <section class="py-5">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
-                    <h2 class="section-title">ព័ត៌មាន សាលា</h2>
                     <div class="card mb-4">
+                        <h2 class="section-title">ព័ត៌មាន សាលា</h2>
                         <div class="card-body">
                             <h5 class="card-title">អំពីសាលា</h5>
-                            <p class="card-text">វិទ្យាល័យរបស់យើងប្តេជ្ញាផ្តល់ ការអប់រំដ៏ទូលំទូលាយមួយដែលរៀបចំសិស្សឱ្យទទួលបានជោគជ័យនៅក្នុងកាសិក្សា លើសពីនេះយើងផ្តល់ជូននូវកម្មវិធីសិក្សាដ៏ធំទូលាយ សកម្មភាពក្រៅកម្មវិធីសិក្សា និងសេវាកម្មគាំទ្រផ្សេងៗ</p>
-                            <p class="card-text">ជាមួយនឹងគ្រូដែលមានចំណេះដឹងនិងសមត្ថភាពព្រមទាំងវិធីសាស្រ្តបង្រៀនថ្មីៗ យើងធានាបាននូវការយកចិត្តទុកដាក់សម្រាប់សិស្សគ្រប់រូប។ គ្រឿងបរិក្ខាររបស់យើងរួមមានមន្ទីរពិសោធន៍ វិទ្យាសាស្ត្រទំនើប បណ្ណាល័យទំនើប និងសម្ភារៈកីឡាដ៏សំបូរបែប</p>
+                            <p class="card-text">វិទ្យាល័យរបស់យើងប្តេជ្ញាផ្តល់ ការអប់រំដ៏ទូលំទូលាយមួយដែលរៀបចំសិស្សឱ្យទទួលបានជោគជ័យនៅក្នុងកាសិក្សា លើសពីនេះយើងផ្តល់ជូននូវកម្មវិធីសិក្សាដ៏ធំទូលាយ សកម្មភាពក្រៅកម្មវិធីសិក្សា និងសេវាកម្មគាំទ្រផ្សេងៗ
+                                ជាមួយនឹងគ្រូដែលមានចំណេះដឹងនិងសមត្ថភាពព្រមទាំងវិធីសាស្រ្តបង្រៀនថ្មីៗ យើងធានាបាននូវការយកចិត្តទុកដាក់សម្រាប់សិស្សគ្រប់រូប។ គ្រឿងបរិក្ខាររបស់យើងរួមមានមន្ទីរពិសោធន៍ វិទ្យាសាស្ត្រទំនើប បណ្ណាល័យទំនើប និងសម្ភារៈកីឡាដ៏សំបូរបែប</p>
                         </div>
                     </div>
                     
-                    <h2 class="section-title">ការជូនដំណឹងថ្មី!</h2>
-                    <div class="news-item">
-                        <h5>Annual Science Fair - March 15</h5>
-                        <p>Students are invited to participate in our annual science fair. Registration closes on March 1st.</p>
-                        <small class="text-muted">Posted: February 10, 2023</small>
-                    </div>
-                    <div class="news-item">
-                        <h5>Parent-Teacher Conference</h5>
-                        <p>The spring parent-teacher conference will be held on March 20-21. Please schedule your appointments.</p>
-                        <small class="text-muted">Posted: February 5, 2023</small>
-                    </div>
-                    <div class="news-item">
-                        <h5>Scholarship Opportunities</h5>
-                        <p>Several scholarship opportunities are available for graduating seniors. Application deadline is April 1st.</p>
-                        <small class="text-muted">Posted: January 28, 2023</small>
-                    </div>
+                    
                 </div>
                 
                 <div class="col-lg-4">
-                    <h2 class="section-title">Quick Stats</h2>
+                    <h2 class="section-title">ស្ថិតិ</h2>
                     <div class="card text-center mb-4">
                         <div class="card-body">
-                            <h3 class="card-title">1,250</h3>
-                            <p class="card-text">Total Students</p>
+                            <h3 class="card-title">1,450</h3>
+                            <p class="card-text">ចំនួនសិស្សសរុប</p>
                         </div>
                     </div>
                     <div class="card text-center mb-4">
                         <div class="card-body">
-                            <h3 class="card-title">85</h3>
-                            <p class="card-text">Faculty Members</p>
+                            <h3 class="card-title">53</h3>
+                            <p class="card-text">ចំនួនគ្រូសរុប</p>
                         </div>
                     </div>
                     <div class="card text-center mb-4">

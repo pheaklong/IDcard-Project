@@ -32,7 +32,7 @@
             text-align: center;
             padding: 60px 20px;
             position: relative;
-            margin-bottom: 50px;
+            margin-bottom: 1px;
             overflow: hidden; /* Important for containing the blurred background */
         }
 
@@ -46,17 +46,19 @@
             right: 0;
             bottom: 0;
             z-index: -1; /* Places it behind the content */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            
         }
         
         .section-title {
             position: relative;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+            margin-bottom: 5px;
+            padding-bottom: 5px;
              border: none;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             text-align: center;
             background-color: var(--light-color);
         }
@@ -69,7 +71,8 @@
             transform: translateX(-50%);
             width: 80px;
             height: 3px;
-            background-color: var(--secondary-color);
+            
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .card {
@@ -122,14 +125,14 @@
         .news-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
+            gap: 20px;
         }
         
         .news-card {
-            background-color: white;
+            background-color: rgb(219, 238, 249);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.១);
         }
         
         .news-image {
@@ -150,6 +153,7 @@
         
         .news-content {
             padding: 20px;
+            
         }
         
         .news-date {
@@ -166,7 +170,7 @@
         
         .news-content p {
             margin-bottom: 15px;
-            color: #666;
+            color: #000000;
         }
         
         .read-more {
@@ -184,6 +188,26 @@
         
         .read-more:hover i {
             transform: translateX(5px);
+        }
+        .title-new{
+            position: relative;
+            margin-bottom: 20px;
+            padding-bottom: 2px;
+             border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            text-align: center;
+            background-color: var(--light-color);
+            transform: scale(1.05);
+    
+        }
+        .about-title{
+            text-align: left;
+            color: #3498db;
+            transform: scale(1.05);
+            font-size: 25px;
+            ;
         }
     </style>
 </head>
@@ -229,7 +253,7 @@
             <div class="row">
                 <div class="col-lg-8 mx-auto">
                     <h1 class="display-4 mb-4">វិទ្យាល័យកំរៀង</h1>
-                    <p class="lead mb-4">ដែលមានទីតាំងស្ថិតនៅ    ភូមិអូរដា ឃុំកំរៀង ស្រុកកំរៀង ខេត្តបាត់ដំបង</p>
+                    <p class="lead mb-4">មានទីតាំងស្ថិតនៅ    ភូមិអូរដា ឃុំកំរៀង ស្រុកកំរៀង ខេត្តបាត់ដំបង</p>
                     <a href="id-card.html" class="btn btn-primary btn-lg">ស្វែងរក​​ កាតសិស្ស</a>
                 </div>
             </div>
@@ -239,7 +263,7 @@
     <!-- News Section -->
     <section class="news">
         <div class="container">
-            <div class="section-title">
+            <div class="title-new">
                 <h2>ការជូនដំណឹងថ្មីៗ</h2>
             </div>
             <div class="news-grid">
@@ -273,9 +297,9 @@
                     </div>
                     <div class="news-content">
                         <div class="news-date">May 28, 2023</div>
-                        <h3>Class of 2023 Graduation Ceremony</h3>
-                        <p>Join us in celebrating the achievements of our graduating class at the annual commencement ceremony.</p>
-                        <a href="#" class="read-more">Read More <i class="fas fa-arrow-right"></i></a>
+                        <h3>ការបើកបវេសនកាលថ្មី</h3>
+                        <p>វិទ្យាល័យកំរៀងមានក្កិសយសូមជម្រាបជូនដំណឹងដល់ប្អូនៗសិស្សានុសិស្សនិងអាណាព្យាបាលសិស្សិទាំងអស់អោយបានជ្រាបថា សាលនិងចាប់ផ្តើមបើកបវេសនកាលថ្មីនៅថ្ងៃទី០១ ខែវិច្ឆកា ខាងមុខនេះ </p>
+                        <a href="#" class="read-more">ព័ត៌មានលម្អិត<i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
@@ -289,7 +313,15 @@
                     <div class="card mb-4">
                         <h2 class="section-title">ព័ត៌មាន សាលា</h2>
                         <div class="card-body">
-                            <h5 class="card-title">អំពីសាលា</h5>
+                            <h5 class="about-title"><pre>   អំពីសាលា</pre></h5>
+                            <p class="card-text">វិទ្យាល័យរបស់យើងប្តេជ្ញាផ្តល់ ការអប់រំដ៏ទូលំទូលាយមួយដែលរៀបចំសិស្សឱ្យទទួលបានជោគជ័យនៅក្នុងកាសិក្សា លើសពីនេះយើងផ្តល់ជូននូវកម្មវិធីសិក្សាដ៏ធំទូលាយ សកម្មភាពក្រៅកម្មវិធីសិក្សា និងសេវាកម្មគាំទ្រផ្សេងៗ
+                                ជាមួយនឹងគ្រូដែលមានចំណេះដឹងនិងសមត្ថភាពព្រមទាំងវិធីសាស្រ្តបង្រៀនថ្មីៗ យើងធានាបាននូវការយកចិត្តទុកដាក់សម្រាប់សិស្សគ្រប់រូប។ គ្រឿងបរិក្ខាររបស់យើងរួមមានមន្ទីរពិសោធន៍ វិទ្យាសាស្ត្រទំនើប បណ្ណាល័យទំនើប និងសម្ភារៈកីឡាដ៏សំបូរបែប</p>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        
+                        <div class="card-body">
+                            <h5 class="about-title"><pre>   ប្រព័ន្ធបណ្តុលបណ្តាល</pre></h5>
                             <p class="card-text">វិទ្យាល័យរបស់យើងប្តេជ្ញាផ្តល់ ការអប់រំដ៏ទូលំទូលាយមួយដែលរៀបចំសិស្សឱ្យទទួលបានជោគជ័យនៅក្នុងកាសិក្សា លើសពីនេះយើងផ្តល់ជូននូវកម្មវិធីសិក្សាដ៏ធំទូលាយ សកម្មភាពក្រៅកម្មវិធីសិក្សា និងសេវាកម្មគាំទ្រផ្សេងៗ
                                 ជាមួយនឹងគ្រូដែលមានចំណេះដឹងនិងសមត្ថភាពព្រមទាំងវិធីសាស្រ្តបង្រៀនថ្មីៗ យើងធានាបាននូវការយកចិត្តទុកដាក់សម្រាប់សិស្សគ្រប់រូប។ គ្រឿងបរិក្ខាររបស់យើងរួមមានមន្ទីរពិសោធន៍ វិទ្យាសាស្ត្រទំនើប បណ្ណាល័យទំនើប និងសម្ភារៈកីឡាដ៏សំបូរបែប</p>
                         </div>
@@ -319,25 +351,25 @@
                         </div>
                     </div>
                     
-                    <h2 class="section-title">Upcoming Events</h2>
+                    <h2 class="section-title">ព្រឹត្តិការណ៏សំខាន់ៗ</h2>
                     <div class="card">
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Basketball Tournament
-                                    <span class="badge bg-primary rounded-pill">Feb 20</span>
+                                    បវេសនកាលថ្មី
+                                    <span class="badge bg-primary rounded-pill">ថ្ងៃ០១​ តុលា</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Career Day
-                                    <span class="badge bg-primary rounded-pill">Feb 25</span>
+                                    តាំងពិពរណ៌ស្នាដែសិស្ស
+                                    <span class="badge bg-primary rounded-pill">ថ្ងៃ០២ កុម្ភៈ</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Spring Break
-                                    <span class="badge bg-primary rounded-pill">Mar 10-17</span>
+                                    ចូលឆ្នាំខ្មែរ
+                                    <span class="badge bg-primary rounded-pill">ថ្ងៃ​ ១៤ដល់១៦ មេសា</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Art Exhibition
-                                    <span class="badge bg-primary rounded-pill">Mar 22</span>
+                                    ប្រកូតកីឡាប្រចាំឆ្នាំ
+                                    <span class="badge bg-primary rounded-pill">ថ្ងៃ ០៦ មេសា</span>
                                 </li>
                             </ul>
                         </div>
@@ -363,21 +395,11 @@
             <p><i class="fas fa-phone me-2"></i> +885969982589</p>
             <p><i class="fas fa-envelope me-2"></i> kr@highschool.edu</p>
           </div>
-          <div class="col-md-4">
-            <h5>Menu</h5>
-            <ul class="list-unstyled">
-              <li><a href="index.html" class="text-white">Home</a></li>
-              <li>
-                <a href="student-list.html" class="text-white">Student List</a>
-              </li>
-              <li><a href="id-card.html" class="text-white">ID Card</a></li>
-              <li><a href="admin.html" class="text-white">Admin</a></li>
-            </ul>
-          </div>
+          
         </div>
         <hr class="my-4 bg-light" />
         <div class="text-center">
-          <p>&copy; ឆ្នាំសិក្សា ២០២៥៌-២០២៦</p>
+          <p>&copy; ឆ្នាំសិក្សា ២០២៥-២០២៦</p>
         </div>
       </div>
     </footer>

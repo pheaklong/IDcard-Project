@@ -2330,7 +2330,7 @@ var students = [
     "father": "….",
     "mother": "….",
     "studyYear": "2026"
-  }
+  },
 
   // student class 11E and 11F 
 

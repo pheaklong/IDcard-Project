@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ស្កេនសិស្សមកយឺត</title>
+    <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
+    <style>
+        body { font-family: 'Khmer OS', Arial, sans-serif; padding: 20px; }
+        #scanner-container { text-align: center; margin: 20px 0; }
+        video { border: 2px solid #333; border-radius: 10px; }
+        #result { margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
+    
+    <div id="scanner-container">
+        <video id="camera" width="400" height="300"></video>
+    </div>
+
+    <div id="result"></div>
+
+    <div>
+        <button class="btn-primary" onclick="window.location.href='list.html'">
+            📊 មើលរបាយការណ៍
+        </button>
+        <button class="btn-secondary" onclick="clearScan()">
+            🗑️ សម្អាតអេក្រង់
+        </button>
+    </div>
+
+    <script src="students.js"></script>
+    <script>
+        const video = document.getElementById('camera');
+        const resultDiv = document.getElementById('result');
+        let isScanning = true;
+
+        // បើកកាមេរ៉ា
+        startCamera();
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" } 
+            }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+                requestAnimationFrame(scanQR);
+            }).catch(function(err) {
+                resultDiv.innerHTML = `<div class="info">❌ មិនអាចបើកកាមេរ៉ាបាន: ${err.message}</div>`;
+            });
+        }
+
+        function scanQR() {
+            if (!isScanning) return;
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                const studentId = code.data;
+                const student = students.find(s => s.id === studentId || s.qr_code === studentId);
+                
+                if (student) {
+                    recordLateStudent(student);
+                } else {
+                    resultDiv.innerHTML = `<div class="info">❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ</div>`;
+                }
+            }
+            
+            if (isScanning) {
+                requestAnimationFrame(scanQR);
+            }
+        }
+
+        function recordLateStudent(student) {
+            const now = new Date();
+            const record = {
+                student_id: student.id,
+                name: student.name,
+                class: student.class,
+                late_time: now.toTimeString().split(' ')[0],
+                date: now.toDateString(),
+                timestamp: now.getTime()
+            };
+
+            // រក្សាទុកក្នុង localStorage
+            let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            reports.push(record);
+            localStorage.setItem('lateReports', JSON.stringify(reports));
+
+            // បង្ហាញលទ្ធផល
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h3>✅ កត់ត្រាបានជោគ!</h3>
+                    <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                    <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                    <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+                    <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
+                </div>
+            `;
+
+            // បញ្ឈប់ការស្កេនមួយភ្លែត
+            isScanning = false;
+            setTimeout(() => {
+                isScanning = true;
+                resultDiv.innerHTML = '';
+                requestAnimationFrame(scanQR);
+            }, 2000);
+        }
+
+        function clearScan() {
+            resultDiv.innerHTML = '';
+            isScanning = true;
+        }
+    </script>
+</body>
+</html>

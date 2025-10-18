@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍សិស្សមកយឺត</title>
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Khmer OS', Arial, sans-serif; padding: 20px; }
+        .filter-container { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
+        select, input, button { padding: 8px 12px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f2f2f2; }
+        .no-data { text-align: center; padding: 20px; color: #6c757d; }
+        .export-btn { background: #17a2b8; }
+        .export-btn:hover { background: #138496; }
+    </style>
+</head>
+<body>
+    <h1>📊 របាយការណ៍សិស្សមកយឺត</h1>
+    
+    <div class="filter-container">
+        <label for="dateFilter">📅 ជ្រើសរើសកាលបរិច្ឆេទ:</label>
+        <input type="date" id="dateFilter" onchange="filterReports()">
+        
+        <label for="classFilter">🏫 ជ្រើសរើសថ្នាក់:</label>
+        <select id="classFilter" onchange="filterReports()">
+            <option value="">ទាំងអស់</option>
+            <option value="10A">10A</option>
+            <option value="10B">10B</option>
+            <option value="10C">10C</option>
+        </select>
+        
+        <button onclick="exportToExcel()" class="export-btn">📥 Export to Excel</button>
+        <button onclick="window.location.href='scan.html'">🔍 ត្រលប់ទៅស្កេន</button>
+    </div>
+
+    <div id="reportResult"></div>
+
+    <script>
+        function loadReports() {
+            return JSON.parse(localStorage.getItem('lateReports') || '[]');
+        }
+
+        function filterReports() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const classFilter = document.getElementById('classFilter').value;
+            const allReports = loadReports();
+            
+            let filteredReports = allReports;
+            
+            // Filter by date
+            if (dateFilter) {
+                filteredReports = filteredReports.filter(report => {
+                    const reportDate = new Date(report.timestamp).toISOString().split('T')[0];
+                    return reportDate === dateFilter;
+                });
+            }
+            
+            // Filter by class
+            if (classFilter) {
+                filteredReports = filteredReports.filter(report => report.class === classFilter);
+            }
+            
+            displayReports(filteredReports);
+        }
+
+        function displayReports(reports) {
+            const reportResult = document.getElementById('reportResult');
+            
+            if (reports.length === 0) {
+                reportResult.innerHTML = '<div class="no-data">មិនមានទិន្នន័យសម្រាប់បង្ហាញ</div>';
+                return;
+            }
+
+            let html = `
+                <h3>សរុប: ${reports.length} នាក់</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ល.រ</th>
+                            <th>ឈ្មោះសិស្ស</th>
+                            <th>ថ្នាក់</th>
+                            <th>ពេលវេលាមកយឺត</th>
+                            <th>កាលបរិច្ឆេទ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            reports.forEach((report, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${report.name}</td>
+                        <td>${report.class}</td>
+                        <td>${report.late_time}</td>
+                        <td>${report.date}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            reportResult.innerHTML = html;
+        }
+
+        function exportToExcel() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            const classFilter = document.getElementById('classFilter').value;
+            let reports = loadReports();
+            
+            // Apply same filters as display
+            if (dateFilter) {
+                reports = reports.filter(report => {
+                    const reportDate = new Date(report.timestamp).toISOString().split('T')[0];
+                    return reportDate === dateFilter;
+                });
+            }
+            
+            if (classFilter) {
+                reports = reports.filter(report => report.class === classFilter);
+            }
+
+            if (reports.length === 0) {
+                alert('មិនមានទិន្នន័យសម្រាប់ Export');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = reports.map((report, index) => ({
+                'ល.រ': index + 1,
+                'ឈ្មោះសិស្ស': report.name,
+                'ថ្នាក់': report.class,
+                'ពេលវេលាមកយឺត': report.late_time,
+                'កាលបរិច្ឆេទ': report.date
+            }));
+
+            // Create worksheet and workbook
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'សិស្សមកយឺត');
+
+            // Generate filename with date
+            const dateStr = dateFilter || new Date().toISOString().split('T')[0];
+            const filename = `សិស្សមកយឺត_${dateStr}.xlsx`;
+
+            // Export to Excel
+            XLSX.writeFile(wb, filename);
+        }
+
+        // Load all reports on page load
+        window.onload = function() {
+            filterReports();
+        };
+    </script>
+</body>
+</html>

@@ -12,7 +12,7 @@ var students = [
     "father": "….",
     "mother": "….",
     "studyYear": "2026",
-    "qr_code": "5323"
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5323"
   },
   {
     "id": "5324",
@@ -26,7 +26,7 @@ var students = [
     "father": "….",
     "mother": "….",
     "studyYear": "2026",
-    "qr_code": "5324"
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5324"
   },
   {
     "id": "5325",
@@ -40,7 +40,7 @@ var students = [
     "father": "….",
     "mother": "….",
     "studyYear": "2026",
-    "qr_code": "5325"
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5325"
   },
   {
     "id": "5326",

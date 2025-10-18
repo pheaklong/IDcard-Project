@@ -11,7 +11,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "5323"
   },
   {
     "id": "5324",
@@ -24,7 +25,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "5324"
   },
   {
     "id": "5325",
@@ -37,7 +39,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "5325"
   },
   {
     "id": "5326",

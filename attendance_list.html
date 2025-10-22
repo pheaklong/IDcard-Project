@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>បញ្ជីវត្តមាន - កម្មវិធីស្កេនកាតសិស្ស</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Khmer OS System', 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        header p {
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        select, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #219653;
+        }
+        
+        .attendance-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .summary-card h3 {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .attendance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .attendance-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .attendance-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .attendance-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .attendance-table tr:hover {
+            background: #e9f7fe;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .nav-btn {
+            padding: 12px 25px;
+            background: #2c3e50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #1a252f;
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .control-group {
+                min-width: 100%;
+            }
+            
+            .attendance-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .attendance-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>បញ្ជីវត្តមានសិស្ស</h1>
+            <p>ចុចជ្រើសរើសថ្ងៃខែដើម្បីមើលបញ្ជីវត្តមាន និង Export ទៅជា Excel</p>
+        </header>
+        
+        <div class="content">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="dateSelect">ជ្រើសរើសថ្ងៃខែ</label>
+                    <select id="dateSelect">
+                        <option value="">-- ជ្រើសរើសថ្ងៃខែ --</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="classFilter">តម្រងតាមថ្នាក់</label>
+                    <select id="classFilter">
+                        <option value="">ទាំងអស់</option>
+                        <option value="12A">12A</option>
+                        <option value="12B">12B</option>
+                        <option value="11A">11A</option>
+                        <option value="11B">11B</option>
+                        <option value="10A">10A</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button id="exportBtn" class="btn-success">
+                        <span>Export to Excel</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="attendance-summary" id="summaryCards">
+                <!-- Summary cards will be populated by JavaScript -->
+            </div>
+            
+            <div id="attendanceList">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>ល.រ</th>
+                            <th>លេខកូដសិស្ស</th>
+                            <th>ឈ្មោះសិស្ស</th>
+                            <th>ថ្នាក់</th>
+                            <th>ពេលវេលាចុះឈ្មោះ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                        <!-- Attendance data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                <div id="noDataMessage" class="no-data" style="display: none;">
+                    <p>មិនមានទិន្នន័យវត្តមានសម្រាប់ថ្ងៃនេះទេ។</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="navigation">
+        <a href="scan.html" class="nav-btn">ត្រលប់ទៅស្កេន QR Code</a>
+    </div>
+    
+    <footer>
+        <p>ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស - &copy; 2023</p>
+    </footer>
+
+    <script src="students.js"></script>
+    <script>
+        // DOM elements
+        const dateSelect = document.getElementById('dateSelect');
+        const classFilter = document.getElementById('classFilter');
+        const exportBtn = document.getElementById('exportBtn');
+        const attendanceTableBody = document.getElementById('attendanceTableBody');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const summaryCards = document.getElementById('summaryCards');
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAttendanceDates();
+            updateAttendanceList();
+            
+            // Event listeners
+            dateSelect.addEventListener('change', updateAttendanceList);
+            classFilter.addEventListener('change', updateAttendanceList);
+            exportBtn.addEventListener('click', exportToExcel);
+        });
+        
+        // Load available attendance dates
+        function loadAttendanceDates() {
+            const dates = getAttendanceDates();
+            dateSelect.innerHTML = '<option value="">-- ជ្រើសរើសថ្ងៃខែ --</option>';
+            
+            dates.forEach(date => {
+                const option = document.createElement('option');
+                option.value = date;
+                option.textContent = formatDate(date);
+                dateSelect.appendChild(option);
+            });
+            
+            // Select today by default if available
+            const today = new Date().toISOString().split('T')[0];
+            if (dates.includes(today)) {
+                dateSelect.value = today;
+            } else if (dates.length > 0) {
+                dateSelect.value = dates[0];
+            }
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('km-KH', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+        }
+        
+        // Update attendance list based on selected date and class filter
+        function updateAttendanceList() {
+            const selectedDate = dateSelect.value;
+            const selectedClass = classFilter.value;
+            
+            if (!selectedDate) {
+                attendanceTableBody.innerHTML = '';
+                noDataMessage.style.display = 'block';
+                updateSummaryCards([]);
+                return;
+            }
+            
+            let attendanceRecords = getAttendanceByDate(selectedDate);
+            
+            // Filter by class if selected
+            if (selectedClass) {
+                attendanceRecords = attendanceRecords.filter(record => record.class === selectedClass);
+            }
+            
+            // Update table
+            if (attendanceRecords.length > 0) {
+                attendanceTableBody.innerHTML = '';
+                attendanceRecords.forEach((record, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${record.id}</td>
+                        <td>${record.name}</td>
+                        <td>${record.class}</td>
+                        <td>${record.time}</td>
+                    `;
+                    attendanceTableBody.appendChild(row);
+                });
+                noDataMessage.style.display = 'none';
+            } else {
+                attendanceTableBody.innerHTML = '';
+                noDataMessage.style.display = 'block';
+            }
+            
+            // Update summary cards
+            updateSummaryCards(attendanceRecords);
+        }
+        
+        // Update summary cards with statistics
+        function updateSummaryCards(attendanceRecords) {
+            const totalStudents = attendanceRecords.length;
+            
+            // Count by class
+            const classCounts = {};
+            attendanceRecords.forEach(record => {
+                classCounts[record.class] = (classCounts[record.class] || 0) + 1;
+            });
+            
+            // Create summary cards HTML
+            let summaryHTML = `
+                <div class="summary-card">
+                    <h3>សរុបសិស្ស</h3>
+                    <div class="value">${totalStudents}</div>
+                </div>
+            `;
+            
+            // Add cards for each class
+            Object.keys(classCounts).forEach(className => {
+                summaryHTML += `
+                    <div class="summary-card">
+                        <h3>ថ្នាក់ ${className}</h3>
+                        <div class="value">${classCounts[className]}</div>
+                    </div>
+                `;
+            });
+            
+            summaryCards.innerHTML = summaryHTML;
+        }
+        
+        // Export attendance data to Excel
+        function exportToExcel() {
+            const selectedDate = dateSelect.value;
+            
+            if (!selectedDate) {
+                alert('សូមជ្រើសរើសថ្ងៃខែជាមុនសិន!');
+                return;
+            }
+            
+            let attendanceRecords = getAttendanceByDate(selectedDate);
+            const selectedClass = classFilter.value;
+            
+            // Filter by class if selected
+            if (selectedClass) {
+                attendanceRecords = attendanceRecords.filter(record => record.class === selectedClass);
+            }
+            
+            if (attendanceRecords.length === 0) {
+                alert('មិនមានទិន្នន័យវត្តមានសម្រាប់ការនាំចេញទេ!');
+                return;
+            }
+            
+            // Prepare data for Excel
+            const excelData = [
+                ['ល.រ', 'លេខកូដសិស្ស', 'ឈ្មោះសិស្ស', 'ថ្នាក់', 'ពេលវេលាចុះឈ្មោះ']
+            ];
+            
+            attendanceRecords.forEach((record, index) => {
+                excelData.push([
+                    index + 1,
+                    record.id,
+                    record.name,
+                    record.class,
+                    record.time
+                ]);
+            });
+            
+            // Create worksheet and workbook
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'វត្តមានសិស្ស');
+            
+            // Generate file name
+            const fileName = `attendance_${selectedDate}${selectedClass ? '_' + selectedClass : ''}.xlsx`;
+            
+            // Export to Excel
+            XLSX.writeFile(wb, fileName);
+        }
+    </script>
+</body>
+</html>

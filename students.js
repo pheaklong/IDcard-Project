@@ -53,7 +53,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5326"
   },
   {
     "id": "5327",
@@ -66,7 +67,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5327"
   },
   {
     "id": "5328",
@@ -79,7 +81,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5328"
   },
   {
     "id": "5329",
@@ -92,7 +95,8 @@ var students = [
     "phone": "N/A",
     "father": "….",
     "mother": "….",
-    "studyYear": "2026"
+    "studyYear": "2026",
+    "qr_code": "https://pheaklong.github.io/IDcard-Project/digital-card.html?id=5329"
   },
   {
     "id": "5330",

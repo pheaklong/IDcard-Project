@@ -70,12 +70,23 @@
             align-items: center;
             justify-content: center;
             background: #f8f9fa;
+            position: relative;
         }
         
         .scanner-placeholder {
             padding: 20px;
             color: #7f8c8d;
             text-align: center;
+        }
+        
+        .scanner-active {
+            background: black;
+        }
+        
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         
         .result-section {
@@ -179,6 +190,16 @@
             transform: none;
         }
         
+        .btn-retry {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-retry:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
         .navigation {
             margin-top: 30px;
             display: flex;
@@ -211,8 +232,47 @@
         .camera-permission {
             text-align: center;
             margin-bottom: 15px;
-            color: #e74c3c;
+            padding: 10px;
+            border-radius: 5px;
             font-weight: bold;
+        }
+        
+        .camera-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .camera-success {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6c757d;
+            text-align: left;
         }
         
         @media (max-width: 600px) {
@@ -247,11 +307,12 @@
         
         <div class="content">
             <div class="scanner-section">
-                <div class="camera-permission" id="cameraWarning" style="display: none;">
-                    ⚠️ សូមអនុញ្ញាតឱ្យប្រើកាមេរ៉ា ដើម្បីប្រើប្រាស់កម្មវិធីស្កេន
+                <div class="camera-permission camera-warning" id="cameraWarning">
+                    <span class="loading"></span>
+                    <span id="cameraMessage">កំពុងពិនិត្យកាមេរ៉ា...</span>
                 </div>
                 <div id="reader">
-                    <div class="scanner-placeholder">
+                    <div class="scanner-placeholder" id="scannerPlaceholder">
                         <h3>កម្មវិធីស្កេន QR Code</h3>
                         <p>ចុចប៊ូតុង "បើកការស្កេន" ដើម្បីចាប់ផ្ដើមស្កេនកាតសិស្ស</p>
                     </div>
@@ -263,6 +324,12 @@
             <div class="actions">
                 <button id="startScanner" class="btn-primary">បើកការស្កេន</button>
                 <button id="stopScanner" class="btn-secondary" disabled>បិទការស្កេន</button>
+                <button id="retryScanner" class="btn-retry" style="display: none;">សាកល្បងម្តងទៀត</button>
+            </div>
+            
+            <div class="debug-info" id="debugInfo" style="display: none;">
+                <strong>ព័ត៌មានបំបាត់កំហុស:</strong>
+                <div id="debugContent"></div>
             </div>
         </div>
     </div>
@@ -300,7 +367,7 @@
 
         // Function to mark attendance
         function markAttendance(studentId) {
-            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            const today = new Date().toISOString().split('T')[0];
             
             if (!attendanceData[today]) {
                 attendanceData[today] = [];
@@ -316,7 +383,6 @@
                     time: timestamp
                 });
                 
-                // Save to localStorage
                 localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
                 return true;
             }
@@ -324,83 +390,180 @@
         }
 
         // DOM elements
-        let html5QrcodeScanner;
+        let html5QrcodeScanner = null;
         const startScannerBtn = document.getElementById('startScanner');
         const stopScannerBtn = document.getElementById('stopScanner');
+        const retryScannerBtn = document.getElementById('retryScanner');
         const resultDiv = document.getElementById('result');
         const readerDiv = document.getElementById('reader');
+        const scannerPlaceholder = document.getElementById('scannerPlaceholder');
         const cameraWarning = document.getElementById('cameraWarning');
-        
-        // Initialize scanner
-        function startScanner() {
-            // Check if scanner is already running
-            if (html5QrcodeScanner) {
+        const cameraMessage = document.getElementById('cameraMessage');
+        const debugInfo = document.getElementById('debugInfo');
+        const debugContent = document.getElementById('debugContent');
+
+        let isScannerActive = false;
+        let currentStream = null;
+
+        // Update camera status message
+        function updateCameraMessage(message, isError = false) {
+            cameraMessage.textContent = message;
+            if (isError) {
+                cameraWarning.className = 'camera-permission camera-warning';
+            } else {
+                cameraWarning.className = 'camera-permission camera-success';
+            }
+        }
+
+        // Show debug information
+        function showDebugInfo(info) {
+            debugContent.innerHTML = info;
+            debugInfo.style.display = 'block';
+        }
+
+        // Hide debug information
+        function hideDebugInfo() {
+            debugInfo.style.display = 'none';
+        }
+
+        // Get available cameras
+        async function getCameras() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                    return [];
+                }
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                return videoDevices;
+            } catch (error) {
+                console.error('Error getting cameras:', error);
+                return [];
+            }
+        }
+
+        // Start scanner with specific camera
+        async function startScanner() {
+            if (isScannerActive) {
                 return;
             }
-            
-            // Initialize the scanner
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 250 },
-                    supportedScanTypes: [
-                        Html5QrcodeScanType.SCAN_TYPE_QR_CODE
-                    ]
-                },
-                /* verbose= */ false
-            );
-            
-            // Render the scanner
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure)
-                .then(() => {
-                    console.log("QR Scanner started successfully.");
-                    startScannerBtn.disabled = true;
-                    stopScannerBtn.disabled = false;
-                    cameraWarning.style.display = 'none';
-                })
-                .catch(err => {
-                    console.error("Failed to start QR scanner:", err);
-                    cameraWarning.style.display = 'block';
-                    resultDiv.className = 'result-section error';
-                    resultDiv.innerHTML = `
-                        <h2>❌ មិនអាចបើកកាមេរ៉ាបាន!</h2>
-                        <p>សូមពិនិត្យថាតើអ្នកបានផ្ដល់សិទ្ធិប្រើកាមេរ៉ារួចឬនៅ?</p>
-                        <p>កំហុស: ${err.message || err}</p>
-                    `;
-                });
-        }
-        
-        function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear()
-                    .then(() => {
-                        console.log("QR Scanner stopped successfully.");
-                        html5QrcodeScanner = null;
-                        startScannerBtn.disabled = false;
-                        stopScannerBtn.disabled = true;
-                        
-                        // Reset scanner display
-                        readerDiv.innerHTML = `
-                            <div class="scanner-placeholder">
-                                <h3>កម្មវិធីស្កេន QR Code</h3>
-                                <p>ចុចប៊ូតុង "បើកការស្កេន" ដើម្បីចាប់ផ្ដើមស្កេនកាតសិស្ស</p>
-                            </div>
-                        `;
-                    })
-                    .catch(err => {
-                        console.error("Failed to stop QR scanner:", err);
-                    });
+
+            try {
+                updateCameraMessage('កំពុងបើកកាមេរ៉ា...', false);
+                startScannerBtn.disabled = true;
+                retryScannerBtn.style.display = 'none';
+
+                // Get available cameras
+                const cameras = await getCameras();
+                showDebugInfo(`រកឃើញកាមេរ៉ា: ${cameras.length} គ្រឿង`);
+
+                if (cameras.length === 0) {
+                    throw new Error('មិនមានកាមេរ៉ាដែលអាចប្រើបានទេ');
+                }
+
+                // Try to use the back camera first (usually the better one)
+                let cameraId = null;
+                const backCamera = cameras.find(cam => 
+                    cam.label.toLowerCase().includes('back') || 
+                    cam.label.toLowerCase().includes('rear')
+                );
+                
+                if (backCamera) {
+                    cameraId = backCamera.deviceId;
+                    showDebugInfo('ប្រើកាមេរ៉ាខាងក្រោយ');
+                } else {
+                    cameraId = cameras[0].deviceId;
+                    showDebugInfo('ប្រើកាមេរ៉ាដំបូងដែលរកឃើញ');
+                }
+
+                // Clear previous scanner if exists
+                if (html5QrcodeScanner) {
+                    await html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+
+                // Initialize scanner with specific camera
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "reader", 
+                    { 
+                        fps: 10, 
+                        qrbox: { width: 250, height: 250 },
+                        supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_QR_CODE]
+                    },
+                    false
+                );
+
+                // Start scanning
+                await html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                
+                isScannerActive = true;
+                stopScannerBtn.disabled = false;
+                scannerPlaceholder.style.display = 'none';
+                readerDiv.classList.add('scanner-active');
+                updateCameraMessage('កាមេរ៉ាបានបើកដោយជោគជ័យ! សូមស្កេន QR Code', false);
+                hideDebugInfo();
+
+            } catch (error) {
+                console.error('Failed to start scanner:', error);
+                updateCameraMessage(`កំហុស: ${error.message}`, true);
+                showDebugInfo(`កំហុសលម្អិត: ${error.toString()}<br>ពិនិត្យថាតើអ្នកបានអនុញ្ញាតកាមេរ៉ារួចឬនៅ?`);
+                
+                startScannerBtn.disabled = false;
+                retryScannerBtn.style.display = 'block';
+                
+                // Clean up on error
+                if (html5QrcodeScanner) {
+                    try {
+                        await html5QrcodeScanner.clear();
+                    } catch (e) {
+                        // Ignore cleanup errors
+                    }
+                    html5QrcodeScanner = null;
+                }
+                isScannerActive = false;
             }
         }
-        
+
+        // Stop scanner
+        async function stopScanner() {
+            if (!isScannerActive) {
+                return;
+            }
+
+            try {
+                if (html5QrcodeScanner) {
+                    await html5QrcodeScanner.clear();
+                    html5QrcodeScanner = null;
+                }
+
+                isScannerActive = false;
+                startScannerBtn.disabled = false;
+                stopScannerBtn.disabled = true;
+                retryScannerBtn.style.display = 'none';
+                
+                scannerPlaceholder.style.display = 'block';
+                readerDiv.classList.remove('scanner-active');
+                updateCameraMessage('កាមេរ៉ាបានបិទ', false);
+                hideDebugInfo();
+
+            } catch (error) {
+                console.error('Error stopping scanner:', error);
+                updateCameraMessage('កំហុសក្នុងការបិទកាមេរ៉ា', true);
+            }
+        }
+
+        // Retry scanner
+        function retryScanner() {
+            hideDebugInfo();
+            startScanner();
+        }
+
+        // Scan success handler
         function onScanSuccess(decodedText, decodedResult) {
-            // Process the scanned QR code
             const studentId = decodedText.trim();
             const student = getStudentById(studentId);
             
             if (student) {
-                // Mark attendance
                 const success = markAttendance(studentId);
                 
                 if (success) {
@@ -426,8 +589,6 @@
                         </div>
                         <p><strong>ពេលវេលា:</strong> ${new Date().toLocaleString('km-KH')}</p>
                     `;
-                    
-                    // Play success sound if available
                     playBeepSound();
                 } else {
                     resultDiv.className = 'result-section error';
@@ -450,7 +611,6 @@
                     `;
                 }
                 
-                // Stop scanner after successful scan
                 setTimeout(() => {
                     stopScanner();
                 }, 3000);
@@ -463,16 +623,13 @@
                 `;
             }
         }
-        
+
+        // Scan failure handler
         function onScanFailure(error) {
-            // Handle scan failure, but ignore if we're not actively scanning
-            if (startScannerBtn.disabled) {
-                // This is expected to be called often, so we don't need to log every time
-                // console.warn(`QR scan error: ${error}`);
-            }
+            // Normal behavior - don't show errors unless there's a real problem
         }
-        
-        // Simple beep sound for feedback
+
+        // Beep sound for feedback
         function playBeepSound() {
             try {
                 const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -491,32 +648,35 @@
                 oscillator.start(context.currentTime);
                 oscillator.stop(context.currentTime + 0.5);
             } catch (e) {
-                console.log("Audio context not supported:", e);
+                // Audio not supported - silent failure
             }
         }
-        
+
         // Event listeners
         startScannerBtn.addEventListener('click', startScanner);
         stopScannerBtn.addEventListener('click', stopScanner);
-        
-        // Check camera permissions on load
+        retryScannerBtn.addEventListener('click', retryScanner);
+
+        // Check camera support on load
         document.addEventListener('DOMContentLoaded', function() {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
-                        console.log("Camera access granted");
-                        // Stop the stream immediately since we don't need it yet
-                        stream.getTracks().forEach(track => track.stop());
-                    })
-                    .catch(function(err) {
-                        console.log("Camera access denied:", err);
-                        cameraWarning.style.display = 'block';
-                    });
-            } else {
-                console.log("getUserMedia not supported");
-                cameraWarning.style.display = 'block';
-                cameraWarning.innerHTML = '⚠️ កម្មវិធីស្កេនមិនដំណើរការលើ Browser នេះទេ។ សូមប្រើ Browser ថ្មី។';
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                updateCameraMessage('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome, Firefox ឬ Edge', true);
+                startScannerBtn.disabled = true;
+                showDebugInfo('Browser មិនគាំទ្រ getUserMedia API');
+                return;
             }
+
+            // Test camera access
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    updateCameraMessage('កាមេរ៉ាអាចប្រើប្រាស់បាន។ ចុច "បើកការស្កេន" ដើម្បីចាប់ផ្ដើម', false);
+                    // Stop the test stream immediately
+                    stream.getTracks().forEach(track => track.stop());
+                })
+                .catch(function(err) {
+                    updateCameraMessage('មិនអាចចូលប្រើកាមេរ៉ាបាន។ សូមពិនិត្យការអនុញ្ញាត', true);
+                    showDebugInfo(`កំហុសសាកល្បង: ${err.toString()}`);
+                });
         });
     </script>
 </body>

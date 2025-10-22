@@ -67,18 +67,39 @@
             cursor: pointer; 
             font-size: 16px;
             font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .btn-primary { 
             background: #007bff; 
             color: white; 
         }
+        .btn-primary:hover:not(:disabled) {
+            background: #0056b3;
+        }
         .btn-secondary { 
             background: #6c757d; 
             color: white; 
         }
+        .btn-secondary:hover:not(:disabled) {
+            background: #545b62;
+        }
         .btn-success { 
             background: #28a745; 
             color: white; 
+        }
+        .btn-success:hover:not(:disabled) {
+            background: #1e7e34;
+        }
+        .btn-warning { 
+            background: #ffc107; 
+            color: #212529; 
+        }
+        .btn-warning:hover:not(:disabled) {
+            background: #e0a800;
         }
         #camera-permission {
             text-align: center;
@@ -91,6 +112,9 @@
             font-size: 18px;
             margin: 10px;
         }
+        .permission-btn:hover {
+            background: #c82333;
+        }
         .warning { 
             background: #fff3cd; 
             color: #856404; 
@@ -102,6 +126,37 @@
             border-radius: 5px;
             margin: 10px 0;
             font-weight: bold;
+        }
+        .status-indicator {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        .status-scanning {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-stopped {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -122,21 +177,25 @@
             <div id="scan-count" class="scan-count" style="display: none;">
                 ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
             </div>
+            <div id="status-indicator" class="status-indicator status-stopped">
+                ការស្កេនបានបញ្ឈប់
+            </div>
         </div>
 
         <div id="result"></div>
 
         <div class="button-group">
-            <button class="btn-success" onclick="startCamera()">
+            <button id="start-btn" class="btn-success" onclick="startCamera()">
+                <span class="loading" style="display: none;"></span>
                 ▶️ ចាប់ផ្ដើមស្កេន
             </button>
             <button class="btn-primary" onclick="window.location.href='list.html'">
                 📊 មើលរបាយការណ៍
             </button>
-            <button class="btn-secondary" onclick="stopCamera()">
+            <button id="stop-btn" class="btn-secondary" onclick="stopCamera()" disabled>
                 ⏹️ បញ្ឈប់កាមេរ៉ា
             </button>
-            <button class="btn-primary" onclick="resetTodayScans()">
+            <button class="btn-warning" onclick="resetTodayScans()">
                 🔄 កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
             </button>
         </div>
@@ -160,11 +219,16 @@
         const cameraPermissionDiv = document.getElementById('camera-permission');
         const scanCountDiv = document.getElementById('scan-count');
         const scannedCountSpan = document.getElementById('scanned-count');
+        const statusIndicator = document.getElementById('status-indicator');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const startBtnLoading = startBtn.querySelector('.loading');
         
         let stream = null;
         let isScanning = false;
         let scanAnimationFrame = null;
-        let lastScannedQR = ''; // រក្សាទុក QR ចុងក្រោយដែលស្កេន
+        let lastScannedQR = '';
+        let isCameraStarting = false;
 
         // ពិនិត្យភាពឆបគ្នានៃ browser
         function checkCompatibility() {
@@ -175,9 +239,35 @@
             return true;
         }
 
+        // ធ្វើបច្ចុប្បន្នភាពស្ថានភាពប៊ូតុង
+        function updateButtonStates() {
+            if (isScanning) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="loading"></span>🔄 កំពុងស្កេន...';
+                stopBtn.disabled = false;
+                statusIndicator.textContent = 'កំពុងស្កេន';
+                statusIndicator.className = 'status-indicator status-scanning';
+            } else if (isCameraStarting) {
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="loading"></span>⏳ កំពុងបើកកាមេរ៉ា...';
+                stopBtn.disabled = true;
+                statusIndicator.textContent = 'កំពុងបើកកាមេរ៉ា';
+                statusIndicator.className = 'status-indicator status-stopped';
+            } else {
+                startBtn.disabled = false;
+                startBtn.innerHTML = '▶️ ចាប់ផ្ដើមស្កេន';
+                stopBtn.disabled = true;
+                statusIndicator.textContent = 'ការស្កេនបានបញ្ឈប់';
+                statusIndicator.className = 'status-indicator status-stopped';
+            }
+        }
+
         // ស្នើសុំអនុញ្ញាត់កាមេរ៉ា
         function requestCameraPermission() {
             if (!checkCompatibility()) return;
+            
+            isCameraStarting = true;
+            updateButtonStates();
             
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
@@ -190,6 +280,8 @@
                 startCamera();
             }).catch(function(err) {
                 console.error('Camera error:', err);
+                isCameraStarting = false;
+                updateButtonStates();
                 showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាត់កាមេរ៉ា');
                 cameraPermissionDiv.style.display = 'block';
                 scannerContainer.style.display = 'none';
@@ -199,14 +291,25 @@
         // ចាប់ផ្ដើមកាមេរ៉ា
         function startCamera() {
             if (stream) {
+                isCameraStarting = true;
+                updateButtonStates();
+                
                 video.srcObject = stream;
                 video.play().then(() => {
                     scannerContainer.style.display = 'block';
                     cameraPermissionDiv.style.display = 'none';
                     scanCountDiv.style.display = 'block';
                     updateScanCount();
-                    startQRScanning();
+                    
+                    // ពន្យារពេលបន្តិចមុនពេលចាប់ផ្ដើមស្កេន
+                    setTimeout(() => {
+                        isCameraStarting = false;
+                        startQRScanning();
+                    }, 1000);
+                    
                 }).catch(err => {
+                    isCameraStarting = false;
+                    updateButtonStates();
                     showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
                 });
             } else {
@@ -219,8 +322,10 @@
             if (isScanning) return;
             
             isScanning = true;
+            updateButtonStates();
+            
             resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... សូមយកកាមេរ៉ាចង្អុលទៅកាន់កាតសិស្ស</div>';
-            lastScannedQR = ''; // កំណត់ QR ចុងក្រោយឡើងវិញ
+            lastScannedQR = '';
             
             function scanFrame() {
                 if (!isScanning) return;
@@ -236,7 +341,7 @@
                     const code = jsQR(imageData.data, imageData.width, imageData.height);
                     
                     if (code && code.data !== lastScannedQR) {
-                        lastScannedQR = code.data; // រក្សាទុក QR ថ្មី
+                        lastScannedQR = code.data;
                         handleScannedQR(code.data);
                     }
                 }
@@ -253,8 +358,9 @@
         function restartScanning() {
             if (!isScanning) {
                 isScanning = true;
+                updateButtonStates();
                 resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... ស្កេនសិស្សបន្ទាប់</div>';
-                lastScannedQR = ''; // កំណត់ឡើងវិញដើម្បីអោយអាចស្កេនសិស្សដដែលបាន
+                lastScannedQR = '';
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
         }
@@ -263,9 +369,10 @@
         function handleScannedQR(qrData) {
             console.log("QR Scanned:", qrData);
             
-            // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន ដើម្បីជៀសវាងការស្កេនស្ទួន
+            // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន
             if (isScanning) {
                 isScanning = false;
+                updateButtonStates();
                 if (scanAnimationFrame) {
                     cancelAnimationFrame(scanAnimationFrame);
                 }
@@ -310,7 +417,6 @@
             const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
             const today = new Date().toDateString();
             
-            // រកការស្កេនរបស់សិស្សនេះថ្ងៃនេះ
             const todayScans = reports.filter(report => 
                 report.student_id === studentId && 
                 report.date === today
@@ -375,14 +481,12 @@
                 const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                 const today = new Date().toDateString();
                 
-                // រក្សាទុកតែការស្កេនពីមុនថ្ងៃនេះ
                 const previousScans = reports.filter(report => report.date !== today);
                 localStorage.setItem('lateReports', JSON.stringify(previousScans));
                 
                 updateScanCount();
                 showError('✅ កំណត់ស្កេនថ្ងៃនេះឡើងវិញរួចរាល់! សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។');
                 
-                // បើកការស្កេនម្តងទៀត
                 if (!isScanning) {
                     setTimeout(() => {
                         restartScanning();
@@ -404,7 +508,6 @@
         // ទាញយក Student ID ពី URL
         function extractStudentIdFromURL(url) {
             try {
-                // ពិនិត្យប្រសិនបើជា URL
                 if (url.includes('?')) {
                     const urlObj = new URL(url);
                     const idParam = urlObj.searchParams.get('id');
@@ -420,6 +523,9 @@
         // បញ្ឈប់កាមេរ៉ា
         function stopCamera() {
             isScanning = false;
+            isCameraStarting = false;
+            updateButtonStates();
+            
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
             }
@@ -444,6 +550,7 @@
                 showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
             }
             cameraPermissionDiv.style.display = 'block';
+            updateButtonStates();
         };
     </script>
 </body>

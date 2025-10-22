@@ -213,17 +213,44 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // ដោះស្រាយ QR code ដែលស្កេនបាន
+       
+              // ដោះស្រាយ QR code ដែលស្កេនបាន
         function handleScannedQR(qrData) {
-            const student = students.find(s => s.qr_code === qrData);
+            console.log("QR Scanned:", qrData);
+            
+            // ទាញយក ID ពី URL
+            let studentId = extractStudentIdFromURL(qrData);
+            
+            // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
+            if (!studentId) {
+                studentId = qrData;
+            }
+            
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
                 recordLateStudent(student);
             } else {
-                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + qrData);
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
                 setTimeout(() => {
                     resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
                 }, 2000);
+            }
+        }
+        
+        // ទាញយក Student ID ពី URL
+        function extractStudentIdFromURL(url) {
+            try {
+                // ពិនិត្យប្រសិនបើជា URL
+                if (url.includes('?')) {
+                    const urlObj = new URL(url);
+                    const idParam = urlObj.searchParams.get('id');
+                    return idParam;
+                }
+                return null;
+            } catch (e) {
+                console.log("Not a valid URL, using raw data");
+                return null;
             }
         }
 
@@ -291,4 +318,5 @@
     </script>
 </body>
 </html>
+
 

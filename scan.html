@@ -55,6 +55,7 @@
         
         .scanner-section {
             margin-bottom: 30px;
+            text-align: center;
         }
         
         #reader {
@@ -64,6 +65,17 @@
             border: 2px dashed #3498db;
             border-radius: 10px;
             overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+        }
+        
+        .scanner-placeholder {
+            padding: 20px;
+            color: #7f8c8d;
+            text-align: center;
         }
         
         .result-section {
@@ -126,12 +138,13 @@
         }
         
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
+            font-size: 16px;
         }
         
         .btn-primary {
@@ -141,6 +154,13 @@
         
         .btn-primary:hover {
             background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .btn-secondary {
@@ -150,6 +170,13 @@
         
         .btn-secondary:hover {
             background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .navigation {
@@ -181,6 +208,13 @@
             font-size: 14px;
         }
         
+        .camera-permission {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
         @media (max-width: 600px) {
             .container {
                 border-radius: 10px;
@@ -194,8 +228,12 @@
                 grid-template-columns: 1fr;
             }
             
-            .actions, .navigation {
+            .actions {
                 flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
             }
         }
     </style>
@@ -209,7 +247,15 @@
         
         <div class="content">
             <div class="scanner-section">
-                <div id="reader"></div>
+                <div class="camera-permission" id="cameraWarning" style="display: none;">
+                    ⚠️ សូមអនុញ្ញាតឱ្យប្រើកាមេរ៉ា ដើម្បីប្រើប្រាស់កម្មវិធីស្កេន
+                </div>
+                <div id="reader">
+                    <div class="scanner-placeholder">
+                        <h3>កម្មវិធីស្កេន QR Code</h3>
+                        <p>ចុចប៊ូតុង "បើកការស្កេន" ដើម្បីចាប់ផ្ដើមស្កេនកាតសិស្ស</p>
+                    </div>
+                </div>
             </div>
             
             <div id="result" class="result-section"></div>
@@ -229,15 +275,70 @@
         <p>ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស - &copy; 2023</p>
     </footer>
 
-    <script src="students.js"></script>
     <script>
+        // Student data storage
+        const students = [
+            { id: "STU001", name: "ស៊ុន សុភាព", class: "12A", grade: "Grade 12" },
+            { id: "STU002", name: "ម៉ៅ ស្រីនិច", class: "12A", grade: "Grade 12" },
+            { id: "STU003", name: "លី សុខគា", class: "12A", grade: "Grade 12" },
+            { id: "STU004", name: "ជា ម៉ាលី", class: "12B", grade: "Grade 12" },
+            { id: "STU005", name: "ណុប សុផា", class: "12B", grade: "Grade 12" },
+            { id: "STU006", name: "ផេន សុភា", class: "11A", grade: "Grade 11" },
+            { id: "STU007", name: "សំ សុផាត", class: "11A", grade: "Grade 11" },
+            { id: "STU008", name: "អ៊ុយ សុខហង្ស", class: "11B", grade: "Grade 11" },
+            { id: "STU009", name: "ហេង សុភាព", class: "11B", grade: "Grade 11" },
+            { id: "STU010", name: "ផាន់ ស្រីណាត", class: "10A", grade: "Grade 10" }
+        ];
+
+        // Attendance data storage
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
+
+        // Function to get student by ID
+        function getStudentById(studentId) {
+            return students.find(student => student.id === studentId);
+        }
+
+        // Function to mark attendance
+        function markAttendance(studentId) {
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+            
+            if (!attendanceData[today]) {
+                attendanceData[today] = [];
+            }
+            
+            const student = getStudentById(studentId);
+            if (student && !attendanceData[today].some(record => record.id === studentId)) {
+                const timestamp = new Date().toLocaleTimeString('km-KH');
+                attendanceData[today].push({
+                    id: studentId,
+                    name: student.name,
+                    class: student.class,
+                    time: timestamp
+                });
+                
+                // Save to localStorage
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+                return true;
+            }
+            return false;
+        }
+
+        // DOM elements
         let html5QrcodeScanner;
         const startScannerBtn = document.getElementById('startScanner');
         const stopScannerBtn = document.getElementById('stopScanner');
         const resultDiv = document.getElementById('result');
+        const readerDiv = document.getElementById('reader');
+        const cameraWarning = document.getElementById('cameraWarning');
         
         // Initialize scanner
         function startScanner() {
+            // Check if scanner is already running
+            if (html5QrcodeScanner) {
+                return;
+            }
+            
+            // Initialize the scanner
             html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader", 
                 { 
@@ -247,33 +348,55 @@
                         Html5QrcodeScanType.SCAN_TYPE_QR_CODE
                     ]
                 },
-                false
+                /* verbose= */ false
             );
             
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-            
-            startScannerBtn.disabled = true;
-            stopScannerBtn.disabled = false;
-            resultDiv.className = 'result-section';
-            resultDiv.innerHTML = '';
+            // Render the scanner
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure)
+                .then(() => {
+                    console.log("QR Scanner started successfully.");
+                    startScannerBtn.disabled = true;
+                    stopScannerBtn.disabled = false;
+                    cameraWarning.style.display = 'none';
+                })
+                .catch(err => {
+                    console.error("Failed to start QR scanner:", err);
+                    cameraWarning.style.display = 'block';
+                    resultDiv.className = 'result-section error';
+                    resultDiv.innerHTML = `
+                        <h2>❌ មិនអាចបើកកាមេរ៉ាបាន!</h2>
+                        <p>សូមពិនិត្យថាតើអ្នកបានផ្ដល់សិទ្ធិប្រើកាមេរ៉ារួចឬនៅ?</p>
+                        <p>កំហុស: ${err.message || err}</p>
+                    `;
+                });
         }
         
         function stopScanner() {
             if (html5QrcodeScanner) {
-                html5QrcodeScanner.clear().then(() => {
-                    console.log("QR Scanner stopped.");
-                }).catch(err => {
-                    console.error("Failed to clear QR scanner", err);
-                });
+                html5QrcodeScanner.clear()
+                    .then(() => {
+                        console.log("QR Scanner stopped successfully.");
+                        html5QrcodeScanner = null;
+                        startScannerBtn.disabled = false;
+                        stopScannerBtn.disabled = true;
+                        
+                        // Reset scanner display
+                        readerDiv.innerHTML = `
+                            <div class="scanner-placeholder">
+                                <h3>កម្មវិធីស្កេន QR Code</h3>
+                                <p>ចុចប៊ូតុង "បើកការស្កេន" ដើម្បីចាប់ផ្ដើមស្កេនកាតសិស្ស</p>
+                            </div>
+                        `;
+                    })
+                    .catch(err => {
+                        console.error("Failed to stop QR scanner:", err);
+                    });
             }
-            
-            startScannerBtn.disabled = false;
-            stopScannerBtn.disabled = true;
         }
         
         function onScanSuccess(decodedText, decodedResult) {
             // Process the scanned QR code
-            const studentId = decodedText;
+            const studentId = decodedText.trim();
             const student = getStudentById(studentId);
             
             if (student) {
@@ -303,6 +426,9 @@
                         </div>
                         <p><strong>ពេលវេលា:</strong> ${new Date().toLocaleString('km-KH')}</p>
                     `;
+                    
+                    // Play success sound if available
+                    playBeepSound();
                 } else {
                     resultDiv.className = 'result-section error';
                     resultDiv.innerHTML = `
@@ -341,13 +467,57 @@
         function onScanFailure(error) {
             // Handle scan failure, but ignore if we're not actively scanning
             if (startScannerBtn.disabled) {
-                console.warn(`QR error = ${error}`);
+                // This is expected to be called often, so we don't need to log every time
+                // console.warn(`QR scan error: ${error}`);
+            }
+        }
+        
+        // Simple beep sound for feedback
+        function playBeepSound() {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+                
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + 0.5);
+            } catch (e) {
+                console.log("Audio context not supported:", e);
             }
         }
         
         // Event listeners
         startScannerBtn.addEventListener('click', startScanner);
         stopScannerBtn.addEventListener('click', stopScanner);
+        
+        // Check camera permissions on load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        console.log("Camera access granted");
+                        // Stop the stream immediately since we don't need it yet
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                    .catch(function(err) {
+                        console.log("Camera access denied:", err);
+                        cameraWarning.style.display = 'block';
+                    });
+            } else {
+                console.log("getUserMedia not supported");
+                cameraWarning.style.display = 'block';
+                cameraWarning.innerHTML = '⚠️ កម្មវិធីស្កេនមិនដំណើរការលើ Browser នេះទេ។ សូមប្រើ Browser ថ្មី។';
+            }
+        });
     </script>
 </body>
 </html>

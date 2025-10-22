@@ -173,16 +173,9 @@
             </button>
         </div>
     </div>
-
+    <script src="students.js"></script>
     <script>
-        // ទិន្នន័យសិស្សឧទាហរណ៍
-        const students = [
-            { id: "S001", name: "វណ្ណ សុភាព", class: "10A", qr_code: "S001" },
-            { id: "S002", name: "សុក្រា សោភា", class: "10A", qr_code: "S002" },
-            { id: "S003", name: "រិទ្ធ វិសាល", class: "10B", qr_code: "S003" },
-            { id: "S004", name: "សំណាង ស្រីណាយ", class: "10B", qr_code: "S004" },
-            { id: "S005", name: "បញ្ញា សំអាត", class: "11A", qr_code: "S005" }
-        ];
+        
 
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
@@ -296,11 +289,7 @@
             }
             
             // រកសិស្សក្នុងបញ្ជី
-            const student = students.find(s => 
-                s.id === studentId || 
-                s.qr_code === qrData || 
-                s.qr_code === studentId
-            );
+            const student = students.find(s =>  s.qr_code === qrData );
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួច
@@ -308,11 +297,11 @@
                 if (scanCheck.scanned) {
                     showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនរួចរាល់\n\nកាលបរិច្ឆេទស្កេនចុងក្រោយ: ${scanCheck.lastScan.toLocaleTimeString()}\nអាចស្កេនម្តងទៀតបានក្នុងរយៈពេល ${scanCheck.minutesLeft} នាទី`);
                     
-                    // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 3 វិនាទី
+                    // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 1.5 វិនាទី
                     setTimeout(() => {
                         isScanning = true;
                         scanAnimationFrame = requestAnimationFrame(scanFrame);
-                    }, 3000);
+                    }, 1000);
                     return;
                 }
                 
@@ -320,11 +309,11 @@
             } else {
                 showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
                 
-                // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 2 វិនាទី
+                // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 1.5 វិនាទី
                 setTimeout(() => {
                     isScanning = true;
                     scanAnimationFrame = requestAnimationFrame(scanFrame);
-                }, 2000);
+                }, 1000);
             }
         }
         
@@ -389,11 +378,11 @@
             // ធ្វើបច្ចុប្បន្នភាពស្ថិតិ
             updateStats();
         
-            // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 4 វិនាទី
+            // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 1 វិនាទី
             setTimeout(() => {
                 isScanning = true;
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
-            }, 4000);
+            }, 1000);
         }
         
         // ធ្វើបច្ចុប្បន្នភាពស្ថិតិ
@@ -471,3 +460,4 @@
     </script>
 </body>
 </html>
+

@@ -3483,4 +3483,47 @@ var students = [
   }
 
   
-]
+];
+
+// Attendance data storage
+let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
+
+// Function to get student by ID
+function getStudentById(studentId) {
+    return students.find(student => student.id === studentId);
+}
+
+// Function to mark attendance
+function markAttendance(studentId) {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    if (!attendanceData[today]) {
+        attendanceData[today] = [];
+    }
+    
+    const student = getStudentById(studentId);
+    if (student && !attendanceData[today].some(record => record.id === studentId)) {
+        const timestamp = new Date().toLocaleTimeString('km-KH');
+        attendanceData[today].push({
+            id: studentId,
+            name: student.name,
+            class: student.class,
+            time: timestamp
+        });
+        
+        // Save to localStorage
+        localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+        return true;
+    }
+    return false;
+}
+
+// Function to get attendance by date
+function getAttendanceByDate(date) {
+    return attendanceData[date] || [];
+}
+
+// Function to get all attendance dates
+function getAttendanceDates() {
+    return Object.keys(attendanceData).sort().reverse();
+}

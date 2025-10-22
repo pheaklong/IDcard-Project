@@ -202,7 +202,7 @@
     </div>
 
     <script>
-        // ទិន្នន័យសិស្សឧទាហរណ៍ (ជំនួសដោយ students.js របស់អ្នក)
+        // ទិន្នន័យសិស្សឧទាហរណ៍
         const students = [
             { id: "S001", name: "សុក្រា", class: "10A", qr_code: "S001" },
             { id: "S002", name: "ម៉ាលី", class: "10A", qr_code: "S002" },
@@ -230,6 +230,32 @@
         let lastScannedQR = '';
         let isCameraStarting = false;
 
+        // Function scanFrame ត្រូវតែនៅក្រៅ function ដទៃទៀត
+        function scanFrame() {
+            if (!isScanning) return;
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code && code.data !== lastScannedQR) {
+                    lastScannedQR = code.data;
+                    handleScannedQR(code.data);
+                    return; // ឈប់ស្កេនបណ្តោះអាសន្ន
+                }
+            }
+            
+            if (isScanning) {
+                scanAnimationFrame = requestAnimationFrame(scanFrame);
+            }
+        }
+
         // ពិនិត្យភាពឆបគ្នានៃ browser
         function checkCompatibility() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -244,18 +270,21 @@
             if (isScanning) {
                 startBtn.disabled = true;
                 startBtn.innerHTML = '<span class="loading"></span>🔄 កំពុងស្កេន...';
+                startBtnLoading.style.display = 'inline-block';
                 stopBtn.disabled = false;
                 statusIndicator.textContent = 'កំពុងស្កេន';
                 statusIndicator.className = 'status-indicator status-scanning';
             } else if (isCameraStarting) {
                 startBtn.disabled = true;
                 startBtn.innerHTML = '<span class="loading"></span>⏳ កំពុងបើកកាមេរ៉ា...';
+                startBtnLoading.style.display = 'inline-block';
                 stopBtn.disabled = true;
                 statusIndicator.textContent = 'កំពុងបើកកាមេរ៉ា';
                 statusIndicator.className = 'status-indicator status-stopped';
             } else {
                 startBtn.disabled = false;
                 startBtn.innerHTML = '▶️ ចាប់ផ្ដើមស្កេន';
+                startBtnLoading.style.display = 'none';
                 stopBtn.disabled = true;
                 statusIndicator.textContent = 'ការស្កេនបានបញ្ឈប់';
                 statusIndicator.className = 'status-indicator status-stopped';
@@ -325,31 +354,7 @@
             updateButtonStates();
             
             resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... សូមយកកាមេរ៉ាចង្អុលទៅកាន់កាតសិស្ស</div>';
-            lastScannedQR = '';
-            
-            function scanFrame() {
-                if (!isScanning) return;
-                
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
-                    if (code && code.data !== lastScannedQR) {
-                        lastScannedQR = code.data;
-                        handleScannedQR(code.data);
-                    }
-                }
-                
-                if (isScanning) {
-                    scanAnimationFrame = requestAnimationFrame(scanFrame);
-                }
-            }
+            lastScannedQR = ''; // កំណត់ឡើងវិញដើម្បីអោយអាចស្កេនសិស្សដដែលបាន
             
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
@@ -357,10 +362,11 @@
         // ចាប់ផ្ដើមស្កេនម្តងទៀត
         function restartScanning() {
             if (!isScanning) {
+                console.log("🔄 ចាប់ផ្ដើមស្កេនម្តងទៀត...");
                 isScanning = true;
                 updateButtonStates();
                 resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... ស្កេនសិស្សបន្ទាប់</div>';
-                lastScannedQR = '';
+                lastScannedQR = ''; // កំណត់ឡើងវិញ
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
         }

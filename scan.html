@@ -201,16 +201,7 @@
         </div>
     </div>
 
-    <script>
-        // ទិន្នន័យសិស្សឧទាហរណ៍
-        const students = [
-            { id: "S001", name: "សុក្រា", class: "10A", qr_code: "S001" },
-            { id: "S002", name: "ម៉ាលី", class: "10A", qr_code: "S002" },
-            { id: "S003", name: "វណ្ណា", class: "10B", qr_code: "S003" },
-            { id: "S004", name: "រិទ្ធិ", class: "10B", qr_code: "S004" },
-            { id: "S005", name: "សំណាង", class: "10C", qr_code: "S005" }
-        ];
-    </script>
+    <script src="students.js"></script>
 
     <script>
         const video = document.getElementById('camera');
@@ -392,7 +383,7 @@
                 studentId = qrData;
             }
             
-            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+            const student = students.find(s =>​​ s.qr_code === qrData);
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
@@ -561,3 +552,4 @@
     </script>
 </body>
 </html>
+

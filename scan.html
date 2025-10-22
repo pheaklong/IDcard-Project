@@ -130,6 +130,7 @@
     </div>
 
     <script src="students.js"></script>
+
     <script>
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
@@ -218,125 +219,90 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-       
-// ដោះស្រាយ QR code ដែលស្កេនបាន
-function handleScannedQR(qrData) {
-    console.log("QR Scanned:", qrData);
-    
-    // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន ដើម្បីជៀសវាងការស្កេនស្ទួន
-    if (isScanning) {
-        isScanning = false;
-        if (scanAnimationFrame) {
-            cancelAnimationFrame(scanAnimationFrame);
-        }
-    }
-    
-    // ទាញយក ID ពី URL
-    let studentId = extractStudentIdFromURL(qrData);
-    
-    // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
-    if (!studentId) {
-        studentId = qrData;
-    }
-    
-    const student = students.find(s => s.id === studentId || s.qr_code === qrData);
-    
-    if (student) {
-        // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួច
-        const scanCheck = hasStudentScannedRecently(student.id);
-        
-        if (scanCheck.scanned) {
-            showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនរួចរាល់\n\nអាចស្កេនម្តងទៀតបាននៅ ${scanCheck.minutesLeft} នាទីក្រោយ`);
-            
-            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
-            setTimeout(() => {
-                restartScanning();
-            }, 3000);
-        } else {
-            recordLateStudent(student);
-        }
-    } else {
-        showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
-        
-        // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
-        setTimeout(() => {
-            restartScanning();
-        }, 2000);
-    }
-}
-
         // ចាប់ផ្ដើមស្កេនម្តងទៀត
-function restartScanning() {
-    if (!isScanning) {
-        isScanning = true;
-        resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
-        scanAnimationFrame = requestAnimationFrame(scanFrame);
-    }
-}// កត់ត្រាសិស្សមកយឺត
-function recordLateStudent(student) {
-    const now = new Date();
-    const record = {
-        student_id: student.id,
-        name: student.name,
-        class: student.class,
-        late_time: now.toTimeString().split(' ')[0],
-        date: now.toDateString(),
-        timestamp: now.getTime()
-    };
-
-    // រក្សាទុកក្នុង localStorage
-    let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-    reports.push(record);
-    localStorage.setItem('lateReports', JSON.stringify(reports));
-
-    // បង្ហាញលទ្ធផល
-    resultDiv.innerHTML = `
-        <div class="success">
-            <h3>✅ កត់ត្រាបានជោគ!</h3>
-            <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-            <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-            <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
-            <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
-            <p><em>សិស្សនេះអាចស្កេនម្តងទៀតបាននៅ 1 ម៉ោងក្រោយ</em></p>
-        </div>
-    `;
-
-    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 4 វិនាទី
-    setTimeout(() => {
-        restartScanning();
-    }, 2000);
-}
-
-// បង្ហាញការព្រមានស្កេនរួច
-function showWarning(message) {
-    resultDiv.innerHTML = `
-        <div class="warning">
-            <h3>⚠️ ស្កេនរួចរាល់</h3>
-            <p>${message}</p>
-        </div>
-    `;
-
-    // បញ្ឈប់ការស្កេនមួយភ្លែត
-    setTimeout(() => {
-        resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
-    }, 3000);
-}
-
-// ទាញយក Student ID ពី URL
-function extractStudentIdFromURL(url) {
-    try {
-        // ពិនិត្យប្រសិនបើជា URL
-        if (url.includes('?')) {
-            const urlObj = new URL(url);
-            const idParam = urlObj.searchParams.get('id');
-            return idParam;
+        function restartScanning() {
+            if (!isScanning) {
+                isScanning = true;
+                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+                scanAnimationFrame = requestAnimationFrame(scanFrame);
+            }
         }
-        return null;
-    } catch (e) {
-        console.log("Not a valid URL, using raw data");
-        return null;
-    }
-}
+
+        // ដោះស្រាយ QR code ដែលស្កេនបាន
+        function handleScannedQR(qrData) {
+            console.log("QR Scanned:", qrData);
+            
+            // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន ដើម្បីជៀសវាងការស្កេនស្ទួន
+            if (isScanning) {
+                isScanning = false;
+                if (scanAnimationFrame) {
+                    cancelAnimationFrame(scanAnimationFrame);
+                }
+            }
+            
+            // ទាញយក ID ពី URL
+            let studentId = extractStudentIdFromURL(qrData);
+            
+            // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
+            if (!studentId) {
+                studentId = qrData;
+            }
+            
+            const student = students.find(s => s.qr_code === qrData);
+            
+            if (student) {
+                // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួច
+                const scanCheck = hasStudentScannedRecently(student.id);
+                
+                if (scanCheck.scanned) {
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនរួចរាល់\n\nអាចស្កេនម្តងទៀតបាននៅ ${scanCheck.minutesLeft} នាទីក្រោយ`);
+                    
+                    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
+                    setTimeout(() => {
+                        restartScanning();
+                    }, 3000);
+                } else {
+                    recordLateStudent(student);
+                }
+            } else {
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+                
+                // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
+                setTimeout(() => {
+                    restartScanning();
+                }, 2000);
+            }
+        }
+
+        // ពិនិត្យប្រសិនបើសិស្សបានស្កេនរួចក្នុងរយៈពេល 1 ម៉ោង
+        function hasStudentScannedRecently(studentId) {
+            const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            const now = new Date().getTime();
+            const oneHour = 60 * 60 * 1000; // 1 ម៉ោងជា millisecond
+            
+            // រកការស្កេនចុងក្រោយរបស់សិស្សនេះ
+            const studentScans = reports
+                .filter(report => report.student_id === studentId)
+                .sort((a, b) => b.timestamp - a.timestamp);
+            
+            if (studentScans.length > 0) {
+                const lastScanTime = studentScans[0].timestamp;
+                const timeDiff = now - lastScanTime;
+                
+                // ប្រសិនបើមិនទាន់ 1 ម៉ោង
+                if (timeDiff < oneHour) {
+                    const minutesLeft = Math.ceil((oneHour - timeDiff) / (60 * 1000));
+                    return {
+                        scanned: true,
+                        minutesLeft: minutesLeft,
+                        lastScan: new Date(lastScanTime)
+                    };
+                }
+            }
+            
+            return { scanned: false };
+        }
+
         // កត់ត្រាសិស្សមកយឺត
         function recordLateStudent(student) {
             const now = new Date();
@@ -362,13 +328,40 @@ function extractStudentIdFromURL(url) {
                     <p><strong>ថ្នាក់:</strong> ${student.class}</p>
                     <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
                     <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
+                    <p><em>សិស្សនេះអាចស្កេនម្តងទៀតបាននៅ 1 ម៉ោងក្រោយ</em></p>
                 </div>
             `;
 
-            // បញ្ឈប់ការស្កេនមួយភ្លែត
+            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 4 វិនាទី
             setTimeout(() => {
-                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
-            }, 3000);
+                restartScanning();
+            }, 4000);
+        }
+
+        // បង្ហាញការព្រមានស្កេនរួច
+        function showWarning(message) {
+            resultDiv.innerHTML = `
+                <div class="warning">
+                    <h3>⚠️ ស្កេនរួចរាល់</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // ទាញយក Student ID ពី URL
+        function extractStudentIdFromURL(url) {
+            try {
+                // ពិនិត្យប្រសិនបើជា URL
+                if (url.includes('?')) {
+                    const urlObj = new URL(url);
+                    const idParam = urlObj.searchParams.get('id');
+                    return idParam;
+                }
+                return null;
+            } catch (e) {
+                console.log("Not a valid URL, using raw data");
+                return null;
+            }
         }
 
         // បញ្ឈប់កាមេរ៉ា

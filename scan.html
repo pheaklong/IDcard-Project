@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Scanner - កម្មវិធីស្កេនកាតសិស្ស</title>
-    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -146,6 +146,7 @@
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         button {
@@ -156,6 +157,7 @@
             font-weight: bold;
             transition: all 0.3s;
             font-size: 16px;
+            min-width: 140px;
         }
         
         .btn-primary {
@@ -275,6 +277,23 @@
             text-align: left;
         }
         
+        .manual-input {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .manual-input input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 200px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
         @media (max-width: 600px) {
             .container {
                 border-radius: 10px;
@@ -294,6 +313,12 @@
             
             button {
                 width: 100%;
+            }
+            
+            .manual-input input {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -325,6 +350,12 @@
                 <button id="startScanner" class="btn-primary">បើកការស្កេន</button>
                 <button id="stopScanner" class="btn-secondary" disabled>បិទការស្កេន</button>
                 <button id="retryScanner" class="btn-retry" style="display: none;">សាកល្បងម្តងទៀត</button>
+            </div>
+            
+            <div class="manual-input">
+                <h3>ឬបញ្ចូលលេខកូដសិស្សដោយផ្ទាល់</h3>
+                <input type="text" id="manualInput" placeholder="បញ្ចូលលេខកូដសិស្ស...">
+                <button id="manualSubmit" class="btn-primary">ចុះឈ្មោះ</button>
             </div>
             
             <div class="debug-info" id="debugInfo" style="display: none;">
@@ -401,9 +432,10 @@
         const cameraMessage = document.getElementById('cameraMessage');
         const debugInfo = document.getElementById('debugInfo');
         const debugContent = document.getElementById('debugContent');
+        const manualInput = document.getElementById('manualInput');
+        const manualSubmit = document.getElementById('manualSubmit');
 
         let isScannerActive = false;
-        let currentStream = null;
 
         // Update camera status message
         function updateCameraMessage(message, isError = false) {
@@ -426,23 +458,66 @@
             debugInfo.style.display = 'none';
         }
 
-        // Get available cameras
-        async function getCameras() {
-            try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-                    return [];
+        // Show result
+        function showResult(studentId, isSuccess) {
+            const student = getStudentById(studentId);
+            
+            if (student) {
+                if (isSuccess) {
+                    resultDiv.className = 'result-section success';
+                    resultDiv.innerHTML = `
+                        <h2>✅ ចុះឈ្មោះវត្តមានដោយជោគជ័យ!</h2>
+                        <div class="student-info">
+                            <h3>ព័ត៌មានសិស្ស</h3>
+                            <div class="student-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">កម្រិត:</span> ${student.grade}
+                                </div>
+                            </div>
+                        </div>
+                        <p><strong>ពេលវេលា:</strong> ${new Date().toLocaleString('km-KH')}</p>
+                    `;
+                    playBeepSound();
+                } else {
+                    resultDiv.className = 'result-section error';
+                    resultDiv.innerHTML = `
+                        <h2>⚠️ សិស្សនេះបានចុះឈ្មោះរួចហើយ!</h2>
+                        <div class="student-info">
+                            <h3>ព័ត៌មានសិស្ស</h3>
+                            <div class="student-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
-                
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                return videoDevices;
-            } catch (error) {
-                console.error('Error getting cameras:', error);
-                return [];
+            } else {
+                resultDiv.className = 'result-section error';
+                resultDiv.innerHTML = `
+                    <h2>❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ!</h2>
+                    <p>លេខកូដសិស្ស: ${studentId}</p>
+                    <p>សូមពិនិត្យមើលលេខកូដសិស្សឡើងវិញ</p>
+                `;
             }
         }
 
-        // Start scanner with specific camera
+        // Start scanner
         async function startScanner() {
             if (isScannerActive) {
                 return;
@@ -453,36 +528,13 @@
                 startScannerBtn.disabled = true;
                 retryScannerBtn.style.display = 'none';
 
-                // Get available cameras
-                const cameras = await getCameras();
-                showDebugInfo(`រកឃើញកាមេរ៉ា: ${cameras.length} គ្រឿង`);
-
-                if (cameras.length === 0) {
-                    throw new Error('មិនមានកាមេរ៉ាដែលអាចប្រើបានទេ');
-                }
-
-                // Try to use the back camera first (usually the better one)
-                let cameraId = null;
-                const backCamera = cameras.find(cam => 
-                    cam.label.toLowerCase().includes('back') || 
-                    cam.label.toLowerCase().includes('rear')
-                );
-                
-                if (backCamera) {
-                    cameraId = backCamera.deviceId;
-                    showDebugInfo('ប្រើកាមេរ៉ាខាងក្រោយ');
-                } else {
-                    cameraId = cameras[0].deviceId;
-                    showDebugInfo('ប្រើកាមេរ៉ាដំបូងដែលរកឃើញ');
-                }
-
                 // Clear previous scanner if exists
                 if (html5QrcodeScanner) {
                     await html5QrcodeScanner.clear();
                     html5QrcodeScanner = null;
                 }
 
-                // Initialize scanner with specific camera
+                // Initialize scanner
                 html5QrcodeScanner = new Html5QrcodeScanner(
                     "reader", 
                     { 
@@ -506,7 +558,7 @@
             } catch (error) {
                 console.error('Failed to start scanner:', error);
                 updateCameraMessage(`កំហុស: ${error.message}`, true);
-                showDebugInfo(`កំហុសលម្អិត: ${error.toString()}<br>ពិនិត្យថាតើអ្នកបានអនុញ្ញាតកាមេរ៉ារួចឬនៅ?`);
+                showDebugInfo(`កំហុសលម្អិត: ${error.toString()}<br>សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត និងការអនុញ្ញាតកាមេរ៉ា`);
                 
                 startScannerBtn.disabled = false;
                 retryScannerBtn.style.display = 'block';
@@ -561,72 +613,27 @@
         // Scan success handler
         function onScanSuccess(decodedText, decodedResult) {
             const studentId = decodedText.trim();
-            const student = getStudentById(studentId);
+            const success = markAttendance(studentId);
+            showResult(studentId, success);
             
-            if (student) {
-                const success = markAttendance(studentId);
-                
-                if (success) {
-                    resultDiv.className = 'result-section success';
-                    resultDiv.innerHTML = `
-                        <h2>✅ ចុះឈ្មោះវត្តមានដោយជោគជ័យ!</h2>
-                        <div class="student-info">
-                            <h3>ព័ត៌មានសិស្ស</h3>
-                            <div class="student-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">កម្រិត:</span> ${student.grade}
-                                </div>
-                            </div>
-                        </div>
-                        <p><strong>ពេលវេលា:</strong> ${new Date().toLocaleString('km-KH')}</p>
-                    `;
-                    playBeepSound();
-                } else {
-                    resultDiv.className = 'result-section error';
-                    resultDiv.innerHTML = `
-                        <h2>⚠️ សិស្សនេះបានចុះឈ្មោះរួចហើយ!</h2>
-                        <div class="student-info">
-                            <h3>ព័ត៌មានសិស្ស</h3>
-                            <div class="student-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                setTimeout(() => {
-                    stopScanner();
-                }, 3000);
-            } else {
-                resultDiv.className = 'result-section error';
-                resultDiv.innerHTML = `
-                    <h2>❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ!</h2>
-                    <p>លេខកូដសិស្ស: ${studentId}</p>
-                    <p>សូមពិនិត្យមើលលេខកូដសិស្សឡើងវិញ</p>
-                `;
-            }
+            setTimeout(() => {
+                stopScanner();
+            }, 3000);
         }
 
         // Scan failure handler
         function onScanFailure(error) {
             // Normal behavior - don't show errors unless there's a real problem
+        }
+
+        // Manual input handler
+        function handleManualInput() {
+            const studentId = manualInput.value.trim();
+            if (studentId) {
+                const success = markAttendance(studentId);
+                showResult(studentId, success);
+                manualInput.value = '';
+            }
         }
 
         // Beep sound for feedback
@@ -656,9 +663,23 @@
         startScannerBtn.addEventListener('click', startScanner);
         stopScannerBtn.addEventListener('click', stopScanner);
         retryScannerBtn.addEventListener('click', retryScanner);
+        manualSubmit.addEventListener('click', handleManualInput);
+        manualInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleManualInput();
+            }
+        });
 
         // Check camera support on load
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if HTML5 QR Code is loaded
+            if (typeof Html5QrcodeScanner === 'undefined') {
+                updateCameraMessage('មិនអាចផ្ទុកកម្មវិធីស្កេន QR Code បាន។ សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត', true);
+                startScannerBtn.disabled = true;
+                showDebugInfo('HTML5 QR Code library failed to load');
+                return;
+            }
+
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 updateCameraMessage('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome, Firefox ឬ Edge', true);
                 startScannerBtn.disabled = true;

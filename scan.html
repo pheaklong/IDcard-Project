@@ -3,758 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Scanner - កម្មវិធីស្កេនកាតសិស្ស</title>
+    <title>ស្កេនសិស្សមកយឺត</title>
+    <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <style>
-        * {
+        body { 
+            font-family: 'Khmer OS', Arial, sans-serif; 
+            padding: 20px; 
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Khmer OS System', 'Arial', sans-serif;
+            background: #f5f5f5;
         }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        h1 { 
+            text-align: center; 
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #scanner-container { 
+            text-align: center; 
+            margin: 20px 0; 
+        }
+        video { 
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border: 3px solid #007bff;
+            border-radius: 15px;
+            background: #000;
+        }
+        #result { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border-radius: 10px;
+            text-align: center;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 2px solid #c3e6cb; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 2px solid #f5c6cb; 
+        }
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            border: 2px solid #bee5eb; 
+        }
+        .button-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            color: #333;
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-        
-        header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        header h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        
-        header p {
-            opacity: 0.8;
-            font-size: 14px;
-        }
-        
-        .content {
-            padding: 20px;
-        }
-        
-        .scanner-section {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        #reader {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            border: 2px dashed #3498db;
-            border-radius: 10px;
-            overflow: hidden;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fa;
-            position: relative;
-        }
-        
-        .scanner-placeholder {
-            padding: 20px;
-            color: #7f8c8d;
-            text-align: center;
-        }
-        
-        .scanner-active {
-            background: black;
-        }
-        
-        #video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        #canvas {
-            display: none;
-        }
-        
-        .result-section {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            background: #f8f9fa;
-            display: none;
-        }
-        
-        .result-section.success {
-            display: block;
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .result-section.error {
-            display: block;
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .student-info {
-            margin: 15px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .student-info h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .student-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            text-align: left;
-        }
-        
-        .detail-item {
-            margin-bottom: 8px;
-        }
-        
-        .detail-label {
-            font-weight: bold;
-            color: #7f8c8d;
-        }
-        
-        .actions {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
             margin-top: 20px;
-            flex-wrap: wrap;
         }
-        
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+        button { 
+            padding: 15px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
             font-size: 16px;
-            min-width: 140px;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-        }
-        
-        .btn-primary:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #7f8c8d;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .btn-retry {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .btn-retry:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-        
-        .navigation {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        
-        .nav-btn {
-            padding: 12px 25px;
-            background: #2c3e50;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-        
-        .nav-btn:hover {
-            background: #1a252f;
-            transform: translateY(-2px);
-        }
-        
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            color: white;
-            font-size: 14px;
-        }
-        
-        .camera-permission {
-            text-align: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            border-radius: 5px;
             font-weight: bold;
         }
-        
-        .camera-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+        .btn-primary { 
+            background: #007bff; 
+            color: white; 
         }
-        
-        .camera-success {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .btn-secondary { 
+            background: #6c757d; 
+            color: white; 
         }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 10px;
+        .btn-success { 
+            background: #28a745; 
+            color: white; 
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .debug-info {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #6c757d;
-            text-align: left;
-        }
-        
-        .manual-input {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
+        #camera-permission {
             text-align: center;
+            padding: 20px;
         }
-        
-        .manual-input input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            width: 200px;
-            margin-right: 10px;
-            font-size: 16px;
+        .permission-btn {
+            background: #dc3545;
+            color: white;
+            padding: 15px 25px;
+            font-size: 18px;
+            margin: 10px;
         }
-        
-        .file-input {
-            margin-top: 15px;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                border-radius: 10px;
-            }
-            
-            header h1 {
-                font-size: 20px;
-            }
-            
-            .student-details {
-                grid-template-columns: 1fr;
-            }
-            
-            .actions {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-            }
-            
-            .manual-input input {
-                width: 100%;
-                margin-right: 0;
-                margin-bottom: 10px;
-            }
+        .warning { 
+            background: #fff3cd; 
+            color: #856404; 
+            border: 2px solid #ffeaa7; 
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>កម្មវិធីស្កេនកាតសិស្ស</h1>
-            <p>ស្កេន QR Code ពីកាតសិស្សដើម្បីចុះឈ្មោះវត្តមាន</p>
-        </header>
+        <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
         
-        <div class="content">
-            <div class="scanner-section">
-                <div class="camera-permission camera-warning" id="cameraWarning">
-                    <span class="loading"></span>
-                    <span id="cameraMessage">កំពុងពិនិត្យកាមេរ៉ា...</span>
-                </div>
-                <div id="reader">
-                    <div class="scanner-placeholder" id="scannerPlaceholder">
-                        <h3>កម្មវិធីស្កេន QR Code</h3>
-                        <p>ចុចប៊ូតុង "បើកការស្កេន" ដើម្បីចាប់ផ្ដើមស្កេនកាតសិស្ស</p>
-                    </div>
-                    <video id="video" muted playsinline></video>
-                    <canvas id="canvas"></canvas>
-                </div>
-            </div>
-            
-            <div id="result" class="result-section"></div>
-            
-            <div class="actions">
-                <button id="startScanner" class="btn-primary">បើកការស្កេន</button>
-                <button id="stopScanner" class="btn-secondary" disabled>បិទការស្កេន</button>
-                <button id="retryScanner" class="btn-retry" style="display: none;">សាកល្បងម្តងទៀត</button>
-            </div>
-            
-            <div class="manual-input">
-                <h3>ឬបញ្ចូលលេខកូដសិស្សដោយផ្ទាល់</h3>
-                <input type="text" id="manualInput" placeholder="បញ្ចូលលេខកូដសិស្ស...">
-                <button id="manualSubmit" class="btn-primary">ចុះឈ្មោះ</button>
-                
-                <div class="file-input">
-                    <h4>ឬផ្ទុកឡើងរូបភាព QR Code</h4>
-                    <input type="file" id="fileInput" accept="image/*">
-                    <button id="scanImage" class="btn-primary">ស្កេនរូបភាព</button>
-                </div>
-            </div>
-            
-            <div class="debug-info" id="debugInfo" style="display: none;">
-                <strong>ព័ត៌មានបំបាត់កំហុស:</strong>
-                <div id="debugContent"></div>
-            </div>
+        <div id="camera-permission" style="display: none;">
+            <p>កម្មវិធីនេះត្រូវការអនុញ្ញាត់ប្រើកាមេរ៉ា</p>
+            <button class="permission-btn" onclick="requestCameraPermission()">
+                អនុញ្ញាត់កាមេរ៉ា
+            </button>
+        </div>
+        
+        <div id="scanner-container" style="display: none;">
+            <video id="camera" playsinline></video>
+            <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
+        </div>
+
+        <div id="result"></div>
+
+        <div class="button-group">
+            <button class="btn-success" onclick="startCamera()">
+                ▶️ ចាប់ផ្ដើមស្កេន
+            </button>
+            <button class="btn-primary" onclick="window.location.href='list.html'">
+                📊 មើលរបាយការណ៍
+            </button>
+            <button class="btn-secondary" onclick="stopCamera()">
+                ⏹️ បញ្ឈប់កាមេរ៉ា
+            </button>
         </div>
     </div>
-    
-    <div class="navigation">
-        <a href="attendance_list.html" class="nav-btn">មើលបញ្ជីវត្តមាន</a>
-    </div>
-    
-    <footer>
-        <p>ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស - &copy; 2023</p>
-    </footer>
 
     <script src="students.js"></script>
     <script>
-        
-
-        // Attendance data storage
-        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
-
-        // DOM elements
-        const startScannerBtn = document.getElementById('startScanner');
-        const stopScannerBtn = document.getElementById('stopScanner');
-        const retryScannerBtn = document.getElementById('retryScanner');
+        const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
-        const readerDiv = document.getElementById('reader');
-        const scannerPlaceholder = document.getElementById('scannerPlaceholder');
-        const cameraWarning = document.getElementById('cameraWarning');
-        const cameraMessage = document.getElementById('cameraMessage');
-        const debugInfo = document.getElementById('debugInfo');
-        const debugContent = document.getElementById('debugContent');
-        const manualInput = document.getElementById('manualInput');
-        const manualSubmit = document.getElementById('manualSubmit');
-        const fileInput = document.getElementById('fileInput');
-        const scanImageBtn = document.getElementById('scanImage');
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-
-        let isScannerActive = false;
+        const scannerContainer = document.getElementById('scanner-container');
+        const cameraPermissionDiv = document.getElementById('camera-permission');
         let stream = null;
-        let scanInterval = null;
+        let isScanning = false;
+        let scanAnimationFrame = null;
 
-        // Function to get student by ID
-        function getStudentById(studentId) {
-            return students.find(student => student.id === studentId);
-        }
-
-        // Function to mark attendance
-        function markAttendance(studentId) {
-            const today = new Date().toISOString().split('T')[0];
-            
-            if (!attendanceData[today]) {
-                attendanceData[today] = [];
+        // ពិនិត្យភាពឆបគ្នានៃ browser
+        function checkCompatibility() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari');
+                return false;
             }
-            
-            const student = getStudentById(studentId);
-            if (student && !attendanceData[today].some(record => record.id === studentId)) {
-                const timestamp = new Date().toLocaleTimeString('km-KH');
-                attendanceData[today].push({
-                    id: studentId,
-                    name: student.name,
-                    class: student.class,
-                    time: timestamp
-                });
-                
-                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-                return true;
-            }
-            return false;
+            return true;
         }
 
-        // Update camera status message
-        function updateCameraMessage(message, isError = false) {
-            cameraMessage.textContent = message;
-            if (isError) {
-                cameraWarning.className = 'camera-permission camera-warning';
-            } else {
-                cameraWarning.className = 'camera-permission camera-success';
-            }
-        }
-
-        // Show debug information
-        function showDebugInfo(info) {
-            debugContent.innerHTML = info;
-            debugInfo.style.display = 'block';
-        }
-
-        // Hide debug information
-        function hideDebugInfo() {
-            debugInfo.style.display = 'none';
-        }
-
-        // Show result
-        function showResult(studentId, isSuccess) {
-            const student = getStudentById(studentId);
+        // ស្នើសុំអនុញ្ញាត់កាមេរ៉ា
+        function requestCameraPermission() {
+            if (!checkCompatibility()) return;
             
-            if (student) {
-                if (isSuccess) {
-                    resultDiv.className = 'result-section success';
-                    resultDiv.innerHTML = `
-                        <h2>✅ ចុះឈ្មោះវត្តមានដោយជោគជ័យ!</h2>
-                        <div class="student-info">
-                            <h3>ព័ត៌មានសិស្ស</h3>
-                            <div class="student-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">កម្រិត:</span> ${student.grade}
-                                </div>
-                            </div>
-                        </div>
-                        <p><strong>ពេលវេលា:</strong> ${new Date().toLocaleString('km-KH')}</p>
-                    `;
-                    playBeepSound();
-                } else {
-                    resultDiv.className = 'result-section error';
-                    resultDiv.innerHTML = `
-                        <h2>⚠️ សិស្សនេះបានចុះឈ្មោះរួចហើយ!</h2>
-                        <div class="student-info">
-                            <h3>ព័ត៌មានសិស្ស</h3>
-                            <div class="student-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">លេខកូដសិស្ស:</span> ${student.id}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ឈ្មោះសិស្ស:</span> ${student.name}
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">ថ្នាក់:</span> ${student.class}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            } else {
-                resultDiv.className = 'result-section error';
-                resultDiv.innerHTML = `
-                    <h2>❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ!</h2>
-                    <p>លេខកូដសិស្ស: ${studentId}</p>
-                    <p>សូមពិនិត្យមើលលេខកូដសិស្សឡើងវិញ</p>
-                `;
-            }
-        }
-
-        // Simple QR code detection from image
-        function scanQRFromImage(image) {
-            // This is a simplified QR code detection
-            // In a real application, you would use a proper QR code library
-            // For now, we'll simulate detection by looking for student IDs in the image data
-            
-            const ctx = canvas.getContext('2d');
-            canvas.width = image.width;
-            canvas.height = image.height;
-            ctx.drawImage(image, 0, 0);
-            
-            // Simple simulation - in reality you would use a QR code library
-            // For demonstration, we'll just return a simulated student ID
-            const simulatedStudentId = "STU00" + Math.floor(Math.random() * 10 + 1);
-            
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve(simulatedStudentId);
-                }, 1000);
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            }).then(function(s) {
+                stream = s;
+                startCamera();
+            }).catch(function(err) {
+                console.error('Camera error:', err);
+                showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាត់កាមេរ៉ា');
+                cameraPermissionDiv.style.display = 'block';
+                scannerContainer.style.display = 'none';
             });
         }
 
-        // Start camera scanner
-        async function startScanner() {
-            if (isScannerActive) {
-                return;
-            }
-
-            try {
-                updateCameraMessage('កំពុងបើកកាមេរ៉ា...', false);
-                startScannerBtn.disabled = true;
-                retryScannerBtn.style.display = 'none';
-
-                // Get camera stream
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 720 },
-                        height: { ideal: 720 }
-                    } 
-                });
-
+        // ចាប់ផ្ដើមកាមេរ៉ា
+        function startCamera() {
+            if (stream) {
                 video.srcObject = stream;
-                await video.play();
-
-                isScannerActive = true;
-                stopScannerBtn.disabled = false;
-                scannerPlaceholder.style.display = 'none';
-                readerDiv.classList.add('scanner-active');
-                updateCameraMessage('កាមេរ៉ាបានបើកដោយជោគជ័យ! សូមស្កេន QR Code', false);
-                hideDebugInfo();
-
-                // Start scanning for QR codes
-                startQRScanning();
-
-            } catch (error) {
-                console.error('Failed to start scanner:', error);
-                updateCameraMessage(`កំហុស: ${error.message}`, true);
-                showDebugInfo(`កំហុសលម្អិត: ${error.toString()}<br>សូមពិនិត្យការអនុញ្ញាតកាមេរ៉ា`);
-                
-                startScannerBtn.disabled = false;
-                retryScannerBtn.style.display = 'block';
-                isScannerActive = false;
+                video.play().then(() => {
+                    scannerContainer.style.display = 'block';
+                    cameraPermissionDiv.style.display = 'none';
+                    startQRScanning();
+                }).catch(err => {
+                    showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
+                });
+            } else {
+                requestCameraPermission();
             }
         }
 
-        // Simple QR code scanning simulation
+        // ចាប់ផ្ដើមស្កេន QR
         function startQRScanning() {
-            // This simulates QR code scanning
-            // In a real app, you would use a proper QR code library
-            scanInterval = setInterval(() => {
-                // Simulate QR code detection occasionally
-                if (Math.random() < 0.1) { // 10% chance per second
-                    const simulatedStudentId = "STU00" + Math.floor(Math.random() * 10 + 1);
-                    handleScannedCode(simulatedStudentId);
+            if (isScanning) return;
+            
+            isScanning = true;
+            resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+            
+            function scanFrame() {
+                if (!isScanning) return;
+                
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        handleScannedQR(code.data);
+                    }
                 }
-            }, 1000);
+                
+                if (isScanning) {
+                    scanAnimationFrame = requestAnimationFrame(scanFrame);
+                }
+            }
+            
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Handle scanned QR code
-        function handleScannedCode(studentId) {
-            const success = markAttendance(studentId);
-            showResult(studentId, success);
+       
+// ដោះស្រាយ QR code ដែលស្កេនបាន
+function handleScannedQR(qrData) {
+    console.log("QR Scanned:", qrData);
+    
+    // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន ដើម្បីជៀសវាងការស្កេនស្ទួន
+    if (isScanning) {
+        isScanning = false;
+        if (scanAnimationFrame) {
+            cancelAnimationFrame(scanAnimationFrame);
+        }
+    }
+    
+    // ទាញយក ID ពី URL
+    let studentId = extractStudentIdFromURL(qrData);
+    
+    // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
+    if (!studentId) {
+        studentId = qrData;
+    }
+    
+    const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+    
+    if (student) {
+        // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួច
+        const scanCheck = hasStudentScannedRecently(student.id);
+        
+        if (scanCheck.scanned) {
+            showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនរួចរាល់\n\nអាចស្កេនម្តងទៀតបាននៅ ${scanCheck.minutesLeft} នាទីក្រោយ`);
             
-            // Stop scanner after successful scan
+            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
             setTimeout(() => {
-                stopScanner();
+                restartScanning();
+            }, 3000);
+        } else {
+            recordLateStudent(student);
+        }
+    } else {
+        showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+        
+        // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
+        setTimeout(() => {
+            restartScanning();
+        }, 2000);
+    }
+}
+
+        // ចាប់ផ្ដើមស្កេនម្តងទៀត
+function restartScanning() {
+    if (!isScanning) {
+        isScanning = true;
+        resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+        scanAnimationFrame = requestAnimationFrame(scanFrame);
+    }
+}// កត់ត្រាសិស្សមកយឺត
+function recordLateStudent(student) {
+    const now = new Date();
+    const record = {
+        student_id: student.id,
+        name: student.name,
+        class: student.class,
+        late_time: now.toTimeString().split(' ')[0],
+        date: now.toDateString(),
+        timestamp: now.getTime()
+    };
+
+    // រក្សាទុកក្នុង localStorage
+    let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+    reports.push(record);
+    localStorage.setItem('lateReports', JSON.stringify(reports));
+
+    // បង្ហាញលទ្ធផល
+    resultDiv.innerHTML = `
+        <div class="success">
+            <h3>✅ កត់ត្រាបានជោគ!</h3>
+            <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+            <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+            <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+            <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
+            <p><em>សិស្សនេះអាចស្កេនម្តងទៀតបាននៅ 1 ម៉ោងក្រោយ</em></p>
+        </div>
+    `;
+
+    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 4 វិនាទី
+    setTimeout(() => {
+        restartScanning();
+    }, 2000);
+}
+
+// បង្ហាញការព្រមានស្កេនរួច
+function showWarning(message) {
+    resultDiv.innerHTML = `
+        <div class="warning">
+            <h3>⚠️ ស្កេនរួចរាល់</h3>
+            <p>${message}</p>
+        </div>
+    `;
+
+    // បញ្ឈប់ការស្កេនមួយភ្លែត
+    setTimeout(() => {
+        resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+    }, 3000);
+}
+
+// ទាញយក Student ID ពី URL
+function extractStudentIdFromURL(url) {
+    try {
+        // ពិនិត្យប្រសិនបើជា URL
+        if (url.includes('?')) {
+            const urlObj = new URL(url);
+            const idParam = urlObj.searchParams.get('id');
+            return idParam;
+        }
+        return null;
+    } catch (e) {
+        console.log("Not a valid URL, using raw data");
+        return null;
+    }
+}
+        // កត់ត្រាសិស្សមកយឺត
+        function recordLateStudent(student) {
+            const now = new Date();
+            const record = {
+                student_id: student.id,
+                name: student.name,
+                class: student.class,
+                late_time: now.toTimeString().split(' ')[0],
+                date: now.toDateString(),
+                timestamp: now.getTime()
+            };
+
+            // រក្សាទុកក្នុង localStorage
+            let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            reports.push(record);
+            localStorage.setItem('lateReports', JSON.stringify(reports));
+
+            // បង្ហាញលទ្ធផល
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h3>✅ កត់ត្រាបានជោគ!</h3>
+                    <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                    <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                    <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+                    <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
+                </div>
+            `;
+
+            // បញ្ឈប់ការស្កេនមួយភ្លែត
+            setTimeout(() => {
+                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
             }, 3000);
         }
 
-        // Stop scanner
-        async function stopScanner() {
-            if (!isScannerActive) {
-                return;
+        // បញ្ឈប់កាមេរ៉ា
+        function stopCamera() {
+            isScanning = false;
+            if (scanAnimationFrame) {
+                cancelAnimationFrame(scanAnimationFrame);
             }
-
-            try {
-                if (scanInterval) {
-                    clearInterval(scanInterval);
-                    scanInterval = null;
-                }
-
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                    stream = null;
-                }
-
-                video.srcObject = null;
-
-                isScannerActive = false;
-                startScannerBtn.disabled = false;
-                stopScannerBtn.disabled = true;
-                retryScannerBtn.style.display = 'none';
-                
-                scannerPlaceholder.style.display = 'block';
-                readerDiv.classList.remove('scanner-active');
-                updateCameraMessage('កាមេរ៉ាបានបិទ', false);
-                hideDebugInfo();
-
-            } catch (error) {
-                console.error('Error stopping scanner:', error);
-                updateCameraMessage('កំហុសក្នុងការបិទកាមេរ៉ា', true);
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
             }
+            scannerContainer.style.display = 'none';
+            cameraPermissionDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
 
-        // Retry scanner
-        function retryScanner() {
-            hideDebugInfo();
-            startScanner();
+        // បង្ហាញកំហុស
+        function showError(message) {
+            resultDiv.innerHTML = `<div class="error">${message}</div>`;
         }
 
-        // Manual input handler
-        function handleManualInput() {
-            const studentId = manualInput.value.trim().toUpperCase();
-            if (studentId) {
-                const success = markAttendance(studentId);
-                showResult(studentId, success);
-                manualInput.value = '';
-            } else {
-                alert('សូមបញ្ចូលលេខកូដសិស្ស');
+        // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
+        window.onload = function() {
+            if (!checkCompatibility()) {
+                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
             }
-        }
-
-        // Image scanning handler
-        async function handleImageScan() {
-            const file = fileInput.files[0];
-            if (!file) {
-                alert('សូមជ្រើសរើសរូបភាព QR Code');
-                return;
-            }
-
-            try {
-                updateCameraMessage('កំពុងស្កេនរូបភាព...', false);
-                scanImageBtn.disabled = true;
-
-                const img = new Image();
-                img.src = URL.createObjectURL(file);
-                
-                img.onload = async () => {
-                    try {
-                        const studentId = await scanQRFromImage(img);
-                        const success = markAttendance(studentId);
-                        showResult(studentId, success);
-                    } catch (error) {
-                        alert('មិនអាចស្កេន QR Code ពីរូបភាពនេះបាន');
-                    } finally {
-                        scanImageBtn.disabled = false;
-                        updateCameraMessage('បានស្កេនរូបភាពរួច', false);
-                    }
-                };
-                
-                img.onerror = () => {
-                    alert('មិនអាចផ្ទុករូបភាពបាន');
-                    scanImageBtn.disabled = false;
-                };
-
-            } catch (error) {
-                alert('កំហុសក្នុងការស្កេនរូបភាព: ' + error.message);
-                scanImageBtn.disabled = false;
-            }
-        }
-
-        // Beep sound for feedback
-        function playBeepSound() {
-            try {
-                const context = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = context.createOscillator();
-                const gainNode = context.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(context.destination);
-                
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                
-                gainNode.gain.setValueAtTime(0.3, context.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
-                
-                oscillator.start(context.currentTime);
-                oscillator.stop(context.currentTime + 0.5);
-            } catch (e) {
-                // Audio not supported - silent failure
-            }
-        }
-
-        // Event listeners
-        startScannerBtn.addEventListener('click', startScanner);
-        stopScannerBtn.addEventListener('click', stopScanner);
-        retryScannerBtn.addEventListener('click', retryScanner);
-        manualSubmit.addEventListener('click', handleManualInput);
-        manualInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleManualInput();
-            }
-        });
-        scanImageBtn.addEventListener('click', handleImageScan);
-
-        // Check camera support on load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                updateCameraMessage('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome, Firefox ឬ Edge', true);
-                startScannerBtn.disabled = true;
-                showDebugInfo('Browser មិនគាំទ្រ getUserMedia API');
-                return;
-            }
-
-            updateCameraMessage('រង់ចាំការអនុញ្ញាតកាមេរ៉ា...', false);
-        });
+            cameraPermissionDiv.style.display = 'block';
+        };
     </script>
 </body>
 </html>
-

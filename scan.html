@@ -388,20 +388,9 @@
         <p>ប្រព័ន្ធគ្រប់គ្រងវត្តមានសិស្ស - &copy; 2023</p>
     </footer>
 
+    <script src="students.js"></script>
     <script>
-        // Student data storage
-        const students = [
-            { id: "STU001", name: "ស៊ុន សុភាព", class: "12A", grade: "Grade 12" },
-            { id: "STU002", name: "ម៉ៅ ស្រីនិច", class: "12A", grade: "Grade 12" },
-            { id: "STU003", name: "លី សុខគា", class: "12A", grade: "Grade 12" },
-            { id: "STU004", name: "ជា ម៉ាលី", class: "12B", grade: "Grade 12" },
-            { id: "STU005", name: "ណុប សុផា", class: "12B", grade: "Grade 12" },
-            { id: "STU006", name: "ផេន សុភា", class: "11A", grade: "Grade 11" },
-            { id: "STU007", name: "សំ សុផាត", class: "11A", grade: "Grade 11" },
-            { id: "STU008", name: "អ៊ុយ សុខហង្ស", class: "11B", grade: "Grade 11" },
-            { id: "STU009", name: "ហេង សុភាព", class: "11B", grade: "Grade 11" },
-            { id: "STU010", name: "ផាន់ ស្រីណាត", class: "10A", grade: "Grade 10" }
-        ];
+        
 
         // Attendance data storage
         let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
@@ -574,7 +563,7 @@
                 stream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: 'environment',
-                        width: { ideal: 1280 },
+                        width: { ideal: 720 },
                         height: { ideal: 720 }
                     } 
                 });
@@ -768,3 +757,4 @@
     </script>
 </body>
 </html>
+

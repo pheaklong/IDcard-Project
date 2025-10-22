@@ -96,6 +96,42 @@
             color: #856404; 
             border: 2px solid #ffeaa7; 
         }
+        .scan-area {
+            position: relative;
+            display: inline-block;
+        }
+        .scan-frame {
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            border: 3px solid #28a745;
+            border-radius: 10px;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3);
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stats p {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -110,11 +146,20 @@
         </div>
         
         <div id="scanner-container" style="display: none;">
-            <video id="camera" playsinline></video>
+            <div class="scan-area">
+                <video id="camera" playsinline></video>
+                <div class="scan-frame"></div>
+            </div>
             <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
         </div>
 
         <div id="result"></div>
+
+        <div class="stats" id="stats-container" style="display: none;">
+            <h3>📊 ស្ថិតិស្កេនថ្ងៃនេះ</h3>
+            <p id="today-count">សិស្សមកយឺតថ្ងៃនេះ: 0 នាក់</p>
+            <p id="last-scan">ស្កេនចុងក្រោយ: មិនទាន់មាន</p>
+        </div>
 
         <div class="button-group">
             <button class="btn-success" onclick="startCamera()">
@@ -129,12 +174,24 @@
         </div>
     </div>
 
-    <script src="students.js"></script>
     <script>
+        // ទិន្នន័យសិស្សឧទាហរណ៍
+        const students = [
+            { id: "S001", name: "វណ្ណ សុភាព", class: "10A", qr_code: "S001" },
+            { id: "S002", name: "សុក្រា សោភា", class: "10A", qr_code: "S002" },
+            { id: "S003", name: "រិទ្ធ វិសាល", class: "10B", qr_code: "S003" },
+            { id: "S004", name: "សំណាង ស្រីណាយ", class: "10B", qr_code: "S004" },
+            { id: "S005", name: "បញ្ញា សំអាត", class: "11A", qr_code: "S005" }
+        ];
+
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
         const scannerContainer = document.getElementById('scanner-container');
         const cameraPermissionDiv = document.getElementById('camera-permission');
+        const statsContainer = document.getElementById('stats-container');
+        const todayCountEl = document.getElementById('today-count');
+        const lastScanEl = document.getElementById('last-scan');
+        
         let stream = null;
         let isScanning = false;
         let scanAnimationFrame = null;
@@ -151,6 +208,8 @@
         // ស្នើសុំអនុញ្ញាត់កាមេរ៉ា
         function requestCameraPermission() {
             if (!checkCompatibility()) return;
+            
+            resultDiv.innerHTML = '<div class="info"><span class="loading"></span> កំពុងស្នើសុំអនុញ្ញាត់កាមេរ៉ា...</div>';
             
             navigator.mediaDevices.getUserMedia({ 
                 video: { 
@@ -176,6 +235,8 @@
                 video.play().then(() => {
                     scannerContainer.style.display = 'block';
                     cameraPermissionDiv.style.display = 'none';
+                    statsContainer.style.display = 'block';
+                    updateStats();
                     startQRScanning();
                 }).catch(err => {
                     showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
@@ -190,7 +251,7 @@
             if (isScanning) return;
             
             isScanning = true;
-            resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+            resultDiv.innerHTML = '<div class="info"><span class="loading"></span> កំពុងស្កេន QR code...</div>';
             
             function scanFrame() {
                 if (!isScanning) return;
@@ -218,33 +279,51 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-               // ដោះស្រាយ QR code ដែលស្កេនបាន
+        // ដោះស្រាយ QR code ដែលស្កេនបាន
         function handleScannedQR(qrData) {
             console.log("QR Scanned:", qrData);
             
-            // ទាញយក ID ពី URL
-            let studentId = extractStudentIdFromURL(qrData);
+            // បញ្ឈប់ការស្កេនមួយភ្លែត
+            isScanning = false;
+            if (scanAnimationFrame) {
+                cancelAnimationFrame(scanAnimationFrame);
+            }
             
-            // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
+            // ទាញយក ID ពី URL ឬប្រើតម្លៃដោយផ្ទាល់
+            let studentId = extractStudentIdFromURL(qrData);
             if (!studentId) {
                 studentId = qrData;
             }
             
-            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+            // រកសិស្សក្នុងបញ្ជី
+            const student = students.find(s => 
+                s.id === studentId || 
+                s.qr_code === qrData || 
+                s.qr_code === studentId
+            );
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួច
                 const scanCheck = hasStudentScannedRecently(student.id);
                 if (scanCheck.scanned) {
                     showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនរួចរាល់\n\nកាលបរិច្ឆេទស្កេនចុងក្រោយ: ${scanCheck.lastScan.toLocaleTimeString()}\nអាចស្កេនម្តងទៀតបានក្នុងរយៈពេល ${scanCheck.minutesLeft} នាទី`);
+                    
+                    // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 3 វិនាទី
+                    setTimeout(() => {
+                        isScanning = true;
+                        scanAnimationFrame = requestAnimationFrame(scanFrame);
+                    }, 3000);
                     return;
                 }
                 
                 recordLateStudent(student);
             } else {
                 showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+                
+                // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 2 វិនាទី
                 setTimeout(() => {
-                    resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+                    isScanning = true;
+                    scanAnimationFrame = requestAnimationFrame(scanFrame);
                 }, 2000);
             }
         }
@@ -306,11 +385,33 @@
                     <p><em>សិស្សនេះអាចស្កេនម្តងទៀតបាននៅ 1 ម៉ោងក្រោយ</em></p>
                 </div>
             `;
+            
+            // ធ្វើបច្ចុប្បន្នភាពស្ថិតិ
+            updateStats();
         
-            // បញ្ឈប់ការស្កេនមួយភ្លែត
+            // ចាប់ផ្ដើមស្កេនឡើងវិញបន្ទាប់ពី 4 វិនាទី
             setTimeout(() => {
-                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
+                isScanning = true;
+                scanAnimationFrame = requestAnimationFrame(scanFrame);
             }, 4000);
+        }
+        
+        // ធ្វើបច្ចុប្បន្នភាពស្ថិតិ
+        function updateStats() {
+            const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            const today = new Date().toDateString();
+            
+            // រាប់សិស្សមកយឺតថ្ងៃនេះ
+            const todayReports = reports.filter(report => report.date === today);
+            todayCountEl.textContent = `សិស្សមកយឺតថ្ងៃនេះ: ${todayReports.length} នាក់`;
+            
+            // បង្ហាញការស្កេនចុងក្រោយ
+            if (reports.length > 0) {
+                const lastReport = reports[reports.length - 1];
+                lastScanEl.textContent = `ស្កេនចុងក្រោយ: ${lastReport.name} (${lastReport.late_time})`;
+            } else {
+                lastScanEl.textContent = 'ស្កេនចុងក្រោយ: មិនទាន់មាន';
+            }
         }
         
         // បង្ហាញការព្រមានស្កេនរួច
@@ -321,11 +422,6 @@
                     <p style="white-space: pre-line;">${message}</p>
                 </div>
             `;
-        
-            // បញ្ឈប់ការស្កេនមួយភ្លែត
-            setTimeout(() => {
-                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code...</div>';
-            }, 3000);
         }
         
         // ទាញយក Student ID ពី URL
@@ -356,6 +452,7 @@
             }
             scannerContainer.style.display = 'none';
             cameraPermissionDiv.style.display = 'block';
+            statsContainer.style.display = 'none';
             resultDiv.innerHTML = '<div class="info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
         
@@ -374,7 +471,3 @@
     </script>
 </body>
 </html>
-
-
-
-

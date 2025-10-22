@@ -383,7 +383,7 @@
                 studentId = qrData;
             }
             
-            const student = students.find(s =>​​ s.qr_code === qrData);
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
@@ -552,4 +552,5 @@
     </script>
 </body>
 </html>
+
 

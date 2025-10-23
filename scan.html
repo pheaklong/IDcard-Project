@@ -503,7 +503,6 @@
             const record = {
                 student_id: student.id,
                 name: student.name,
-                gender: studnet.gender,
                 class: student.class,
                 late_time: now.toTimeString().split(' ')[0],
                 date: now.toISOString().split('T')[0], // YYYY-MM-DD format for database
@@ -539,7 +538,6 @@
                     <div class="success">
                         <h3>✅ កត់ត្រាបានជោគ!</h3>
                         <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ភេទ:</strong> ${student.gender}</p>
                         <p><strong>ថ្នាក់:</strong> ${student.class}</p>
                         <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
                         <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
@@ -558,7 +556,6 @@
                 const fallbackRecord = {
                     student_id: student.id,
                     name: student.name,
-                    gender: studnet.gender,
                     class: student.class,
                     late_time: now.toTimeString().split(' ')[0],
                     date: now.toDateString(),
@@ -571,7 +568,6 @@
                     <div class="success">
                         <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
                         <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ភេទ:</strong> ${student.gender}</p>
                         <p><strong>ថ្នាក់:</strong> ${student.class}</p>
                         <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
                         <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
@@ -754,4 +750,3 @@
     </script>
 </body>
 </html>
-

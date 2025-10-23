@@ -8,6 +8,7 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* CSS styles remain the same */
         body { 
             font-family: 'Khmer OS', Arial, sans-serif; 
             padding: 20px; 
@@ -203,8 +204,6 @@
         </div>
     </div>
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
@@ -229,6 +228,7 @@
         let scanAnimationFrame = null;
         let lastScannedQR = '';
         let isCameraStarting = false;
+        let students = []; // Array to store students from Supabase
 
         // Function scanFrame ត្រូវតែនៅក្រៅ function ដទៃទៀត
         function scanFrame() {
@@ -263,6 +263,35 @@
                 return false;
             }
             return true;
+        }
+
+        // ទាញយកទិន្នន័យសិស្សពី Supabase
+        async function fetchStudents() {
+            try {
+                console.log('🔍 Fetching students from Supabase...');
+                
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('*');
+                
+                if (error) {
+                    console.error('❌ Error fetching students:', error);
+                    throw error;
+                }
+                
+                console.log(`✅ Fetched ${data.length} students from Supabase`);
+                students = data;
+                return students;
+            } catch (error) {
+                console.error('❌ Error fetching students:', error);
+                
+                // Show error but continue with empty students array
+                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន។ សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត');
+                
+                // Return empty array to prevent further errors
+                students = [];
+                return students;
+            }
         }
 
         // ធ្វើបច្ចុប្បន្នភាពស្ថានភាពប៊ូតុង
@@ -372,7 +401,7 @@
         }
 
         // ដោះស្រាយ QR code ដែលស្កេនបាន
-        function handleScannedQR(qrData) {
+        async function handleScannedQR(qrData) {
             console.log("QR Scanned:", qrData);
             
             // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន
@@ -392,6 +421,7 @@
                 studentId = qrData;
             }
             
+            // Find student in the array from Supabase
             const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
@@ -705,11 +735,14 @@
         }
 
         // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
-        window.onload = function() {
+        window.onload = async function() {
             if (!checkCompatibility()) {
                 showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
             }
             updateButtonStates();
+            
+            // Fetch students from Supabase
+            await fetchStudents();
             
             // Test Supabase connection
             testSupabaseConnection();
@@ -717,5 +750,3 @@
     </script>
 </body>
 </html>
-
-

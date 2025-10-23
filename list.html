@@ -244,7 +244,7 @@
                 const { data, error } = await supabase
                     .from('attendance_reports')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('timestamp', { ascending: false });
 
                 if (error) {
                     throw error;
@@ -399,7 +399,7 @@
                         <td>${report.class}</td>
                         <td>${report.late_time}</td>
                         <td>${report.display_date || report.date}</td>
-                        <td>${new Date(report.created_at).toLocaleString('km-KH')}</td>
+                        <td>${new Date(report.timestamp).toLocaleString('km-KH')}</td>
                     </tr>
                 `;
             });
@@ -440,7 +440,7 @@
                 'ថ្នាក់': report.class,
                 'ពេលវេលាមកយឺត': report.late_time,
                 'កាលបរិច្ឆេទ': report.display_date || report.date,
-                'ពេលវេលាកត់ត្រា': new Date(report.created_at).toLocaleString('km-KH')
+                'ពេលវេលាកត់ត្រា': new Date(report.timestamp).toLocaleString('km-KH')
             }));
 
             // Create worksheet and workbook
@@ -494,3 +494,4 @@
     </script>
 </body>
 </html>
+

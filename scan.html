@@ -498,92 +498,96 @@
         }
 
         // កត់ត្រាសិស្សមកយឺត
-        async function recordLateStudent(student) {
-            const now = new Date();
-            const record = {
-                student_id: student.id,
-                name: student.name,
-                class: student.class,
-                late_time: now.toTimeString().split(' ')[0],
-                date: now.toISOString().split('T')[0], // YYYY-MM-DD format for database
-                timestamp: now.toISOString()
-            };
+async function recordLateStudent(student) {
+    const now = new Date();
+    const record = {
+        student_id: student.id,
+        name: student.name,
+        class: student.class,
+        gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender និងដាក់តម្លៃ default
+        late_time: now.toTimeString().split(' ')[0],
+        date: now.toISOString().split('T')[0],
+        timestamp: now.toISOString()
+    };
 
-            try {
-                console.log('🔐 Trying to save to Supabase...', record);
-                
-                // រក្សាទុកក្នុង Supabase
-                const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .insert([record])
-                    .select();
+    try {
+        console.log('🔐 Trying to save to Supabase...', record);
+        
+        // រក្សាទុកក្នុង Supabase
+        const { data, error } = await supabase
+            .from('attendance_reports')
+            .insert([record])
+            .select();
 
-                if (error) {
-                    console.error('❌ Supabase error:', error);
-                    throw error;
-                }
-
-                console.log('✅ Saved to Supabase successfully:', data);
-
-                // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
-                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                reports.push({
-                    ...record,
-                    date: now.toDateString() // Convert back to readable format for display
-                });
-                localStorage.setItem('lateReports', JSON.stringify(reports));
-
-                // បង្ហាញលទ្ធផល
-                resultDiv.innerHTML = `
-                    <div class="success">
-                        <h3>✅ កត់ត្រាបានជោគ!</h3>
-                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                        <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
-                        <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
-                        <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
-                    </div>
-                `;
-
-                // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
-                updateScanCount();
-
-            } catch (error) {
-                console.error('❌ Error saving to Supabase:', error);
-                
-                // Fallback to localStorage only
-                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                const fallbackRecord = {
-                    student_id: student.id,
-                    name: student.name,
-                    class: student.class,
-                    late_time: now.toTimeString().split(' ')[0],
-                    date: now.toDateString(),
-                    timestamp: now.getTime()
-                };
-                reports.push(fallbackRecord);
-                localStorage.setItem('lateReports', JSON.stringify(reports));
-
-                resultDiv.innerHTML = `
-                    <div class="success">
-                        <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
-                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                        <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
-                        <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
-                        <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
-                        <p><small>កំហុស: ${error.message}</small></p>
-                    </div>
-                `;
-
-                updateScanCount();
-            }
-
-            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
-            setTimeout(() => {
-                restartScanning();
-            }, 2000);
+        if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
         }
+
+        console.log('✅ Saved to Supabase successfully:', data);
+
+        // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
+        let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+        reports.push({
+            ...record,
+            date: now.toDateString()
+        });
+        localStorage.setItem('lateReports', JSON.stringify(reports));
+
+        // បង្ហាញលទ្ធផល
+        resultDiv.innerHTML = `
+            <div class="success">
+                <h3>✅ កត់ត្រាបានជោគ!</h3>
+                <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
+                <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+                <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
+                <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
+            </div>
+        `;
+
+        // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
+        updateScanCount();
+
+    } catch (error) {
+        console.error('❌ Error saving to Supabase:', error);
+        
+        // Fallback to localStorage only
+        let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+        const fallbackRecord = {
+            student_id: student.id,
+            name: student.name,
+            class: student.class,
+            gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender
+            late_time: now.toTimeString().split(' ')[0],
+            date: now.toDateString(),
+            timestamp: now.getTime()
+        };
+        reports.push(fallbackRecord);
+        localStorage.setItem('lateReports', JSON.stringify(reports));
+
+        resultDiv.innerHTML = `
+            <div class="success">
+                <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
+                <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
+                <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
+                <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
+                <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                <p><small>កំហុស: ${error.message}</small></p>
+            </div>
+        `;
+
+        updateScanCount();
+    }
+
+    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
+    setTimeout(() => {
+        restartScanning();
+    }, 2000);
+}
 
         // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេនថ្ងៃនេះ
         async function updateScanCount() {
@@ -750,3 +754,4 @@
     </script>
 </body>
 </html>
+

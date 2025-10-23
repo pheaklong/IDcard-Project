@@ -166,7 +166,7 @@
     <div class="container">
         <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
         
-        <div id="camera-permission" style="display: none;">
+        <div id="camera-permission">
             <p>កម្មវិធីនេះត្រូវការអនុញ្ញាត់ប្រើកាមេរ៉ា</p>
             <button class="permission-btn" onclick="requestCameraPermission()">
                 អនុញ្ញាត់កាមេរ៉ា
@@ -203,12 +203,12 @@
         </div>
     </div>
 
-    <script src="students.js"> </script>
+    <script src="students.js"></script>
 
     <script>
         // Supabase Configuration
-        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co'; // ជំនួស URL របស់អ្នក
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I'; // ជំនួស Anon Key របស់អ្នក
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -428,6 +428,7 @@
         async function checkStudentScanToday(studentId) {
             try {
                 const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                console.log(`🔍 Checking scan for student ${studentId} on ${today}`);
                 
                 const { data, error } = await supabase
                     .from('attendance_reports')
@@ -436,15 +437,18 @@
                     .eq('date', today);
                 
                 if (error) {
+                    console.error('❌ Error checking student scan:', error);
                     throw error;
                 }
+
+                console.log(`📊 Scan check result: ${data.length} records found`);
                 
                 return {
                     scanned: data.length > 0,
                     scanCount: data.length
                 };
             } catch (error) {
-                console.error('Error checking student scan:', error);
+                console.error('❌ Error checking student scan:', error);
                 // Fallback to localStorage if Supabase fails
                 const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                 const today = new Date().toDateString();
@@ -453,6 +457,8 @@
                     report.student_id === studentId && 
                     report.date === today
                 );
+                
+                console.log(`📱 Fallback to localStorage: ${todayScans.length} records found`);
                 
                 return {
                     scanned: todayScans.length > 0,
@@ -470,11 +476,12 @@
                 class: student.class,
                 late_time: now.toTimeString().split(' ')[0],
                 date: now.toISOString().split('T')[0], // YYYY-MM-DD format for database
-                timestamp: now.toISOString(),
-                created_at: now.toISOString()
+                timestamp: now.toISOString()
             };
 
             try {
+                console.log('🔐 Trying to save to Supabase...', record);
+                
                 // រក្សាទុកក្នុង Supabase
                 const { data, error } = await supabase
                     .from('attendance_reports')
@@ -482,8 +489,11 @@
                     .select();
 
                 if (error) {
+                    console.error('❌ Supabase error:', error);
                     throw error;
                 }
+
+                console.log('✅ Saved to Supabase successfully:', data);
 
                 // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
                 let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
@@ -509,7 +519,7 @@
                 updateScanCount();
 
             } catch (error) {
-                console.error('Error saving to Supabase:', error);
+                console.error('❌ Error saving to Supabase:', error);
                 
                 // Fallback to localStorage only
                 let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
@@ -532,6 +542,7 @@
                         <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
                         <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
                         <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                        <p><small>កំហុស: ${error.message}</small></p>
                     </div>
                 `;
 
@@ -654,38 +665,55 @@
             resultDiv.innerHTML = `<div class="error">${message}</div>`;
         }
 
-        // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
-        window.onload = function() {
-            if (!checkCompatibility()) {
-                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
-            }
-            cameraPermissionDiv.style.display = 'block';
-            updateButtonStates();
-            
-            // Test Supabase connection
-            testSupabaseConnection();
-        };
-
         // ពិនិត្យការភ្ជាប់ Supabase
         async function testSupabaseConnection() {
             try {
+                console.log('🔗 Testing Supabase connection...');
+                
                 const { data, error } = await supabase
                     .from('attendance_reports')
                     .select('*')
                     .limit(1);
                 
                 if (error) {
-                    console.warn('Supabase connection test failed:', error);
-                    showError('⚠️ ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
+                    console.warn('❌ Supabase connection test failed:', error);
+                    
+                    // Show detailed error message
+                    let errorMessage = 'ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ';
+                    
+                    if (error.code === 'PGRST301') {
+                        errorMessage += 'តារាង "attendance_reports" មិនមានទេ។';
+                    } else if (error.code === '42501') {
+                        errorMessage += 'មិនមានសិទ្ធិចូលប្រើ។ សូមពិនិត្យ RLS Policies។';
+                    } else {
+                        errorMessage += `កំហុស: ${error.message}`;
+                    }
+                    
+                    showError('⚠️ ' + errorMessage + ' ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
                 } else {
-                    console.log('Supabase connection successful');
+                    console.log('✅ Supabase connection successful');
+                    // Hide the error message if connection is successful
+                    const existingError = document.querySelector('.error');
+                    if (existingError && existingError.textContent.includes('Supabase')) {
+                        existingError.remove();
+                    }
                 }
             } catch (error) {
-                console.warn('Supabase connection test failed:', error);
+                console.warn('❌ Supabase connection test failed:', error);
+                showError('⚠️ ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
             }
         }
+
+        // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
+        window.onload = function() {
+            if (!checkCompatibility()) {
+                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
+            }
+            updateButtonStates();
+            
+            // Test Supabase connection
+            testSupabaseConnection();
+        };
     </script>
 </body>
 </html>
-
-

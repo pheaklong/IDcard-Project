@@ -5,65 +5,364 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>របាយការណ៍សិស្សមកយឺត</title>
     <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Khmer OS', Arial, sans-serif; padding: 20px; }
-        .filter-container { margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 5px; }
-        select, input, button { padding: 8px 12px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #28a745; color: white; border: none; cursor: pointer; }
+        body { 
+            font-family: 'Khmer OS', Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            text-align: center; 
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .filter-container { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: #f8f9fa; 
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label { 
+            font-weight: bold; 
+            color: #495057;
+        }
+        select, input, button { 
+            padding: 10px 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            font-size: 14px;
+        }
+        button { 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
         button:hover { background: #218838; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #f2f2f2; }
-        .no-data { text-align: center; padding: 20px; color: #6c757d; }
-        .export-btn { background: #17a2b8; }
-        .export-btn:hover { background: #138496; }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0; 
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td { 
+            border: 1px solid #dee2e6; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background: #343a40; 
+            color: white; 
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e9ecef;
+        }
+        .no-data { 
+            text-align: center; 
+            padding: 40px; 
+            color: #6c757d; 
+            font-size: 18px;
+        }
+        .export-btn { 
+            background: #17a2b8; 
+        }
+        .export-btn:hover { 
+            background: #138496; 
+        }
+        .back-btn { 
+            background: #6c757d; 
+        }
+        .back-btn:hover { 
+            background: #545b62; 
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .stats-container {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            flex: 1;
+            min-width: 200px;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #495057;
+            font-size: 14px;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
-    <h1>📊 របាយការណ៍សិស្សមកយឺត</h1>
-    
-    <div class="filter-container">
-        <label for="dateFilter">📅 ជ្រើសរើសកាលបរិច្ឆេទ:</label>
-        <input type="date" id="dateFilter" onchange="filterReports()">
+    <div class="container">
+        <h1>📊 របាយការណ៍សិស្សមកយឺត</h1>
         
-        <label for="classFilter">🏫 ជ្រើសរើសថ្នាក់:</label>
-        <select id="classFilter" onchange="filterReports()">
-            <option value="">ទាំងអស់</option>
-            <option value="10A">10A</option>
-            <option value="10B">10B</option>
-            <option value="10C">10C</option>
-        </select>
-        
-        <button onclick="exportToExcel()" class="export-btn">📥 Export to Excel</button>
-        <button onclick="window.location.href='scan.html'">🔍 ត្រលប់ទៅស្កេន</button>
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="dateFilter">📅 ជ្រើសរើសកាលបរិច្ឆេទ:</label>
+                <input type="date" id="dateFilter" onchange="filterReports()">
+            </div>
+            
+            <div class="filter-group">
+                <label for="classFilter">🏫 ជ្រើសរើសថ្នាក់:</label>
+                <select id="classFilter" onchange="filterReports()">
+                    <option value="">ទាំងអស់</option>
+                    <option value="10A">10A</option>
+                    <option value="10B">10B</option>
+                    <option value="10C">10C</option>
+                    <option value="11A">11A</option>
+                    <option value="11B">11B</option>
+                    <option value="12A">12A</option>
+                    <option value="12B">12B</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="monthFilter">📆 ជ្រើសរើសខែ:</label>
+                <input type="month" id="monthFilter" onchange="filterByMonth()">
+            </div>
+            
+            <button onclick="loadAllReports()" title="ផ្ទុកទិន្នន័យឡើងវិញ">
+                🔄 ផ្ទុកឡើងវិញ
+            </button>
+            
+            <button onclick="exportToExcel()" class="export-btn">
+                📥 Export to Excel
+            </button>
+            
+            <button onclick="window.location.href='scan.html'" class="back-btn">
+                🔍 ត្រលប់ទៅស្កេន
+            </button>
+        </div>
+
+        <div id="statsContainer" class="stats-container" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">សរុបសិស្សមកយឺត</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayCount">0</div>
+                <div class="stat-label">មកយឺតថ្ងៃនេះ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="classCount">0</div>
+                <div class="stat-label">ចំនួនថ្នាក់</div>
+            </div>
+        </div>
+
+        <div id="reportResult">
+            <div class="no-data">
+                <div class="loading"></div>
+                កំពុងផ្ទុកទិន្នន័យ...
+            </div>
+        </div>
     </div>
 
-    <div id="reportResult"></div>
-
     <script>
-        function loadReports() {
-            return JSON.parse(localStorage.getItem('lateReports') || '[]');
+        // Supabase Configuration (ត្រូវតែដូចគ្នានឹង scan.html)
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co'; // ជំនួស URL របស់អ្នក
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I'; // ជំនួស Anon Key របស់អ្នក
+        
+        // Initialize Supabase client
+       const supabase = window.supabase.createClient(https://ovvlshbuayykddqrnoqx.supabase.co,eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I);
+
+        let allReports = [];
+
+        // ផ្ទុកទិន្នន័យពី Supabase
+        async function loadAllReports() {
+            const reportResult = document.getElementById('reportResult');
+            reportResult.innerHTML = `
+                <div class="no-data">
+                    <div class="loading"></div>
+                    កំពុងផ្ទុកទិន្នន័យ...
+                </div>
+            `;
+
+            try {
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                allReports = data || [];
+                
+                // Convert date format for display
+                allReports = allReports.map(report => ({
+                    ...report,
+                    display_date: formatDateForDisplay(report.date),
+                    display_time: report.late_time
+                }));
+
+                // Update stats
+                updateStats(allReports);
+                
+                // Display all reports initially
+                displayReports(allReports);
+
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                reportResult.innerHTML = `
+                    <div class="error-message">
+                        <strong>កំហុស:</strong> មិនអាចផ្ទុកទិន្នន័យពីមូលដ្ឋានទិន្នន័យ។ 
+                        <button onclick="loadFromLocalStorage()" style="margin-left: 10px; padding: 5px 10px;">
+                            ផ្ទុកពី Local Storage
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Fallback: Load from localStorage
+        function loadFromLocalStorage() {
+            const localData = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            allReports = localData;
+            updateStats(allReports);
+            displayReports(allReports);
+        }
+
+        // Format date for display
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                // Handle both ISO format (YYYY-MM-DD) and display format
+                if (dateString.includes('-')) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                }
+                return dateString;
+            } catch (e) {
+                return dateString;
+            }
+        }
+
+        // Update statistics
+        function updateStats(reports) {
+            const statsContainer = document.getElementById('statsContainer');
+            const totalStudents = document.getElementById('totalStudents');
+            const todayCount = document.getElementById('todayCount');
+            const classCount = document.getElementById('classCount');
+
+            if (reports.length === 0) {
+                statsContainer.style.display = 'none';
+                return;
+            }
+
+            statsContainer.style.display = 'flex';
+            
+            // Total students
+            totalStudents.textContent = reports.length;
+            
+            // Today's count
+            const today = new Date().toISOString().split('T')[0];
+            const todayReports = reports.filter(report => report.date === today);
+            todayCount.textContent = todayReports.length;
+            
+            // Number of unique classes
+            const uniqueClasses = new Set(reports.map(report => report.class));
+            classCount.textContent = uniqueClasses.size;
         }
 
         function filterReports() {
             const dateFilter = document.getElementById('dateFilter').value;
             const classFilter = document.getElementById('classFilter').value;
-            const allReports = loadReports();
             
             let filteredReports = allReports;
             
             // Filter by date
             if (dateFilter) {
-                filteredReports = filteredReports.filter(report => {
-                    const reportDate = new Date(report.timestamp).toISOString().split('T')[0];
-                    return reportDate === dateFilter;
-                });
+                filteredReports = filteredReports.filter(report => report.date === dateFilter);
             }
             
             // Filter by class
             if (classFilter) {
                 filteredReports = filteredReports.filter(report => report.class === classFilter);
             }
+            
+            displayReports(filteredReports);
+        }
+
+        function filterByMonth() {
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            if (!monthFilter) {
+                displayReports(allReports);
+                return;
+            }
+            
+            const filteredReports = allReports.filter(report => {
+                return report.date.startsWith(monthFilter);
+            });
             
             displayReports(filteredReports);
         }
@@ -86,6 +385,7 @@
                             <th>ថ្នាក់</th>
                             <th>ពេលវេលាមកយឺត</th>
                             <th>កាលបរិច្ឆេទ</th>
+                            <th>ពេលវេលាកត់ត្រា</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,7 +398,8 @@
                         <td>${report.name}</td>
                         <td>${report.class}</td>
                         <td>${report.late_time}</td>
-                        <td>${report.date}</td>
+                        <td>${report.display_date || report.date}</td>
+                        <td>${new Date(report.created_at).toLocaleString('km-KH')}</td>
                     </tr>
                 `;
             });
@@ -107,35 +408,39 @@
             reportResult.innerHTML = html;
         }
 
-        function exportToExcel() {
+        async function exportToExcel() {
             const dateFilter = document.getElementById('dateFilter').value;
             const classFilter = document.getElementById('classFilter').value;
-            let reports = loadReports();
+            const monthFilter = document.getElementById('monthFilter').value;
             
-            // Apply same filters as display
+            let reportsToExport = allReports;
+            
+            // Apply filters
             if (dateFilter) {
-                reports = reports.filter(report => {
-                    const reportDate = new Date(report.timestamp).toISOString().split('T')[0];
-                    return reportDate === dateFilter;
-                });
+                reportsToExport = reportsToExport.filter(report => report.date === dateFilter);
             }
             
             if (classFilter) {
-                reports = reports.filter(report => report.class === classFilter);
+                reportsToExport = reportsToExport.filter(report => report.class === classFilter);
+            }
+            
+            if (monthFilter) {
+                reportsToExport = reportsToExport.filter(report => report.date.startsWith(monthFilter));
             }
 
-            if (reports.length === 0) {
+            if (reportsToExport.length === 0) {
                 alert('មិនមានទិន្នន័យសម្រាប់ Export');
                 return;
             }
 
             // Prepare data for Excel
-            const excelData = reports.map((report, index) => ({
+            const excelData = reportsToExport.map((report, index) => ({
                 'ល.រ': index + 1,
                 'ឈ្មោះសិស្ស': report.name,
                 'ថ្នាក់': report.class,
                 'ពេលវេលាមកយឺត': report.late_time,
-                'កាលបរិច្ឆេទ': report.date
+                'កាលបរិច្ឆេទ': report.display_date || report.date,
+                'ពេលវេលាកត់ត្រា': new Date(report.created_at).toLocaleString('km-KH')
             }));
 
             // Create worksheet and workbook
@@ -143,17 +448,48 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'សិស្សមកយឺត');
 
-            // Generate filename with date
-            const dateStr = dateFilter || new Date().toISOString().split('T')[0];
-            const filename = `សិស្សមកយឺត_${dateStr}.xlsx`;
+            // Generate filename
+            let filename = 'សិស្សមកយឺត';
+            if (dateFilter) filename += `_${dateFilter}`;
+            else if (monthFilter) filename += `_${monthFilter}`;
+            else filename += `_${new Date().toISOString().split('T')[0]}`;
+            
+            filename += '.xlsx';
 
             // Export to Excel
             XLSX.writeFile(wb, filename);
         }
 
+        // Test Supabase connection
+        async function testConnection() {
+            try {
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) throw error;
+                return true;
+            } catch (error) {
+                console.error('Supabase connection failed:', error);
+                return false;
+            }
+        }
+
         // Load all reports on page load
-        window.onload = function() {
-            filterReports();
+        window.onload = async function() {
+            const isConnected = await testConnection();
+            if (isConnected) {
+                await loadAllReports();
+            } else {
+                document.getElementById('reportResult').innerHTML = `
+                    <div class="error-message">
+                        <strong>កំហុសការភ្ជាប់:</strong> មិនអាចភ្ជាប់ទៅមូលដ្ឋានទិន្នន័យ។ 
+                        ទិន្នន័យនឹងត្រូវបានផ្ទុកពី Local Storage។
+                    </div>
+                `;
+                loadFromLocalStorage();
+            }
         };
     </script>
 </body>

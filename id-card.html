@@ -146,6 +146,21 @@
                 margin-bottom: 30px;
             }
         }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -292,6 +307,12 @@
                 </div>
                 <div id="allCardsGrid" class="row">
                     <!-- All student cards will be populated here -->
+                    <div class="col-12 text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">កំពុងទាញយកទិន្នន័យ...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,12 +353,21 @@
       </div>
     </footer>
 
-    <!-- Load students.js before your main JS -->
-    <script src="students.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Supabase client
+        // Replace with your actual Supabase URL and API Key
+        const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Global variable to store all students
+        let allStudents = [];
+        
         // Initialize the page
         initializePage();
 
@@ -399,23 +429,51 @@
             }, 500);
         }
 
-        function populateStudentSelect() {
+        async function populateStudentSelect() {
             const studentSelect = document.getElementById('studentSelect');
-            if (typeof students === "undefined" || !Array.isArray(students)) {
-                console.error("students.js not loaded or students array not found!");
-                return;
+            
+            // Show loading state
+            studentSelect.innerHTML = '<option value="">កំពុងទាញយកទិន្នន័យ...</option>';
+            
+            try {
+                // Get students from Supabase
+                await getStudents();
+                
+                // Clear existing options
+                studentSelect.innerHTML = '<option value="">-- ជ្រើសរើសសិស្ស --</option>';
+                
+                // Add student options
+                allStudents.forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student.id;
+                    option.textContent = `${student.id} - ${student.name}`;
+                    studentSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error populating student select:', error);
+                studentSelect.innerHTML = '<option value="">មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</option>';
             }
-            
-            // Clear existing options
-            studentSelect.innerHTML = '<option value="">-- ជ្រើសរើសសិស្ស --</option>';
-            
-            // Add student options
-            students.forEach(student => {
-                const option = document.createElement('option');
-                option.value = student.id;
-                option.textContent = `${student.id} - ${student.name}`;
-                studentSelect.appendChild(option);
-            });
+        }
+
+        // Load students from Supabase
+        async function getStudents() {
+            try {
+                const { data, error } = await supabase
+                    .from('students')
+                    .select('*')
+                    .order('id', { ascending: true });
+                    
+                if (error) {
+                    console.error('Error fetching students:', error);
+                    return [];
+                }
+                
+                allStudents = data || [];
+                return allStudents;
+            } catch (error) {
+                console.error('Error:', error);
+                return [];
+            }
         }
 
         function setupEventListeners() {
@@ -470,11 +528,11 @@
         }
 
         function findStudentById(studentId) {
-            if (typeof students === "undefined" || !Array.isArray(students)) {
-                showError("students.js មិនត្រូវបានបញ្ចូលឬ students array មិនមាន!");
+            if (!Array.isArray(allStudents)) {
+                showError("ទិន្នន័យសិស្សមិនមាន!");
                 return null;
             }
-            return students.find((s) => String(s.id) === studentId);
+            return allStudents.find((s) => String(s.id) === studentId);
         }
 
         function showSingleCard(student) {
@@ -521,8 +579,8 @@
         }
 
         function showAllIdCards() {
-            if (typeof students === "undefined" || !Array.isArray(students)) {
-                showError("students.js មិនត្រូវបានបញ្ចូលឬ students array មិនមាន!");
+            if (!Array.isArray(allStudents) || allStudents.length === 0) {
+                showError("ទិន្នន័យសិស្សមិនមាន!");
                 return;
             }
             
@@ -540,7 +598,7 @@
             const allCardsGrid = document.getElementById('allCardsGrid');
             allCardsGrid.innerHTML = '';
             
-            students.forEach(student => {
+            allStudents.forEach(student => {
                 const cardElement = createStudentCardElement(student);
                 allCardsGrid.appendChild(cardElement);
             });
@@ -563,7 +621,7 @@
                             <div class="id-card-body">
                                 <div class="row">
                                     <div class="col-5">
-                                        <img src="${student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCA2MEMyMCA1NS41ODE3IDIzLjU4MTcgNTIgMjggNTJINjJDNjYuNDE4MyA1MiA3MCA1NS41ODE3IDcwIDYwVjgwSDIwVjYwWiIgZmlsbD0iI0NDQyIvPgo8L3N2Zz4K'}" 
+                                        <img src="${student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhelaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjRjVGNUY1Ii8+CjxjaXJjbGUgY3g9IjQwIiBjeT0iMzAiIHI9IjEwIiBmaWxsPSIjQ0NDIi8+CjxwYXRoIGQ9Ik0yMCA2MEMyMCA1NS41ODE3IDIzLjU4MTcgNTIgMjggNTJINjJDNjYuNDE4MyA1MiA3MCA1NS41ODE3IDcwIDYwVjgwSDIwVjYwWiIgZmlsbD0iI0NDQyIvPgo8L3N2Zz4K'}" 
                                              alt="Student Photo" class="id-card-photo w-100">
                                     </div>
                                     <div class="col-7 student-info">
@@ -695,7 +753,6 @@
             };
             document.head.appendChild(script);
         }
-        
         
         // Make functions available globally for debugging
         window.reloadQRLibrary = reloadQRLibrary;

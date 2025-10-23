@@ -382,6 +382,7 @@
                         <tr>
                             <th>ល.រ</th>
                             <th>ឈ្មោះសិស្ស</th>
+                            <th>ភេទ</th>
                             <th>ថ្នាក់</th>
                             <th>ពេលវេលាមកយឺត</th>
                             <th>កាលបរិច្ឆេទ</th>
@@ -396,6 +397,7 @@
                     <tr>
                         <td>${index + 1}</td>
                         <td>${report.name}</td>
+                        <td>${report.gender}</td>
                         <td>${report.class}</td>
                         <td>${report.late_time}</td>
                         <td>${report.display_date || report.date}</td>
@@ -437,6 +439,7 @@
             const excelData = reportsToExport.map((report, index) => ({
                 'ល.រ': index + 1,
                 'ឈ្មោះសិស្ស': report.name,
+                'ភេទ': report.gender,
                 'ថ្នាក់': report.class,
                 'ពេលវេលាមកយឺត': report.late_time,
                 'កាលបរិច្ឆេទ': report.display_date || report.date,
@@ -494,4 +497,5 @@
     </script>
 </body>
 </html>
+
 

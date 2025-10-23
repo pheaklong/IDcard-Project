@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ស្កេនសិស្សមកយឺត</title>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { 
             font-family: 'Khmer OS', Arial, sans-serif; 
@@ -201,9 +203,16 @@
         </div>
     </div>
 
-    <script src="students.js"></script>
+    <script src="students.js"> </script>
 
     <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co'; // ជំនួស URL របស់អ្នក
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I'; // ជំនួស Anon Key របស់អ្នក
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
         const scannerContainer = document.getElementById('scanner-container');
@@ -387,18 +396,24 @@
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
-                const todayScanCheck = hasStudentScannedToday(student.id);
-                
-                if (todayScanCheck.scanned) {
-                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនមកយឺតថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
-                    
-                    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
+                checkStudentScanToday(student.id).then(todayScanCheck => {
+                    if (todayScanCheck.scanned) {
+                        showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនមកយឺតថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
+                        
+                        // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
+                        setTimeout(() => {
+                            restartScanning();
+                        }, 3000);
+                    } else {
+                        recordLateStudent(student);
+                    }
+                }).catch(error => {
+                    console.error('Error checking scan:', error);
+                    showError('កំហុសក្នុងការពិនិត្យទិន្នន័យ');
                     setTimeout(() => {
                         restartScanning();
-                    }, 3000);
-                } else {
-                    recordLateStudent(student);
-                }
+                    }, 2000);
+                });
             } else {
                 showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
                 
@@ -409,53 +424,119 @@
             }
         }
 
-        // ពិនិត្យប្រសិនបើសិស្សបានស្កេនរួចថ្ងៃនេះ
-        function hasStudentScannedToday(studentId) {
-            const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-            const today = new Date().toDateString();
-            
-            const todayScans = reports.filter(report => 
-                report.student_id === studentId && 
-                report.date === today
-            );
-            
-            return {
-                scanned: todayScans.length > 0,
-                scanCount: todayScans.length
-            };
+        // ពិនិត្យប្រសិនបើសិស្សបានស្កេនរួចថ្ងៃនេះ (ពី Supabase)
+        async function checkStudentScanToday(studentId) {
+            try {
+                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .eq('student_id', studentId)
+                    .eq('date', today);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                return {
+                    scanned: data.length > 0,
+                    scanCount: data.length
+                };
+            } catch (error) {
+                console.error('Error checking student scan:', error);
+                // Fallback to localStorage if Supabase fails
+                const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                const today = new Date().toDateString();
+                
+                const todayScans = reports.filter(report => 
+                    report.student_id === studentId && 
+                    report.date === today
+                );
+                
+                return {
+                    scanned: todayScans.length > 0,
+                    scanCount: todayScans.length
+                };
+            }
         }
 
         // កត់ត្រាសិស្សមកយឺត
-        function recordLateStudent(student) {
+        async function recordLateStudent(student) {
             const now = new Date();
             const record = {
                 student_id: student.id,
                 name: student.name,
                 class: student.class,
                 late_time: now.toTimeString().split(' ')[0],
-                date: now.toDateString(),
-                timestamp: now.getTime()
+                date: now.toISOString().split('T')[0], // YYYY-MM-DD format for database
+                timestamp: now.toISOString(),
+                created_at: now.toISOString()
             };
 
-            // រក្សាទុកក្នុង localStorage
-            let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-            reports.push(record);
-            localStorage.setItem('lateReports', JSON.stringify(reports));
+            try {
+                // រក្សាទុកក្នុង Supabase
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .insert([record])
+                    .select();
 
-            // បង្ហាញលទ្ធផល
-            resultDiv.innerHTML = `
-                <div class="success">
-                    <h3>✅ កត់ត្រាបានជោគ!</h3>
-                    <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                    <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                    <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
-                    <p><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
-                    <p><em>ស្កេនរួចរាល់! អាចស្កេនសិស្សបន្ទាប់បាន</em></p>
-                </div>
-            `;
+                if (error) {
+                    throw error;
+                }
 
-            // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
-            updateScanCount();
+                // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
+                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                reports.push({
+                    ...record,
+                    date: now.toDateString() // Convert back to readable format for display
+                });
+                localStorage.setItem('lateReports', JSON.stringify(reports));
+
+                // បង្ហាញលទ្ធផល
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ កត់ត្រាបានជោគ!</h3>
+                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                        <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+                        <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
+                        <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
+                    </div>
+                `;
+
+                // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
+                updateScanCount();
+
+            } catch (error) {
+                console.error('Error saving to Supabase:', error);
+                
+                // Fallback to localStorage only
+                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                const fallbackRecord = {
+                    student_id: student.id,
+                    name: student.name,
+                    class: student.class,
+                    late_time: now.toTimeString().split(' ')[0],
+                    date: now.toDateString(),
+                    timestamp: now.getTime()
+                };
+                reports.push(fallbackRecord);
+                localStorage.setItem('lateReports', JSON.stringify(reports));
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
+                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                        <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
+                        <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
+                        <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                    </div>
+                `;
+
+                updateScanCount();
+            }
 
             // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
             setTimeout(() => {
@@ -464,20 +545,52 @@
         }
 
         // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេនថ្ងៃនេះ
-        function updateScanCount() {
+        async function updateScanCount() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .eq('date', today);
+                
+                if (!error) {
+                    scannedCountSpan.textContent = data.length;
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching scan count:', error);
+            }
+            
+            // Fallback to localStorage
             const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
             const today = new Date().toDateString();
             const todayScans = reports.filter(report => report.date === today);
-            
             scannedCountSpan.textContent = todayScans.length;
         }
 
         // កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
-        function resetTodayScans() {
+        async function resetTodayScans() {
             if (confirm('តើអ្នកចង់កំណត់ស្កេនថ្ងៃនេះឡើងវិញមែនទេ? សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។')) {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    // Delete from Supabase
+                    const { error } = await supabase
+                        .from('attendance_reports')
+                        .delete()
+                        .eq('date', today);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                } catch (error) {
+                    console.error('Error resetting scans in Supabase:', error);
+                }
+                
+                // Reset localStorage
                 const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                 const today = new Date().toDateString();
-                
                 const previousScans = reports.filter(report => report.date !== today);
                 localStorage.setItem('lateReports', JSON.stringify(previousScans));
                 
@@ -548,9 +661,29 @@
             }
             cameraPermissionDiv.style.display = 'block';
             updateButtonStates();
+            
+            // Test Supabase connection
+            testSupabaseConnection();
         };
+
+        // ពិនិត្យការភ្ជាប់ Supabase
+        async function testSupabaseConnection() {
+            try {
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    console.warn('Supabase connection test failed:', error);
+                    showError('⚠️ ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
+                } else {
+                    console.log('Supabase connection successful');
+                }
+            } catch (error) {
+                console.warn('Supabase connection test failed:', error);
+            }
+        }
     </script>
 </body>
 </html>
-
-

@@ -1,136 +1,842 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
     <meta charset="UTF-8">
-    <title>Add Student</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-        // Check login: if not logged in, redirect to login page
-        if (localStorage.getItem('adminLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ប្រព័ន្ធគ្រប់គ្រងសិស្ស</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --light-gray: #ecf0f1;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
         }
-        // If logged in, stay on this page (do nothing)
-    </script>
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Kantumruy', 'Segoe UI', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .input-container {
+            position: relative;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: var(--light);
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: white;
+        }
+        
+        .input-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -15px;
+        }
+        
+        .form-col {
+            flex: 1;
+            padding: 0 15px;
+            min-width: 250px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent), #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+        
+        .photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .photo-preview {
+            width: 180px;
+            height: 180px;
+            border: 2px dashed var(--light-gray);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-color: var(--light);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .photo-preview:hover {
+            border-color: var(--primary);
+        }
+        
+        .photo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-placeholder {
+            text-align: center;
+            color: var(--gray);
+        }
+        
+        .photo-placeholder i {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            background: var(--light-gray);
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .file-label:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .message {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--secondary-dark);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--gray);
+            font-size: 14px;
+            border-top: 1px solid var(--light-gray);
+            background: var(--light);
+        }
+        
+        .required::after {
+            content: " *";
+            color: var(--accent);
+        }
+        
+        /* Alert Modal */
+        .alert-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        
+        .alert-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: var(--transition);
+        }
+        
+        .alert-modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-icon {
+            font-size: 70px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-icon.success {
+            color: var(--secondary);
+        }
+        
+        .modal-icon.error {
+            color: var(--accent);
+        }
+        
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .modal-text {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-col {
+                flex: 100%;
+            }
+            
+            .form-container {
+                padding: 25px;
+            }
+            
+            header {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 26px;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        /* Animation for form elements */
+        .form-group {
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Stagger animation for form groups */
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+        .form-group:nth-child(7) { animation-delay: 0.7s; }
+        .form-group:nth-child(8) { animation-delay: 0.8s; }
+        .form-group:nth-child(9) { animation-delay: 0.9s; }
+        
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .id-info {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .date-info {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 5px;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    <div class="container py-5">
-        <h2 class="mb-4">Add Student</h2>
-        <form id="addStudentForm">
-            <div class="mb-3">
-                <label for="studentId" class="form-label">Student ID</label>
-                <input type="text" class="form-control" id="studentId" required>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-user-graduate"></i> ប្រព័ន្ធគ្រប់គ្រងសិស្ស</h1>
+                <p class="header-subtitle">បញ្ចូលព័ត៌មានសិស្សថ្មីទៅក្នុងមូលដ្ឋានទិន្នន័យ</p>
             </div>
-            <div class="mb-3">
-                <label for="studentName" class="form-label">Name</label>
-                <input type="text" class="form-control" id="studentName" required>
-            </div>
-            <div class="mb-3">
-                <label for="studentClass" class="form-label">Class</label>
-                <input type="number" class="form-control" id="studentClass" required>
-            </div>
-            <div class="mb-3">
-                <label for="studentGender" class="form-label">Gender</label>
-                <select class="form-select" id="studentGender" required>
-                    <option value="">Select</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="studentDob" class="form-label">Date of Birth</label>
-                <input type="date" class="form-control" id="studentDob" required>
-            </div>
-            <div class="mb-3">
-                <label for="studentAddress" class="form-label">Address</label>
-                <input type="text" class="form-control" id="studentAddress">
-            </div>
-            <div class="mb-3">
-                <label for="studentPhone" class="form-label">Phone</label>
-                <input type="text" class="form-control" id="studentPhone">
-            </div>
-            <div class="mb-3">
-                <label for="studentFather" class="form-label">Father</label>
-                <input type="text" class="form-control" id="studentFather">
-            </div>
-            <div class="mb-3">
-                <label for="studentMother" class="form-label">Mother</label>
-                <input type="text" class="form-control" id="studentMother">
-            </div>
-            <div class="mb-3">
-                <label for="studentPhoto" class="form-label">Photo</label>
-                <input type="file" class="form-control" id="studentPhoto" accept="image/*">
-                <img id="photoPreview" src="" alt="Photo Preview" style="max-width:120px; margin-top:10px; display:none;">
-            </div>
-            <div class="mb-3">
-                <label for="studyYear" class="form-label">Study Year</label>
-                <input type="number" class="form-control" id="studyYear">
-            </div>
-            <button type="submit" class="btn btn-primary">Add Student</button>
-            <a href="student-list.html" class="btn btn-secondary ms-2">Cancel</a>
-            <a href="index.html" class="btn btn-outline-success ms-2">Back to Home</a>
-        </form>
+        </header>
+        
+        <div class="form-container">
+            <div id="message" class="message" style="display: none;"></div>
+            
+            <form id="studentForm">
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="studentId" class="required">អត្តលេខ</label>
+                            <div class="input-container">
+                                <input type="text" id="studentId" name="studentId" required placeholder="បញ្ចូលអត្តលេខសិស្ស">
+                                <i class="fas fa-id-card input-icon"></i>
+                            </div>
+                            <div class="id-info">អត្តលេខត្រូវតែមានតួអក្សរតែមួយគត់ និងមិនដូចគ្នានឹងសិស្សដទៃទៀត</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="name" class="required">ឈ្មោះសិស្ស</label>
+                            <div class="input-container">
+                                <input type="text" id="name" name="name" required placeholder="បញ្ចូលឈ្មោះសិស្ស">
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="gender" class="required">ភេទ</label>
+                            <div class="input-container">
+                                <select id="gender" name="gender" required>
+                                    <option value="">ជ្រើសរើសភេទ</option>
+                                    <option value="ប្រុស">ប្រុស</option>
+                                    <option value="ស្រី">ស្រី</option>
+                                </select>
+                                <i class="fas fa-venus-mars input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="dob" class="required">ថ្ងៃខែឆ្នាំកំណើត</label>
+                            <div class="input-container">
+                                <input type="date" id="dob" name="dob" required>
+                                <i class="fas fa-calendar-alt input-icon"></i>
+                            </div>
+                            <div class="date-info">ទម្រង់: mm/dd/yyyy (ខែ/ថ្ងៃ/ឆ្នាំ)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="class" class="required">ថ្នាក់</label>
+                            <div class="input-container">
+                                <input type="text" id="class" name="class" required placeholder="ឧ. ថ្នាក់ទី ១០ ក">
+                                <i class="fas fa-school input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="studyYear" class="required">ឆ្នាំសិក្សា</label>
+                            <div class="input-container">
+                                <input type="number" id="studyYear" name="studyYear" min="2020" max="2030" required placeholder="ឧ. ២០២៦">
+                                <i class="fas fa-calendar input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address" class="required">អាសយដ្ឋាន</label>
+                    <div class="input-container">
+                        <textarea id="address" name="address" rows="3" required placeholder="បញ្ចូលអាសយដ្ឋានពេញ"></textarea>
+                        <i class="fas fa-home input-icon" style="top: 20px;"></i>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="phone">លេខទូរស័ព្ទ</label>
+                            <div class="input-container">
+                                <input type="tel" id="phone" name="phone" placeholder="បញ្ចូលលេខទូរស័ព្ទ">
+                                <i class="fas fa-phone input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="father">ឈ្មោះឪពុក</label>
+                            <div class="input-container">
+                                <input type="text" id="father" name="father" placeholder="បញ្ចូលឈ្មោះឪពុក">
+                                <i class="fas fa-male input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="mother">ឈ្មោះម្តាយ</label>
+                            <div class="input-container">
+                                <input type="text" id="mother" name="mother" placeholder="បញ្ចូលឈ្មោះម្តាយ">
+                                <i class="fas fa-female input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col">
+                        <!-- Empty column for better layout -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photo">រូបថតសិស្ស</label>
+                    <div class="photo-upload">
+                        <div class="photo-preview" id="photoPreview">
+                            <div class="photo-placeholder">
+                                <i class="fas fa-user-circle"></i>
+                                <span>មើលរូបថត</span>
+                            </div>
+                        </div>
+                        <input type="file" id="photo" name="photo" accept="image/*" class="file-input">
+                        <label for="photo" class="file-label">
+                            <i class="fas fa-upload"></i> ជ្រើសរើសរូបថត
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" id="addStudentBtn" class="btn">
+                    <i class="fas fa-user-plus"></i> បន្ថែមសិស្ស
+                </button>
+            </form>
+        </div>
+        
+        <footer>
+            <p>ប្រព័ន្ធគ្រប់គ្រងសិស្ស &copy; ២០២៣</p>
+        </footer>
     </div>
+    
+    <!-- Alert Modal -->
+    <div class="alert-modal" id="alertModal">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="modal-title" id="modalTitle">ជោគជ័យ!</h3>
+            <p class="modal-text" id="modalText">ព័ត៌មានសិស្សត្រូវបានបន្ថែមដោយជោគជ័យ</p>
+            <div class="modal-buttons" id="modalButtons">
+                <button class="btn btn-secondary" id="closeModal">
+                    <i class="fas fa-check"></i> យល់ព្រម
+                </button>
+                <button class="btn" id="addAnother">
+                    <i class="fas fa-plus"></i> បន្ថែមសិស្សផ្សេងទៀត
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Preview photo
-        document.getElementById('studentPhoto').addEventListener('change', function(e) {
+        // Initialize Supabase client
+        const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // DOM elements
+        const studentForm = document.getElementById('studentForm');
+        const messageDiv = document.getElementById('message');
+        const photoInput = document.getElementById('photo');
+        const photoPreview = document.getElementById('photoPreview');
+        const alertModal = document.getElementById('alertModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const modalButtons = document.getElementById('modalButtons');
+        const closeModal = document.getElementById('closeModal');
+        const addAnother = document.getElementById('addAnother');
+        
+        // Function to convert date from mm/dd/yyyy to yyyy/mm/dd
+        function convertDateFormat(dateString) {
+            if (!dateString) return '';
+            
+            // Split the date string by '/'
+            const parts = dateString.split('/');
+            
+            if (parts.length === 3) {
+                // Reformat from mm/dd/yyyy to yyyy/mm/dd
+                const [month, day, year] = parts;
+                return `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
+            }
+            
+            // If it's already in yyyy-mm-dd format (from date input), convert to yyyy/mm/dd
+            if (dateString.includes('-')) {
+                return dateString.replace(/-/g, '/');
+            }
+            
+            return dateString;
+        }
+        
+        // Handle photo preview
+        photoInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            const preview = document.getElementById('photoPreview');
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
-                    preview.src = evt.target.result;
-                    preview.style.display = 'block';
+                reader.onload = function(e) {
+                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
                 };
                 reader.readAsDataURL(file);
             } else {
-                preview.src = '';
-                preview.style.display = 'none';
+                photoPreview.innerHTML = `
+                    <div class="photo-placeholder">
+                        <i class="fas fa-user-circle"></i>
+                        <span>មើលរូបថត</span>
+                    </div>`;
             }
         });
-
-        document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+        
+        // Handle form submission
+        studentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-
-            const newStudent = {
-                id: document.getElementById('studentId').value,
-                name: document.getElementById('studentName').value,
-                class: document.getElementById('studentClass').value,
-                gender: document.getElementById('studentGender').value,
-                dob: document.getElementById('studentDob').value,
-                address: document.getElementById('studentAddress').value,
-                phone: document.getElementById('studentPhone').value,
-                father: document.getElementById('studentFather').value,
-                mother: document.getElementById('studentMother').value,
-                photo: '', // Will be set below
-                studyYear: document.getElementById('studyYear').value
+            
+            // Get form data
+            const formData = new FormData(studentForm);
+            const dobInput = formData.get('dob');
+            
+            // Convert date format from mm/dd/yyyy to yyyy/mm/dd
+            const formattedDob = convertDateFormat(dobInput);
+            
+            const studentData = {
+                id: formData.get('studentId'),
+                name: formData.get('name'),
+                gender: formData.get('gender'),
+                dob: formattedDob, // Use the converted date format
+                class: formData.get('class'),
+                address: formData.get('address'),
+                phone: formData.get('phone'),
+                father: formData.get('father'),
+                mother: formData.get('mother'),
+                studyYear: formData.get('studyYear')
             };
-
-            const photoInput = document.getElementById('studentPhoto');
-            if (photoInput.files && photoInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    newStudent.photo = evt.target.result;
-                    saveStudent(newStudent);
-                };
-                reader.readAsDataURL(photoInput.files[0]);
-            } else {
-                newStudent.photo = '';
-                saveStudent(newStudent);
+            
+            // Get photo file
+            const photoFile = photoInput.files[0];
+            
+            try {
+                // Show loading state
+                const submitBtn = document.getElementById('addStudentBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<div class="loading"></div> កំពុងបន្ថែមសិស្ស...';
+                
+                // Upload photo if exists
+                let photoUrl = null;
+                if (photoFile) {
+                    const fileName = `${Date.now()}-${photoFile.name}`;
+                    const { data, error } = await supabase.storage
+                        .from('student-photos')
+                        .upload(fileName, photoFile);
+                    
+                    if (error) throw error;
+                    
+                    // Get public URL
+                    const { data: urlData } = supabase.storage
+                        .from('student-photos')
+                        .getPublicUrl(fileName);
+                    
+                    photoUrl = urlData.publicUrl;
+                }
+                
+                // Add photo URL to student data
+                if (photoUrl) {
+                    studentData.photo = photoUrl;
+                }
+                
+                // Insert student data into database
+                const { data, error } = await supabase
+                    .from('students')
+                    .insert([studentData])
+                    .select();
+                
+                if (error) throw error;
+                
+                // Show success alert
+                showAlert(
+                    'success',
+                    'ជោគជ័យ!',
+                    `ព័ត៌មានសិស្សត្រូវបានបន្ថែមដោយជោគជ័យ។ អត្តលេខ: ${studentData.id}`,
+                    true
+                );
+                
+            } catch (error) {
+                console.error('Error adding student:', error);
+                
+                // Show error alert
+                let errorMessage = `កំហុស: ${error.message}`;
+                
+                if (error.message.includes('duplicate key')) {
+                    errorMessage = 'កំហុស: អត្តលេខនេះមានរួចហើយនៅក្នុងប្រព័ន្ធ';
+                }
+                
+                showAlert(
+                    'error',
+                    'កំហុស!',
+                    errorMessage,
+                    false
+                );
+            } finally {
+                // Reset button state
+                const submitBtn = document.getElementById('addStudentBtn');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> បន្ថែមសិស្ស';
             }
         });
-
-        function saveStudent(newStudent) {
-            let students = JSON.parse(localStorage.getItem('students')) || [];
-            // Prevent duplicate ID
-            if (students.some(s => s.id === newStudent.id)) {
-                alert('A student with this ID already exists!');
-                return;
+        
+        // Show alert modal
+        function showAlert(type, title, text, showAddAnother = true) {
+            // Set modal content based on type
+            modalIcon.className = 'modal-icon ' + type;
+            modalIcon.innerHTML = type === 'success' 
+                ? '<i class="fas fa-check-circle"></i>' 
+                : '<i class="fas fa-exclamation-circle"></i>';
+            
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            
+            // Set button configuration
+            if (showAddAnother) {
+                modalButtons.innerHTML = `
+                    <button class="btn btn-secondary" id="closeModal">
+                        <i class="fas fa-check"></i> យល់ព្រម
+                    </button>
+                    <button class="btn" id="addAnother">
+                        <i class="fas fa-plus"></i> បន្ថែមសិស្សផ្សេងទៀត
+                    </button>
+                `;
+            } else {
+                modalButtons.innerHTML = `
+                    <button class="btn btn-danger" id="closeModal">
+                        <i class="fas fa-times"></i> យល់ព្រម
+                    </button>
+                `;
             }
-            students.push(newStudent);
-            localStorage.setItem('students', JSON.stringify(students));
-            alert('Student added successfully!');
-            window.location.href = 'student-list.html';
+            
+            // Reattach event listeners
+            document.getElementById('closeModal').addEventListener('click', function() {
+                alertModal.classList.remove('active');
+            });
+            
+            if (showAddAnother) {
+                document.getElementById('addAnother').addEventListener('click', function() {
+                    alertModal.classList.remove('active');
+                    studentForm.reset();
+                    photoPreview.innerHTML = `
+                        <div class="photo-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                            <span>មើលរូបថត</span>
+                        </div>`;
+                });
+            }
+            
+            // Show modal
+            alertModal.classList.add('active');
         }
+        
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            alertModal.classList.remove('active');
+        });
+        
+        // Add another student
+        addAnother.addEventListener('click', function() {
+            alertModal.classList.remove('active');
+            studentForm.reset();
+            photoPreview.innerHTML = `
+                <div class="photo-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                    <span>មើលរូបថត</span>
+                </div>`;
+        });
     </script>
 </body>
 </html>

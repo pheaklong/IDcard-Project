@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #2c3e50;
+            --primary-color: #3498db;
             --secondary-color: #3498db;
         }
         
@@ -79,6 +79,10 @@
             color: #e74c3c;
             margin-bottom: 20px;
         }
+        
+        .admin-only {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -100,14 +104,25 @@
                         <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="input-student.html"><i class="fas fa-list me-1"></i> Add Student</a>
+                        <a class="nav-link" href="input-student.html"><i class="fas fa-user-plus me-1"></i> Add Student</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="input-student.html" id="inputStudentLink" style="display: none;">
+                    <!-- Admin-only links (hidden by default) -->
+                    <li class="nav-item admin-only">
+                        <a class="nav-link" href="input-student.html">
                             <i class="fas fa-user-plus me-1"></i> Input Student
+                        </a>
+                    </li>
+                    <li class="nav-item admin-only">
+                        <a class="nav-link" href="scan.html">
+                            <i class="fas fa-qrcode me-1"></i> Scan ID Card
+                        </a>
+                    </li>
+                    <li class="nav-item admin-only">
+                        <a class="nav-link" href="list.html">
+                            <i class="fas fa-list-alt me-1"></i> Scan List
                         </a>
                     </li>
                     <li class="nav-item">
@@ -118,7 +133,7 @@
         </div>
     </nav>
 
-       <div class="login-container">
+    <div class="login-container">
         <div class="login-form">
             <div class="login-header">
                 <h2>Admin Login</h2>
@@ -146,90 +161,6 @@
             </form>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const loginForm = document.getElementById('loginForm');
-            const loginMessage = document.getElementById('loginMessage');
-            
-            loginForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const username = document.getElementById('adminUsername').value;
-                const password = document.getElementById('adminPassword').value;
-                
-                // Clear previous messages
-                loginMessage.innerHTML = '';
-                
-                // Simple validation
-                if (!username || !password) {
-                    showMessage('Please fill in all fields', 'error');
-                    return;
-                }
-                
-                // Simulate login validation
-                if (username === 'admin' && password === 'admin123') {
-                    
-                    showMessage('Login successful! Redirecting...', 'success');
-                    setTimeout(function() {
-                         // Redirect to input-student.html after login
-                    }, 1500);
-                } else {
-                    showMessage('Invalid username or password. Please try again.', 'error');
-                }
-            });
-            
-            function showMessage(message, type) {
-                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-                const icon = type === 'success' ? '✅' : '❌';
-                
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `alert ${alertClass} d-flex align-items-center`;
-                messageDiv.innerHTML = `
-                    <span class="${type}-icon">${icon}</span>
-                    <span>${message}</span>
-                `;
-                
-                loginMessage.appendChild(messageDiv);
-                
-                // Auto-remove message after 5 seconds (for error messages)
-                if (type === 'error') {
-                    setTimeout(function() {
-                        if (messageDiv.parentNode) {
-                            messageDiv.parentNode.removeChild(messageDiv);
-                        }
-                    }, 5000);
-                }
-            }
-        });
-    </script>
-
-    <!-- Login Section (Visible by default) -->
-
-    <!-- <section class="py-5 bg-light" id="loginSection">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="login-form">
-                        <h2 class="text-center mb-4">Admin Login</h2>
-                        <div class="mb-3">
-                            <label for="adminUsername" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="adminUsername" placeholder="Enter username" value="admin">
-                        </div>
-                        <div class="mb-3">
-                            <label for="adminPassword" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="adminPassword" placeholder="Enter password" value="admin123">
-                        </div>
-                        <button class="btn btn-primary w-100" id="adminLoginBtn">Login</button>
-                        <div class="text-center mt-3">
-                            <small class="text-muted">Default credentials: admin / admin123</small>
-                        </div>
-                        <div id="loginMessage" class="mt-3"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> -->
 
     <!-- Admin Panel Section (Hidden by default) -->
     <section class="py-5 bg-light admin-panel" id="adminPanel">
@@ -430,45 +361,57 @@
         </div>
     </div>
 
-    <!-- Footer -->
+     <!-- Footer -->
     <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>High School Portal</h5>
-                    <p>Providing quality education since 1995.</p>
-                </div>
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>Contact Info</h5>
-                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
-                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
-                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-white">Home</a></li>
-                        <li><a href="student-list.html" class="text-white">Student List</a></li>
-                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
-                        <li><a href="admin.html" class="text-white">Admin</a></li>
-                    </ul>
-                </div>
-            </div>
-            <hr class="my-4 bg-light">
-            <div class="text-center">
-                <p>&copy; 2023 High School Portal. All rights reserved.</p>
-            </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5>វិទ្យាល័យកំរៀង</h5>
+            <p>ស្ថិតនៅ ភូមិអូរដា ឃុំអូរដា ស្រុកកំរៀង ខេត្តបាត់ដំបង</p>
+          </div>
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5>ព័ត៌មានលម្អិត</h5>
+            <p>
+              <i class="fas fa-map-marker-alt me-2"></i> ស្រុកកំរៀង, ខេត្តបាត់ដំបង
+            </p>
+            <p><i class="fas fa-phone me-2"></i> +885969982589</p>
+            <p><i class="fas fa-envelope me-2"></i> kr@highschool.edu</p>
+          </div>
+          
         </div>
+        <hr class="my-4 bg-light" />
+        <div class="text-center">
+          <p>&copy; ឆ្នាំសិក្សា ២០២៥-២០២៦</p>
+        </div>
+      </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="database.js"></script>
     <script>
+        // Show admin-only links in navigation
+        function showAdminLinks() {
+            const adminLinks = document.querySelectorAll('.admin-only');
+            adminLinks.forEach(link => {
+                link.style.display = 'block';
+            });
+        }
+
+        // Hide admin-only links in navigation
+        function hideAdminLinks() {
+            const adminLinks = document.querySelectorAll('.admin-only');
+            adminLinks.forEach(link => {
+                link.style.display = 'none';
+            });
+        }
+
         // Show login section
         function showLoginSection() {
             document.querySelector('.login-container').style.display = 'block';
             document.getElementById('adminPanel').style.display = 'none';
             localStorage.setItem('adminLoggedIn', 'false');
+            hideAdminLinks();
+            
             // Show logout message
             const messageDiv = document.getElementById('loginMessage');
             if (messageDiv) {
@@ -481,17 +424,76 @@
             document.querySelector('.login-container').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
             localStorage.setItem('adminLoggedIn', 'true');
+            showAdminLinks();
             loadAdminDashboard();
         }
 
-        // Show input-student link in navigation
-        function showInputStudentLink() {
-            document.getElementById('inputStudentLink').style.display = 'block';
+        // Function to logout and redirect to index.html
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear all login-related data from localStorage
+                localStorage.setItem('adminLoggedIn', 'false');
+                
+                // Clear any other session data if needed
+                // localStorage.removeItem('otherSessionData');
+                
+                // Redirect to index.html
+                window.location.href = 'index.html';
+            }
         }
 
-        // Hide input-student link in navigation
-        function hideInputStudentLink() {
-            document.getElementById('inputStudentLink').style.display = 'none';
+        // Load admin dashboard data
+        function loadAdminDashboard() {
+            // This function would typically load data from your database
+            // For now, we'll just update with some placeholder data
+            console.log('Loading admin dashboard...');
+            
+            // Update student counts (placeholder values)
+            document.getElementById('totalStudentsCount').textContent = '125';
+            document.getElementById('grade7Count').textContent = '45';
+            document.getElementById('grade12Count').textContent = '32';
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            // Update recent students table
+            updateRecentStudentsTable();
+        }
+
+        // Update recent students table
+        function updateRecentStudentsTable() {
+            const tableBody = document.getElementById('recentStudentsTable');
+            
+            // Sample data - in a real application, this would come from your database
+            const recentStudents = [
+                { id: 'S001', name: 'John Doe', class: 'Grade 7A', gender: 'Male', date: '2023-10-15' },
+                { id: 'S002', name: 'Jane Smith', class: 'Grade 12B', gender: 'Female', date: '2023-10-14' },
+                { id: 'S003', name: 'Michael Johnson', class: 'Grade 10C', gender: 'Male', date: '2023-10-13' },
+                { id: 'S004', name: 'Emily Davis', class: 'Grade 8A', gender: 'Female', date: '2023-10-12' },
+                { id: 'S005', name: 'Robert Wilson', class: 'Grade 11B', gender: 'Male', date: '2023-10-11' }
+            ];
+            
+            // Clear existing table content
+            tableBody.innerHTML = '';
+            
+            // Add new rows
+            recentStudents.forEach(student => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.class}</td>
+                    <td>${student.gender}</td>
+                    <td>${student.date}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
 
         // Check login status on page load
@@ -499,10 +501,8 @@
             const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
             if (isLoggedIn) {
                 showAdminPanel();
-                showInputStudentLink();
             } else {
                 showLoginSection();
-                hideInputStudentLink();
             }
 
             // Login form handler
@@ -521,7 +521,7 @@
                     localStorage.setItem('adminLoggedIn', 'true');
                     messageDiv.innerHTML = '<div class="alert alert-success">Login successful! Redirecting...</div>';
                     setTimeout(function() {
-                        window.location.href = 'input-student.html';
+                        showAdminPanel();
                     }, 1000);
                 } else {
                     messageDiv.innerHTML = '<div class="alert alert-danger">Invalid username or password. Please try again.</div>';
@@ -529,13 +529,82 @@
             });
 
             // Logout handler
-            document.getElementById('adminLogoutBtn').addEventListener('click', function() {
-                if (confirm('Are you sure you want to logout?')) {
-                    localStorage.setItem('adminLoggedIn', 'false');
-                    // Show logout message and redirect to login.html
-                    alert('You have been logged out.');
-                    window.location.href = 'login.html';
+            document.getElementById('adminLogoutBtn').addEventListener('click', logout);
+            
+            // Change Password Modal Handler
+            document.getElementById('changePasswordBtn').addEventListener('click', function() {
+                const changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                changePasswordModal.show();
+            });
+            
+            // Save Password Handler
+            document.getElementById('savePasswordBtn').addEventListener('click', function() {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert('Please fill in all fields');
+                    return;
                 }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('New passwords do not match');
+                    return;
+                }
+                
+                if (currentPassword !== 'admin123') {
+                    alert('Current password is incorrect');
+                    return;
+                }
+                
+                // In a real application, you would save the new password to your backend
+                alert('Password changed successfully!');
+                const changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                changePasswordModal.hide();
+                
+                // Clear the form
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            });
+            
+            // Clear Data Confirmation Handler
+            document.getElementById('clearDataBtn').addEventListener('click', function() {
+                const clearDataModal = new bootstrap.Modal(document.getElementById('clearDataModal'));
+                clearDataModal.show();
+            });
+            
+            // Confirm Clear Checkbox Handler
+            document.getElementById('confirmClear').addEventListener('change', function() {
+                document.getElementById('confirmClearBtn').disabled = !this.checked;
+            });
+            
+            // Confirm Clear Data Handler
+            document.getElementById('confirmClearBtn').addEventListener('click', function() {
+                // In a real application, this would clear your database
+                alert('All student data has been cleared!');
+                const clearDataModal = bootstrap.Modal.getInstance(document.getElementById('clearDataModal'));
+                clearDataModal.hide();
+                
+                // Reset the checkbox
+                document.getElementById('confirmClear').checked = false;
+                document.getElementById('confirmClearBtn').disabled = true;
+                
+                // Update the dashboard
+                loadAdminDashboard();
+            });
+            
+            // Export Data Handler
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                // In a real application, this would export data to Excel
+                alert('Data exported successfully!');
+            });
+            
+            // Backup Data Handler
+            document.getElementById('backupBtn').addEventListener('click', function() {
+                // In a real application, this would create a backup
+                alert('Data backup created successfully!');
             });
         });
     </script>

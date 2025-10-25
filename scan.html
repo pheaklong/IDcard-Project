@@ -111,6 +111,13 @@
         .btn-warning:hover:not(:disabled) {
             background: #e0a800;
         }
+        .btn-info { 
+            background: #17a2b8; 
+            color: white; 
+        }
+        .btn-info:hover:not(:disabled) {
+            background: #138496;
+        }
         #camera-permission {
             text-align: center;
             padding: 20px;
@@ -168,19 +175,113 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .close-btn:hover {
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .student-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .student-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .student-item:hover {
+            background-color: #f5f5f5;
+        }
+        .student-item:last-child {
+            border-bottom: none;
+        }
+        .student-info {
+            display: flex;
+            justify-content: space-between;
+        }
+        .student-name {
+            font-weight: bold;
+        }
+        .student-id {
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <!-- Back Button -->
-
-        <div class="container mt-3">
+    <div class="container mt-3">
         <button class="btn btn-primary" onclick="goToHome()">
-            <i class="fas fa-home me-2"></i>Back to Home
+            🏠 ត្រលប់ទៅទំព័រដើម
         </button>
         <button class="btn btn-secondary" onclick="goBack()">
-            <i class="fas fa-arrow-left me-2"></i>Back
+            ↩️ ត្រលប់ក្រោយ
         </button>
-        </div>
+    </div>
+    
     <div class="container">
         <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
         
@@ -215,9 +316,32 @@
             <button id="stop-btn" class="btn-secondary" onclick="stopCamera()" disabled>
                 ⏹️ បញ្ឈប់កាមេរ៉ា
             </button>
+            <button class="btn-info" onclick="openManualEntryModal()">
+                📝 កត់ត្រាតាមអត្តលេខ
+            </button>
             <button class="btn-warning" onclick="resetTodayScans()">
                 🔄 កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
             </button>
+        </div>
+    </div>
+
+    <!-- Modal for manual student entry -->
+    <div id="manualEntryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">កត់ត្រាសិស្សមកយឺតតាមអត្តលេខ</h3>
+                <button class="close-btn" onclick="closeManualEntryModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="studentSearch">ស្វែងរកសិស្សតាមឈ្មោះ ឬអត្តលេខ:</label>
+                <input type="text" id="studentSearch" placeholder="វាយឈ្មោះ ឬអត្តលេខសិស្ស..." onkeyup="filterStudents()">
+            </div>
+            <div class="student-list" id="studentList">
+                <!-- Student list will be populated here -->
+            </div>
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="closeManualEntryModal()">បិទ</button>
+            </div>
         </div>
     </div>
 
@@ -239,6 +363,9 @@
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const startBtnLoading = startBtn.querySelector('.loading');
+        const manualEntryModal = document.getElementById('manualEntryModal');
+        const studentList = document.getElementById('studentList');
+        const studentSearch = document.getElementById('studentSearch');
         
         let stream = null;
         let isScanning = false;
@@ -439,7 +566,7 @@
             }
             
             // Find student in the array from Supabase
-            const student = students.find(s => s.id === studentId);
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
                 // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
@@ -515,96 +642,96 @@
         }
 
         // កត់ត្រាសិស្សមកយឺត
-async function recordLateStudent(student) {
-    const now = new Date();
-    const record = {
-        student_id: student.id,
-        name: student.name,
-        class: student.class,
-        gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender និងដាក់តម្លៃ default
-        late_time: now.toTimeString().split(' ')[0],
-        date: now.toISOString().split('T')[0],
-        timestamp: now.toISOString()
-    };
+        async function recordLateStudent(student) {
+            const now = new Date();
+            const record = {
+                student_id: student.id,
+                name: student.name,
+                class: student.class,
+                gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender និងដាក់តម្លៃ default
+                late_time: now.toTimeString().split(' ')[0],
+                date: now.toISOString().split('T')[0],
+                timestamp: now.toISOString()
+            };
 
-    try {
-        console.log('🔐 Trying to save to Supabase...', record);
-        
-        // រក្សាទុកក្នុង Supabase
-        const { data, error } = await supabase
-            .from('attendance_reports')
-            .insert([record])
-            .select();
+            try {
+                console.log('🔐 Trying to save to Supabase...', record);
+                
+                // រក្សាទុកក្នុង Supabase
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .insert([record])
+                    .select();
 
-        if (error) {
-            console.error('❌ Supabase error:', error);
-            throw error;
+                if (error) {
+                    console.error('❌ Supabase error:', error);
+                    throw error;
+                }
+
+                console.log('✅ Saved to Supabase successfully:', data);
+
+                // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
+                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                reports.push({
+                    ...record,
+                    date: now.toDateString()
+                });
+                localStorage.setItem('lateReports', JSON.stringify(reports));
+
+                // បង្ហាញលទ្ធផល
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ កត់ត្រាបានជោគ!</h3>
+                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                        <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
+                        <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
+                        <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
+                        <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
+                    </div>
+                `;
+
+                // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
+                updateScanCount();
+
+            } catch (error) {
+                console.error('❌ Error saving to Supabase:', error);
+                
+                // Fallback to localStorage only
+                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                const fallbackRecord = {
+                    student_id: student.id,
+                    name: student.name,
+                    class: student.class,
+                    gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender
+                    late_time: now.toTimeString().split(' ')[0],
+                    date: now.toDateString(),
+                    timestamp: now.getTime()
+                };
+                reports.push(fallbackRecord);
+                localStorage.setItem('lateReports', JSON.stringify(reports));
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
+                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
+                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
+                        <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
+                        <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
+                        <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
+                        <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                        <p><small>កំហុស: ${error.message}</small></p>
+                    </div>
+                `;
+
+                updateScanCount();
+            }
+
+            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
+            setTimeout(() => {
+                restartScanning();
+            }, 2000);
         }
-
-        console.log('✅ Saved to Supabase successfully:', data);
-
-        // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
-        let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-        reports.push({
-            ...record,
-            date: now.toDateString()
-        });
-        localStorage.setItem('lateReports', JSON.stringify(reports));
-
-        // បង្ហាញលទ្ធផល
-        resultDiv.innerHTML = `
-            <div class="success">
-                <h3>✅ កត់ត្រាបានជោគ!</h3>
-                <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
-                <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
-                <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
-                <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
-            </div>
-        `;
-
-        // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
-        updateScanCount();
-
-    } catch (error) {
-        console.error('❌ Error saving to Supabase:', error);
-        
-        // Fallback to localStorage only
-        let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-        const fallbackRecord = {
-            student_id: student.id,
-            name: student.name,
-            class: student.class,
-            gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender
-            late_time: now.toTimeString().split(' ')[0],
-            date: now.toDateString(),
-            timestamp: now.getTime()
-        };
-        reports.push(fallbackRecord);
-        localStorage.setItem('lateReports', JSON.stringify(reports));
-
-        resultDiv.innerHTML = `
-            <div class="success">
-                <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
-                <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
-                <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
-                <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
-                <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
-                <p><small>កំហុស: ${error.message}</small></p>
-            </div>
-        `;
-
-        updateScanCount();
-    }
-
-    // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
-    setTimeout(() => {
-        restartScanning();
-    }, 2000);
-}
 
         // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេនថ្ងៃនេះ
         async function updateScanCount() {
@@ -755,6 +882,86 @@ async function recordLateStudent(student) {
             }
         }
 
+        // បើក Modal កត់ត្រាតាមអត្តលេខ
+        function openManualEntryModal() {
+            populateStudentList();
+            manualEntryModal.style.display = 'flex';
+        }
+
+        // បិទ Modal កត់ត្រាតាមអត្តលេខ
+        function closeManualEntryModal() {
+            manualEntryModal.style.display = 'none';
+            studentSearch.value = '';
+        }
+
+        // បំពេញបញ្ជីសិស្ស
+        function populateStudentList() {
+            studentList.innerHTML = '';
+            
+            if (students.length === 0) {
+                studentList.innerHTML = '<div class="student-item">មិនមានទិន្នន័យសិស្ស</div>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'student-item';
+                studentItem.onclick = () => selectStudent(student);
+                
+                studentItem.innerHTML = `
+                    <div class="student-info">
+                        <div>
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-id">អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</div>
+                        </div>
+                    </div>
+                `;
+                
+                studentList.appendChild(studentItem);
+            });
+        }
+
+        // ត្រងសិស្ស
+        function filterStudents() {
+            const searchTerm = studentSearch.value.toLowerCase();
+            const studentItems = studentList.getElementsByClassName('student-item');
+            
+            for (let i = 0; i < studentItems.length; i++) {
+                const studentName = studentItems[i].querySelector('.student-name').textContent.toLowerCase();
+                const studentId = studentItems[i].querySelector('.student-id').textContent.toLowerCase();
+                
+                if (studentName.includes(searchTerm) || studentId.includes(searchTerm)) {
+                    studentItems[i].style.display = 'block';
+                } else {
+                    studentItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        // ជ្រើសរើសសិស្ស
+        async function selectStudent(student) {
+            closeManualEntryModal();
+            
+            // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
+            const todayScanCheck = await checkStudentScanToday(student.id);
+            
+            if (todayScanCheck.scanned) {
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនមកយឺតថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
+            } else {
+                recordLateStudent(student);
+            }
+        }
+
+        // Function to go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+
+        // Function to go back to home page
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
         // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
         window.onload = async function() {
             if (!checkCompatibility()) {
@@ -768,17 +975,6 @@ async function recordLateStudent(student) {
             // Test Supabase connection
             testSupabaseConnection();
         };
-
-        // Function to go back to previous page
-        function goBack() {
-            window.history.back();
-
-            // Function to go back to home page
-        function goToHome() {
-            window.location.href = 'index.html';
-        }
-}
     </script>
 </body>
 </html>
-

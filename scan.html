@@ -9,174 +9,373 @@
         if (localStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'login.html';
         }
-        // If logged in, stay on this page (do nothing)
     </script>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* CSS styles remain the same */
-        body { 
-            font-family: 'Khmer OS', Arial, sans-serif; 
-            padding: 20px; 
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --success-dark: #2fb5e0;
+            --warning: #f72585;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+        }
+
+        * {
             margin: 0;
-            background: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 100%;
+
+        body {
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 900px;
             margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
         }
-        h1 { 
-            text-align: center; 
-            color: #333;
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 18px 25px;
+            background: var(--light);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content {
+            padding: 30px 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
             margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        #scanner-container { 
-            text-align: center; 
-            margin: 20px 0; 
+
+        /* Scanner Styles */
+        #scanner-container {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
         }
-        video { 
+
+        .scanner-frame {
+            position: relative;
+            display: inline-block;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        video {
             width: 100%;
-            max-width: 400px;
-            height: 300px;
-            border: 3px solid #007bff;
-            border-radius: 15px;
+            max-width: 450px;
+            height: 340px;
+            display: block;
             background: #000;
         }
-        #result { 
-            margin: 20px 0; 
-            padding: 15px; 
-            border-radius: 10px;
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border: 3px solid var(--primary);
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            top: 50%;
+            animation: scanLine 2s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.7);
+        }
+
+        @keyframes scanLine {
+            0%, 100% { top: 10%; }
+            50% { top: 90%; }
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
             text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
         }
-        .success { 
-            background: #d4edda; 
-            color: #155724; 
-            border: 2px solid #c3e6cb; 
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
         }
-        .error { 
-            background: #f8d7da; 
-            color: #721c24; 
-            border: 2px solid #f5c6cb; 
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
-        .info { 
-            background: #d1ecf1; 
-            color: #0c5460; 
-            border: 2px solid #bee5eb; 
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
         }
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
+
+        /* Button Styles */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
         }
-        button { 
-            padding: 15px 20px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
+
+        .btn {
+            padding: 18px 22px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
             font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        button:disabled {
+
+        .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none !important;
         }
+
         .btn-primary { 
-            background: #007bff; 
+            background: var(--primary);
             color: white; 
         }
         .btn-primary:hover:not(:disabled) {
-            background: #0056b3;
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
         }
-        .btn-secondary { 
-            background: #6c757d; 
-            color: white; 
-        }
-        .btn-secondary:hover:not(:disabled) {
-            background: #545b62;
-        }
+
         .btn-success { 
-            background: #28a745; 
+            background: var(--success);
             color: white; 
         }
         .btn-success:hover:not(:disabled) {
-            background: #1e7e34;
+            background: var(--success-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
         }
+
         .btn-warning { 
-            background: #ffc107; 
-            color: #212529; 
+            background: var(--warning);
+            color: white; 
         }
         .btn-warning:hover:not(:disabled) {
-            background: #e0a800;
+            background: #e51775;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
         }
+
         .btn-info { 
-            background: #17a2b8; 
+            background: var(--secondary);
             color: white; 
         }
         .btn-info:hover:not(:disabled) {
-            background: #138496;
+            background: #65199e;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(114, 9, 183, 0.3);
         }
-        #camera-permission {
-            text-align: center;
-            padding: 20px;
+
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
         }
-        .permission-btn {
-            background: #dc3545;
-            color: white;
-            padding: 15px 25px;
-            font-size: 18px;
-            margin: 10px;
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 65, 68, 0.3);
         }
-        .permission-btn:hover {
-            background: #c82333;
+
+        /* Result Messages */
+        #result {
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            animation: slideIn 0.3s ease;
         }
-        .warning { 
-            background: #fff3cd; 
-            color: #856404; 
-            border: 2px solid #ffeaa7; 
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        .scan-count {
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-weight: bold;
+
+        .message {
+            padding: 25px;
+            border-left: 6px solid;
+            border-radius: var(--border-radius);
         }
+
+        .message-success {
+            background: #d4edda;
+            border-color: var(--success);
+            color: #155724;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            border-color: var(--danger);
+            color: #721c24;
+        }
+
+        .message-warning {
+            background: #fff3cd;
+            border-color: var(--warning);
+            color: #856404;
+        }
+
+        .message-info {
+            background: #d1ecf1;
+            border-color: var(--primary);
+            color: #0c5460;
+        }
+
+        /* Status Indicator */
         .status-indicator {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            margin: 10px 0;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
+
         .status-scanning {
             background: #d4edda;
             color: #155724;
-            border: 1px solid #c3e6cb;
+            border: 2px solid #c3e6cb;
         }
+
         .status-stopped {
             background: #f8d7da;
             color: #721c24;
-            border: 1px solid #f5c6cb;
+            border: 2px solid #f5c6cb;
         }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-scanning .status-dot {
+            background: #28a745;
+        }
+
+        .status-stopped .status-dot {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        /* Loading Animation */
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border: 3px solid #f3f3f3;
-            border-top: 3px solid #007bff;
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        /* Modal styles */
+
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -184,144 +383,324 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            backdrop-filter: blur(8px);
         }
+
         .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
+            background: white;
+            border-radius: var(--border-radius);
             width: 90%;
-            max-width: 500px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-width: 550px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
         }
+
+        @keyframes modalSlideIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
         .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
         }
+
         .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
         }
+
         .close-btn {
             background: none;
             border: none;
-            font-size: 24px;
+            color: white;
+            font-size: 26px;
             cursor: pointer;
-            color: #aaa;
+            padding: 5px;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
         }
+
         .close-btn:hover {
-            color: #000;
+            background: rgba(255,255,255,0.2);
+            transform: rotate(90deg);
         }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
         }
-        .form-group input, .form-group select {
+
+        .form-control {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 14px 18px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
             font-size: 16px;
+            transition: var(--transition);
         }
-        .form-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
         }
+
         .student-list {
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
             max-height: 300px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 10px;
         }
+
         .student-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 18px;
+            border-bottom: 1px solid #e9ecef;
             cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
         .student-item:hover {
-            background-color: #f5f5f5;
+            background: #f8f9fa;
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
+
         .student-item:last-child {
             border-bottom: none;
         }
+
         .student-info {
-            display: flex;
-            justify-content: space-between;
+            flex: 1;
         }
+
         .student-name {
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
         }
-        .student-id {
-            color: #666;
+
+        .student-details {
+            font-size: 0.95rem;
+            color: var(--gray);
+        }
+
+        .student-class {
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Camera Permission Section */
+        #camera-permission {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        .permission-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .permission-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        /* Scan Count Display */
+        .scan-count {
+            background: var(--light);
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            display: inline-block;
+            margin: 15px 0;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 16px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .back-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Back Button -->
-    <div class="container mt-3">
-        <button class="btn btn-primary" onclick="goToHome()">
-            🏠 ត្រលប់ទៅទំព័រដើម
-        </button>
-        <button class="btn btn-secondary" onclick="goBack()">
-            ↩️ ត្រលប់ក្រោយ
-        </button>
-    </div>
-    
-    <div class="container">
-        <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
+            <p>ប្រព័ន្ធកត់ត្រាការមកយឺតរបស់សិស្សតាមរយៈ QR Code</p>
+        </div>
         
-        <div id="camera-permission">
-            <p>កម្មវិធីនេះត្រូវការអនុញ្ញាត់ប្រើកាមេរ៉ា</p>
-            <button class="permission-btn" onclick="requestCameraPermission()">
-                អនុញ្ញាត់កាមេរ៉ា
+        <!-- Back Buttons -->
+        <div class="back-buttons">
+            <button class="btn btn-primary" onclick="goToHome()">
+                🏠 ត្រលប់ទៅទំព័រដើម
+            </button>
+            <button class="btn btn-secondary" onclick="goBack()">
+                ↩️ ត្រលប់ក្រោយ
             </button>
         </div>
         
-        <div id="scanner-container" style="display: none;">
-            <video id="camera" playsinline></video>
-            <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
-            <div id="scan-count" class="scan-count" style="display: none;">
-                ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Camera Permission Section -->
+            <div id="camera-permission">
+                <h3>ការអនុញ្ញាត់ប្រើកាមេរ៉ា</h3>
+                <p>កម្មវិធីនេះត្រូវការអនុញ្ញាត់ប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
+                <button class="permission-btn" onclick="requestCameraPermission()">
+                    អនុញ្ញាត់កាមេរ៉ា
+                </button>
             </div>
-            <div id="status-indicator" class="status-indicator status-stopped">
-                ការស្កេនបានបញ្ឈប់
+            
+            <!-- Scanner Section -->
+            <div id="scanner-container" style="display: none;">
+                <div class="scanner-frame">
+                    <video id="camera" playsinline></video>
+                    <div class="scanner-line"></div>
+                </div>
+                <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
+                
+                <div id="scan-count" class="scan-count" style="display: none;">
+                    ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
+                </div>
+                
+                <div id="status-indicator" class="status-indicator status-stopped">
+                    <div class="status-dot"></div>
+                    <span>ការស្កេនបានបញ្ឈប់</span>
+                </div>
             </div>
-        </div>
 
-        <div id="result"></div>
+            <!-- Result Display -->
+            <div id="result"></div>
 
-        <div class="button-group">
-            <button id="start-btn" class="btn-success" onclick="startCamera()">
-                <span class="loading" style="display: none;"></span>
-                ▶️ ចាប់ផ្ដើមស្កេន
-            </button>
-            <button class="btn-primary" onclick="window.location.href='list.html'">
-                📊 មើលរបាយការណ៍
-            </button>
-            <button id="stop-btn" class="btn-secondary" onclick="stopCamera()" disabled>
-                ⏹️ បញ្ឈប់កាមេរ៉ា
-            </button>
-            <button class="btn-info" onclick="openManualEntryModal()">
-                📝 កត់ត្រាតាមអត្តលេខ
-            </button>
-            <button class="btn-warning" onclick="resetTodayScans()">
-                🔄 កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
-            </button>
+            <!-- Stats Section -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="today-scans">0</div>
+                    <div class="stat-label">ស្កេនថ្ងៃនេះ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-students">0</div>
+                    <div class="stat-label">សិស្សសរុប</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-grid">
+                <button id="start-btn" class="btn btn-success" onclick="startCamera()">
+                    <span class="loading" style="display: none;"></span>
+                    ▶️ ចាប់ផ្ដើមស្កេន
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='list.html'">
+                    📊 មើលរបាយការណ៍
+                </button>
+                <button id="stop-btn" class="btn btn-secondary" onclick="stopCamera()" disabled>
+                    ⏹️ បញ្ឈប់កាមេរ៉ា
+                </button>
+                <button class="btn btn-info" onclick="openManualEntryModal()">
+                    📝 កត់ត្រាតាមអត្តលេខ
+                </button>
+                <button class="btn btn-warning" onclick="resetTodayScans()">
+                    🔄 កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
+                </button>
+            </div>
         </div>
     </div>
 
@@ -332,15 +711,17 @@
                 <h3 class="modal-title">កត់ត្រាសិស្សមកយឺតតាមអត្តលេខ</h3>
                 <button class="close-btn" onclick="closeManualEntryModal()">&times;</button>
             </div>
-            <div class="form-group">
-                <label for="studentSearch">ស្វែងរកសិស្សតាមឈ្មោះ ឬអត្តលេខ:</label>
-                <input type="text" id="studentSearch" placeholder="វាយឈ្មោះ ឬអត្តលេខសិស្ស..." onkeyup="filterStudents()">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="studentSearch">ស្វែងរកសិស្សតាមឈ្មោះ ឬអត្តលេខ:</label>
+                    <input type="text" id="studentSearch" class="form-control" placeholder="វាយឈ្មោះ ឬអត្តលេខសិស្ស..." onkeyup="filterStudents()">
+                </div>
+                <div class="student-list" id="studentList">
+                    <!-- Student list will be populated here -->
+                </div>
             </div>
-            <div class="student-list" id="studentList">
-                <!-- Student list will be populated here -->
-            </div>
-            <div class="form-buttons">
-                <button class="btn-secondary" onclick="closeManualEntryModal()">បិទ</button>
+            <div style="padding: 20px; border-top: 1px solid #e9ecef; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeManualEntryModal()">បិទ</button>
             </div>
         </div>
     </div>
@@ -366,6 +747,8 @@
         const manualEntryModal = document.getElementById('manualEntryModal');
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
+        const todayScansElement = document.getElementById('today-scans');
+        const totalStudentsElement = document.getElementById('total-students');
         
         let stream = null;
         let isScanning = false;
@@ -425,6 +808,7 @@
                 
                 console.log(`✅ Fetched ${data.length} students from Supabase`);
                 students = data;
+                totalStudentsElement.textContent = data.length;
                 return students;
             } catch (error) {
                 console.error('❌ Error fetching students:', error);
@@ -526,7 +910,7 @@
             isScanning = true;
             updateButtonStates();
             
-            resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... សូមយកកាមេរ៉ាចង្អុលទៅកាន់កាតសិស្ស</div>';
+            resultDiv.innerHTML = '<div class="message message-info">🔍 កំពុងស្កេន QR code... សូមយកកាមេរ៉ាចង្អុលទៅកាន់កាតសិស្ស</div>';
             lastScannedQR = ''; // កំណត់ឡើងវិញដើម្បីអោយអាចស្កេនសិស្សដដែលបាន
             
             scanAnimationFrame = requestAnimationFrame(scanFrame);
@@ -538,7 +922,7 @@
                 console.log("🔄 ចាប់ផ្ដើមស្កេនម្តងទៀត...");
                 isScanning = true;
                 updateButtonStates();
-                resultDiv.innerHTML = '<div class="info">🔍 កំពុងស្កេន QR code... ស្កេនសិស្សបន្ទាប់</div>';
+                resultDiv.innerHTML = '<div class="message message-info">🔍 កំពុងស្កេន QR code... ស្កេនសិស្សបន្ទាប់</div>';
                 lastScannedQR = ''; // កំណត់ឡើងវិញ
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
@@ -680,7 +1064,7 @@
 
                 // បង្ហាញលទ្ធផល
                 resultDiv.innerHTML = `
-                    <div class="success">
+                    <div class="message message-success">
                         <h3>✅ កត់ត្រាបានជោគ!</h3>
                         <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
                         <p><strong>ថ្នាក់:</strong> ${student.class}</p>
@@ -712,14 +1096,14 @@
                 localStorage.setItem('lateReports', JSON.stringify(reports));
 
                 resultDiv.innerHTML = `
-                    <div class="success">
+                    <div class="message message-success">
                         <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
                         <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
                         <p><strong>ថ្នាក់:</strong> ${student.class}</p>
                         <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
                         <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
                         <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
-                        <p class="warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                        <p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
                         <p><small>កំហុស: ${error.message}</small></p>
                     </div>
                 `;
@@ -744,7 +1128,9 @@
                     .eq('date', today);
                 
                 if (!error) {
-                    scannedCountSpan.textContent = data.length;
+                    const count = data.length;
+                    scannedCountSpan.textContent = count;
+                    todayScansElement.textContent = count;
                     return;
                 }
             } catch (error) {
@@ -755,7 +1141,9 @@
             const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
             const today = new Date().toDateString();
             const todayScans = reports.filter(report => report.date === today);
-            scannedCountSpan.textContent = todayScans.length;
+            const count = todayScans.length;
+            scannedCountSpan.textContent = count;
+            todayScansElement.textContent = count;
         }
 
         // កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
@@ -784,7 +1172,7 @@
                 localStorage.setItem('lateReports', JSON.stringify(previousScans));
                 
                 updateScanCount();
-                showError('✅ កំណត់ស្កេនថ្ងៃនេះឡើងវិញរួចរាល់! សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។');
+                showSuccess('✅ កំណត់ស្កេនថ្ងៃនេះឡើងវិញរួចរាល់! សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។');
                 
                 if (!isScanning) {
                     setTimeout(() => {
@@ -797,8 +1185,18 @@
         // បង្ហាញការព្រមានស្កេនរួច
         function showWarning(message) {
             resultDiv.innerHTML = `
-                <div class="warning">
+                <div class="message message-warning">
                     <h3>⚠️ ស្កេនរួចរាល់</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        // បង្ហាញសារជោគជ័យ
+        function showSuccess(message) {
+            resultDiv.innerHTML = `
+                <div class="message message-success">
+                    <h3>✅ ប្រតិបត្តិការជោគជ័យ</h3>
                     <p>${message}</p>
                 </div>
             `;
@@ -835,12 +1233,12 @@
             scannerContainer.style.display = 'none';
             scanCountDiv.style.display = 'none';
             cameraPermissionDiv.style.display = 'block';
-            resultDiv.innerHTML = '<div class="info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
+            resultDiv.innerHTML = '<div class="message message-info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
 
         // បង្ហាញកំហុស
         function showError(message) {
-            resultDiv.innerHTML = `<div class="error">${message}</div>`;
+            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
         }
 
         // ពិនិត្យការភ្ជាប់ Supabase
@@ -871,7 +1269,7 @@
                 } else {
                     console.log('✅ Supabase connection successful');
                     // Hide the error message if connection is successful
-                    const existingError = document.querySelector('.error');
+                    const existingError = document.querySelector('.message-error');
                     if (existingError && existingError.textContent.includes('Supabase')) {
                         existingError.remove();
                     }
@@ -910,11 +1308,10 @@
                 
                 studentItem.innerHTML = `
                     <div class="student-info">
-                        <div>
-                            <div class="student-name">${student.name}</div>
-                            <div class="student-id">អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</div>
-                        </div>
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-details">អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</div>
                     </div>
+                    <div class="student-class">${student.class}</div>
                 `;
                 
                 studentList.appendChild(studentItem);
@@ -928,10 +1325,10 @@
             
             for (let i = 0; i < studentItems.length; i++) {
                 const studentName = studentItems[i].querySelector('.student-name').textContent.toLowerCase();
-                const studentId = studentItems[i].querySelector('.student-id').textContent.toLowerCase();
+                const studentDetails = studentItems[i].querySelector('.student-details').textContent.toLowerCase();
                 
-                if (studentName.includes(searchTerm) || studentId.includes(searchTerm)) {
-                    studentItems[i].style.display = 'block';
+                if (studentName.includes(searchTerm) || studentDetails.includes(searchTerm)) {
+                    studentItems[i].style.display = 'flex';
                 } else {
                     studentItems[i].style.display = 'none';
                 }
@@ -971,6 +1368,9 @@
             
             // Fetch students from Supabase
             await fetchStudents();
+            
+            // Update scan count
+            updateScanCount();
             
             // Test Supabase connection
             testSupabaseConnection();

@@ -78,6 +78,16 @@
       .action-buttons {
         white-space: nowrap;
       }
+      
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
+      }
+      
+      .btn-sm i {
+        margin-right: 0.25rem;
+      }
 
       .modal-header {
         background-color: var(--primary-color);
@@ -224,6 +234,40 @@
       </div>
     </section>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="deleteModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>លុបសិស្ស
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <i class="fas fa-user-times text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <p class="text-center">
+              តើអ្នកពិតជាចង់លុបសិស្ស <strong id="studentNameToDelete"></strong> (ID: <strong id="studentIdToDelete"></strong>) មែនទេ?
+            </p>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>ព្រមាន:</strong> សកម្មភាពនេះមិនអាចត្រលប់បានទេ! ទិន្នន័យទាំងអស់របស់សិស្សនេះនឹងត្រូវបានលុបចោលជាអចិន្ត្រៃយ៍។
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i>បោះបង់
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+              <i class="fas fa-trash me-1"></i>លុបសិស្ស
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer>
       <div class="container">
@@ -362,7 +406,12 @@
                 <td>${student.class}</td>
                 <td>${student.gender}</td>
                 <td>
-                    <button class="btn btn-sm btn-info view-student" data-id="${student.id}">View</button>
+                    <button class="btn btn-sm btn-info view-student me-1" data-id="${student.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-student" data-id="${student.id}" data-name="${student.name}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
                 </td>
             `;
           tableBody.appendChild(row);
@@ -375,11 +424,96 @@
             viewStudentDetails(studentId);
           });
         });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll(".delete-student").forEach((button) => {
+          button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-id");
+            const studentName = this.getAttribute("data-name");
+            deleteStudent(studentId, studentName);
+          });
+        });
       }
       
       // View student details (redirect to a view page or show modal)
       function viewStudentDetails(studentId) {
         window.location.href = `digital-card.html?id=${studentId}`;
+      }
+      
+      // Global variables for delete modal
+      let currentDeleteStudentId = null;
+      let currentDeleteStudentName = null;
+      
+      // Delete student function
+      function deleteStudent(studentId, studentName) {
+        currentDeleteStudentId = studentId;
+        currentDeleteStudentName = studentName;
+        
+        // Update modal content
+        document.getElementById('studentNameToDelete').textContent = studentName;
+        document.getElementById('studentIdToDelete').textContent = studentId;
+        
+        // Show modal
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+      }
+      
+      // Confirm delete function
+      async function confirmDelete() {
+        if (!currentDeleteStudentId || !currentDeleteStudentName) {
+          return;
+        }
+        
+        try {
+          // Show loading state on confirm button
+          const confirmBtn = document.getElementById('confirmDeleteBtn');
+          const originalText = confirmBtn.innerHTML;
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML = '<div class="loading-spinner"></div> កំពុងលុប...';
+          
+          // Delete from Supabase
+          const { error } = await supabase
+            .from('students')
+            .delete()
+            .eq('id', currentDeleteStudentId);
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Hide modal
+          const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+          deleteModal.hide();
+          
+          // Show success message
+          alert(`សិស្ស "${currentDeleteStudentName}" ត្រូវបានលុបដោយជោគជ័យ!`);
+          
+          // Refresh the table
+          await populateStudentTable();
+          
+        } catch (error) {
+          console.error('Error deleting student:', error);
+          
+          // Reset button state
+          const confirmBtn = document.getElementById('confirmDeleteBtn');
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i class="fas fa-trash me-1"></i>លុបសិស្ស';
+          
+          // Show error message
+          let errorMessage = `កំហុសក្នុងការលុបសិស្ស: ${error.message}`;
+          
+          if (error.message.includes('permission')) {
+            errorMessage = 'កំហុស: មិនមានសិទ្ធិលុបទិន្នន័យ';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'កំហុស: បញ្ហាការតភ្ជាប់អ៊ីនធឺណិត';
+          }
+          
+          alert(errorMessage);
+        } finally {
+          // Reset global variables
+          currentDeleteStudentId = null;
+          currentDeleteStudentName = null;
+        }
       }
       
       // Event listeners for search and filter
@@ -392,6 +526,9 @@
           populateStudentTable();
         }
       });
+      
+      // Event listener for confirm delete button
+      document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
       
       // Initial population
       document.addEventListener("DOMContentLoaded", populateStudentTable);

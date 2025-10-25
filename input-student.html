@@ -580,16 +580,24 @@
                                 <span>មើលរូបថត</span>
                             </div>
                         </div>
-                        <input type="file" id="photo" name="photo" accept="image/*" class="file-input">
+                        <input type="file" id="photo" name="photo" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/bmp,image/tiff,image/svg+xml,image/heic,image/heif,image/avif,image/x-icon,image/vnd.microsoft.icon" class="file-input">
                         <label for="photo" class="file-label">
                             <i class="fas fa-upload"></i> ជ្រើសរើសរូបថត
                         </label>
+                        <div class="photo-info" style="font-size: 12px; color: var(--gray); margin-top: 10px; text-align: center;">
+                            <i class="fas fa-info-circle"></i> ទំហំអតិបរមា: 5MB | ទម្រង់: JPG, PNG, GIF, WebP, HEIC, HEIF, BMP, TIFF, SVG, AVIF
+                        </div>
                     </div>
                 </div>
                 
-                <button type="submit" id="addStudentBtn" class="btn">
-                    <i class="fas fa-user-plus"></i> បន្ថែមសិស្ស
-                </button>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <button type="submit" id="addStudentBtn" class="btn">
+                        <i class="fas fa-user-plus"></i> បន្ថែមសិស្ស
+                    </button>
+                    <button type="button" id="testConnectionBtn" class="btn btn-secondary">
+                        <i class="fas fa-wifi"></i> ពិនិត្យការតភ្ជាប់
+                    </button>
+                </div>
             </form>
         </div>
         
@@ -618,87 +626,195 @@
     </div>
 
     <script>
-        // Initialize Supabase client
-        const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        console.log('Script started loading...');
         
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // DOM elements
-        const studentForm = document.getElementById('studentForm');
-        const messageDiv = document.getElementById('message');
-        const photoInput = document.getElementById('photo');
-        const photoPreview = document.getElementById('photoPreview');
-        const alertModal = document.getElementById('alertModal');
-        const modalIcon = document.getElementById('modalIcon');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalText = document.getElementById('modalText');
-        const modalButtons = document.getElementById('modalButtons');
-        const closeModal = document.getElementById('closeModal');
-        const addAnother = document.getElementById('addAnother');
-        
-        // Function to convert date from mm/dd/yyyy to yyyy/mm/dd
-        function convertDateFormat(dateString) {
-            if (!dateString) return '';
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing script...');
             
-            // Split the date string by '/'
-            const parts = dateString.split('/');
+            // Initialize Supabase client
+            const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
             
-            if (parts.length === 3) {
-                // Reformat from mm/dd/yyyy to yyyy/mm/dd
-                const [month, day, year] = parts;
-                return `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
+            const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+            
+            // Test Supabase connection
+            async function testSupabaseConnection() {
+                try {
+                    console.log('Testing Supabase connection...');
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .select('count')
+                    .limit(1);
+                    
+                    if (error) {
+                        console.error('Supabase connection test failed:', error);
+                        return false;
+                    }
+                    
+                    console.log('Supabase connection successful');
+                    return true;
+                } catch (error) {
+                    console.error('Supabase connection test error:', error);
+                    return false;
+                }
             }
             
-            // If it's already in yyyy-mm-dd format (from date input), convert to yyyy/mm/dd
-            if (dateString.includes('-')) {
-                return dateString.replace(/-/g, '/');
+            // Test connection on page load
+            testSupabaseConnection();
+        
+        // Form validation function
+        function validateForm(formData) {
+            const requiredFields = ['studentId', 'name', 'gender', 'dob', 'class', 'address', 'studyYear'];
+            const errors = [];
+            
+            for (const field of requiredFields) {
+                const value = formData.get(field);
+                if (!value || value.trim() === '') {
+                    errors.push(`${field} is required`);
+                }
             }
             
-            return dateString;
-        }
-        
-        // Handle photo preview
-        photoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                photoPreview.innerHTML = `
-                    <div class="photo-placeholder">
-                        <i class="fas fa-user-circle"></i>
-                        <span>មើលរូបថត</span>
-                    </div>`;
+            // Validate student ID format (should be numeric)
+            const studentId = formData.get('studentId');
+            if (studentId && !/^\d+$/.test(studentId)) {
+                errors.push('Student ID should contain only numbers');
             }
-        });
-        
-        // Handle form submission
-        studentForm.addEventListener('submit', async function(e) {
+            
+            // Validate study year
+            const studyYear = parseInt(formData.get('studyYear'));
+            if (studyYear && (studyYear < 2020 || studyYear > 2030)) {
+                errors.push('Study year should be between 2020 and 2030');
+            }
+            
+            return errors;
+            }
+            
+            // DOM elements
+            const studentForm = document.getElementById('studentForm');
+            const messageDiv = document.getElementById('message');
+            const photoInput = document.getElementById('photo');
+            const photoPreview = document.getElementById('photoPreview');
+            const alertModal = document.getElementById('alertModal');
+            const modalIcon = document.getElementById('modalIcon');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalText = document.getElementById('modalText');
+            const modalButtons = document.getElementById('modalButtons');
+            const closeModal = document.getElementById('closeModal');
+            const addAnother = document.getElementById('addAnother');
+            const testConnectionBtn = document.getElementById('testConnectionBtn');
+            
+            // Debug: Check if elements exist
+            console.log('testConnectionBtn element:', testConnectionBtn);
+            console.log('closeModal element:', closeModal);
+            console.log('addAnother element:', addAnother);
+            
+            // Function to convert date from mm/dd/yyyy to yyyy/mm/dd
+            function convertDateFormat(dateString) {
+                if (!dateString) return '';
+                
+                // Split the date string by '/'
+                const parts = dateString.split('/');
+                
+                if (parts.length === 3) {
+                    // Reformat from mm/dd/yyyy to yyyy/mm/dd
+                    const [month, day, year] = parts;
+                    return `${year}/${month.padStart(2, '0')}/${day.padStart(2, '0')}`;
+                }
+                
+                // If it's already in yyyy-mm-dd format (from date input), convert to yyyy/mm/dd
+                if (dateString.includes('-')) {
+                    return dateString.replace(/-/g, '/');
+                }
+                
+                return dateString;
+            }
+            
+            // Function to convert file to base64
+            function convertToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve(e.target.result);
+                    };
+                    reader.onerror = function(error) {
+                        reject(error);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            // Handle photo preview
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    photoPreview.innerHTML = `
+                        <div class="photo-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                            <span>មើលរូបថត</span>
+                        </div>`;
+                }
+            });
+            
+            // Handle form submission
+            studentForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            console.log('Form submission started'); // Debug log
             
             // Get form data
             const formData = new FormData(studentForm);
             const dobInput = formData.get('dob');
             
-            // Convert date format from mm/dd/yyyy to yyyy/mm/dd
-            const formattedDob = convertDateFormat(dobInput);
+            // Validate form data
+            const validationErrors = validateForm(formData);
+            if (validationErrors.length > 0) {
+                console.error('Form validation errors:', validationErrors);
+                showAlert(
+                    'error',
+                    'កំហុស!',
+                    `សូមពិនិត្យព័ត៌មាន: ${validationErrors.join(', ')}`,
+                    false
+                );
+                return;
+            }
             
-            const studentData = {
-                id: formData.get('studentId'),
+            console.log('Form data collected:', {
+                studentId: formData.get('studentId'),
                 name: formData.get('name'),
                 gender: formData.get('gender'),
-                dob: formattedDob, // Use the converted date format
+                dob: dobInput,
                 class: formData.get('class'),
                 address: formData.get('address'),
                 phone: formData.get('phone'),
                 father: formData.get('father'),
                 mother: formData.get('mother'),
                 studyYear: formData.get('studyYear')
+            });
+            
+            // Convert date format - keep it simple, use the date as is from the input
+            const formattedDob = dobInput; // Date input already provides YYYY-MM-DD format
+            
+            const studentData = {
+                id: formData.get('studentId'),
+                name: formData.get('name'),
+                gender: formData.get('gender'),
+                dob: formattedDob,
+                class: formData.get('class'),
+                address: formData.get('address'),
+                phone: formData.get('phone') || null,
+                father: formData.get('father') || null,
+                mother: formData.get('mother') || null,
+                studyYear: parseInt(formData.get('studyYear'))
             };
+            
+            console.log('Processed student data:', studentData);
             
             // Get photo file
             const photoFile = photoInput.files[0];
@@ -709,36 +825,102 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<div class="loading"></div> កំពុងបន្ថែមសិស្ស...';
                 
-                // Upload photo if exists
-                let photoUrl = null;
+                // Convert photo to base64 if exists
+                let photoBase64 = null;
                 if (photoFile) {
-                    const fileName = `${Date.now()}-${photoFile.name}`;
-                    const { data, error } = await supabase.storage
-                        .from('student-photos')
-                        .upload(fileName, photoFile);
-                    
-                    if (error) throw error;
-                    
-                    // Get public URL
-                    const { data: urlData } = supabase.storage
-                        .from('student-photos')
-                        .getPublicUrl(fileName);
-                    
-                    photoUrl = urlData.publicUrl;
+                    console.log('Converting photo to base64...');
+                    try {
+                        // Validate file size (max 5MB)
+                        const maxSize = 5 * 1024 * 1024; // 5MB
+                        if (photoFile.size > maxSize) {
+                            throw new Error('រូបថតមានទំហំធំពេក។ សូមជ្រើសរើសរូបថតមានទំហំតិចជាង 5MB');
+                        }
+                        
+                        // Validate file type - expanded support for mobile devices
+                        const allowedTypes = [
+                            'image/jpeg', 
+                            'image/jpg', 
+                            'image/png', 
+                            'image/gif', 
+                            'image/webp',
+                            'image/bmp',           // Windows Bitmap
+                            'image/tiff',          // TIFF format
+                            'image/svg+xml',       // SVG vector images
+                            'image/heic',          // HEIC format (iOS)
+                            'image/heif',          // HEIF format (iOS/Android)
+                            'image/avif',          // AVIF format (modern browsers)
+                            'image/x-icon',        // ICO format
+                            'image/vnd.microsoft.icon' // Microsoft ICO
+                        ];
+                        
+                        // Also check file extension as fallback for some mobile browsers
+                        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.svg', '.heic', '.heif', '.avif', '.ico'];
+                        const fileExtension = '.' + photoFile.name.split('.').pop().toLowerCase();
+                        
+                        if (!allowedTypes.includes(photoFile.type) && !allowedExtensions.includes(fileExtension)) {
+                            throw new Error('ប្រភេទឯកសារមិនត្រឹមត្រូវ។ សូមជ្រើសរើសរូបថត (JPG, PNG, GIF, WebP, HEIC, HEIF, BMP, TIFF, SVG, AVIF)');
+                        }
+                        
+                        // Special handling for HEIC/HEIF formats (iOS default)
+                        if (photoFile.type === 'image/heic' || photoFile.type === 'image/heif' || fileExtension === '.heic' || fileExtension === '.heif') {
+                            console.log('HEIC/HEIF format detected - this may not display in all browsers');
+                        }
+                        
+                        photoBase64 = await convertToBase64(photoFile);
+                        console.log('Photo converted to base64 successfully');
+                    } catch (error) {
+                        console.error('Photo conversion error:', error);
+                        throw error;
+                    }
                 }
                 
-                // Add photo URL to student data
-                if (photoUrl) {
-                    studentData.photo = photoUrl;
+                // Add photo base64 to student data
+                if (photoBase64) {
+                    studentData.photo = photoBase64;
                 }
                 
-                // Insert student data into database
-                const { data, error } = await supabase
-                    .from('students')
-                    .insert([studentData])
-                    .select();
+                console.log('Inserting student data into database...');
                 
-                if (error) throw error;
+                // Try to insert student data into database
+                let insertResult;
+                try {
+                    insertResult = await supabaseClient
+                        .from('students')
+                        .insert([studentData])
+                        .select();
+                } catch (insertError) {
+                    console.error('Database insert error:', insertError);
+                    
+                    // Try alternative table name or structure
+                    console.log('Trying alternative approach...');
+                    
+                    // Create a simplified data structure
+                    const simplifiedData = {
+                        student_id: studentData.id,
+                        student_name: studentData.name,
+                        gender: studentData.gender,
+                        date_of_birth: studentData.dob,
+                        class_name: studentData.class,
+                        address: studentData.address,
+                        phone_number: studentData.phone,
+                        father_name: studentData.father,
+                        mother_name: studentData.mother,
+                        study_year: studentData.studyYear,
+                        photo_url: studentData.photo
+                    };
+                    
+                    insertResult = await supabaseClient
+                        .from('students')
+                        .insert([simplifiedData])
+                        .select();
+                }
+                
+                if (insertResult.error) {
+                    console.error('Database insert error:', insertResult.error);
+                    throw insertResult.error;
+                }
+                
+                console.log('Student added successfully:', insertResult.data);
                 
                 // Show success alert
                 showAlert(
@@ -754,8 +936,12 @@
                 // Show error alert
                 let errorMessage = `កំហុស: ${error.message}`;
                 
-                if (error.message.includes('duplicate key')) {
+                if (error.message.includes('duplicate key') || error.message.includes('duplicate')) {
                     errorMessage = 'កំហុស: អត្តលេខនេះមានរួចហើយនៅក្នុងប្រព័ន្ធ';
+                } else if (error.message.includes('permission')) {
+                    errorMessage = 'កំហុស: មិនមានសិទ្ធិបន្ថែមទិន្នន័យ';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'កំហុស: បញ្ហាការតភ្ជាប់អ៊ីនធឺណិត';
                 }
                 
                 showAlert(
@@ -770,10 +956,10 @@
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> បន្ថែមសិស្ស';
             }
-        });
-        
-        // Show alert modal
-        function showAlert(type, title, text, showAddAnother = true) {
+            });
+            
+            // Show alert modal
+            function showAlert(type, title, text, showAddAnother = true) {
             // Set modal content based on type
             modalIcon.className = 'modal-icon ' + type;
             modalIcon.innerHTML = type === 'success' 
@@ -820,23 +1006,71 @@
             
             // Show modal
             alertModal.classList.add('active');
-        }
+            }
+            
+            // Close modal
+            closeModal.addEventListener('click', function() {
+                alertModal.classList.remove('active');
+            });
+            
+            // Add another student
+            addAnother.addEventListener('click', function() {
+                alertModal.classList.remove('active');
+                studentForm.reset();
+                photoPreview.innerHTML = `
+                    <div class="photo-placeholder">
+                        <i class="fas fa-user-circle"></i>
+                        <span>មើលរូបថត</span>
+                    </div>`;
+            });
+            
+            // Test connection button
+            if (testConnectionBtn) {
+                console.log('Adding event listener to test connection button');
+                testConnectionBtn.addEventListener('click', async function() {
+                    console.log("Test connection button clicked!");
+                    const btn = this;
+                    const originalText = btn.innerHTML;
+                    
+                    btn.disabled = true;
+                    btn.innerHTML = '<div class="loading"></div> កំពុងពិនិត្យ...';
+                    
+                    try {
+                        const isConnected = await testSupabaseConnection();
+                        
+                        if (isConnected) {
+                            showAlert(
+                                'success',
+                                'ជោគជ័យ!',
+                                'ការតភ្ជាប់ទៅ Supabase ដំណើរការបានល្អ',
+                                false
+                            );
+                        } else {
+                            showAlert(
+                                'error',
+                                'កំហុស!',
+                                'មិនអាចតភ្ជាប់ទៅ Supabase បានទេ',
+                                false
+                            );
+                        }
+                    } catch (error) {
+                        console.error('Connection test error:', error);
+                        showAlert(
+                            'error',
+                            'កំហុស!',
+                            `កំហុសក្នុងការពិនិត្យការតភ្ជាប់: ${error.message}`,
+                            false
+                        );
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
+            } else {
+                console.error('Test connection button not found!');
+            }
         
-        // Close modal
-        closeModal.addEventListener('click', function() {
-            alertModal.classList.remove('active');
-        });
-        
-        // Add another student
-        addAnother.addEventListener('click', function() {
-            alertModal.classList.remove('active');
-            studentForm.reset();
-            photoPreview.innerHTML = `
-                <div class="photo-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                    <span>មើលរូបថត</span>
-                </div>`;
-        });
+        }); // End of DOMContentLoaded event listener
     </script>
 </body>
 </html>

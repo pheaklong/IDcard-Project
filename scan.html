@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ស្កេនសិស្សមកយឺត</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        // If logged in, stay on this page (do nothing)
+    </script>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -164,6 +171,16 @@
     </style>
 </head>
 <body>
+    <!-- Back Button -->
+
+        <div class="container mt-3">
+        <button class="btn btn-primary" onclick="goToHome()">
+            <i class="fas fa-home me-2"></i>Back to Home
+        </button>
+        <button class="btn btn-secondary" onclick="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </button>
+        </div>
     <div class="container">
         <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
         
@@ -751,8 +768,17 @@ async function recordLateStudent(student) {
             // Test Supabase connection
             testSupabaseConnection();
         };
+
+        // Function to go back to previous page
+        function goBack() {
+            window.history.back();
+
+            // Function to go back to home page
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+}
     </script>
 </body>
 </html>
-
 

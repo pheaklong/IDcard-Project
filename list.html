@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>របាយការណ៍សិស្សមកយឺត</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+        // If logged in, stay on this page (do nothing)
+    </script>
     <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -153,10 +160,50 @@
             margin: 10px 0;
             border: 1px solid #f5c6cb;
         }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            float: right;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            float: left;
+            margin-right: 10px;
+        }
+        .container{
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
+   <!-- Back to Home Button -->
+    <!-- Back Button -->
+    
     <div class="container">
+        <div class="container mt-3">
+        <button class="btn btn-primary" onclick="goToHome()">
+            <i class="fas fa-home me-2"></i>Back to Home
+        </button>
+        <button class="btn btn-secondary" onclick="goBack()">
+            <i class="fas fa-arrow-left me-2"></i>Back
+        </button>
+        </div>
         <h1>📊 របាយការណ៍សិស្សមកយឺត</h1>
         
         <div class="filter-container">
@@ -494,6 +541,15 @@
                 loadFromLocalStorage();
             }
         };
+        // Function to go back to previous page
+        function goBack() {
+            window.history.back();
+        }
+
+        // Function to go back to home page
+        function goToHome() {
+            window.location.href = 'index.html';
+}
     </script>
 </body>
 </html>

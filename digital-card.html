@@ -30,8 +30,8 @@
         }
         
         .digital-card {
-            width: 400px;
-            height: 250px;
+            width: 450px;
+            height: 300px;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -204,6 +204,7 @@
                     <p><strong>Name:</strong> <span id="studentName">--</span></p>
                     <p><strong>Class:</strong> <span id="studentClass">--</span></p>
                     <p><strong>Year:</strong> <span id="studentYear">--</span></p>
+                    <p><strong>លេខទូរស័ព្ទអាណាព្យាបាល</strong> <span id="guardain_number">--</span></p>
                 </div>
                 <div class="qr-section">
                     <div class="qr-code" id="qrCode">
@@ -273,6 +274,7 @@
             document.getElementById('studentName').textContent = student.name || '--';
             document.getElementById('studentClass').textContent = student.class || '--';
             document.getElementById('studentYear').textContent = student.studyYear || '--';
+            document.getElementById('guardain_number').textContent =student.guardain_number || '--';
         }
 
         function generateQRCode(student) {
@@ -324,7 +326,8 @@
                     id: studentId,
                     name: 'កំពុងទាញយកទិន្នន័យ...',
                     class: '--',
-                    studyYear: '--'
+                    studyYear: '--',
+                    លេខទូរស័ព្ទ: '-- -- --'
                 });
                 
                 // Auto-generate card if student ID is in URL
@@ -335,7 +338,8 @@
                     id: '--',
                     name: 'No Student Selected',
                     class: '--',
-                    studyYear: '--'
+                    studyYear: '--',
+                    លេខទូរស័ព្ទ: '-- -- --'
                 });
                 showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID) ក្នុង URL');
             }
@@ -351,7 +355,8 @@
                     id: studentId,
                     name: 'សិស្សមិនត្រូវបានរកឃើញ',
                     class: '--',
-                    studyYear: '--'
+                    studyYear: '--',
+                    លេខទូរស័ព្ទ: '-- -- --'
                 });
                 showError('សិស្សមិនត្រូវបានរកឃើញ!');
                 return;

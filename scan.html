@@ -792,23 +792,53 @@
             return true;
         }
 
-        // ទាញយកទិន្នន័យសិស្សពី Supabase
+        // ទាញយកទិន្នន័យសិស្សពី Supabase (ទាំងអស់ដោយប្រើ pagination)
         async function fetchStudents() {
             try {
-                console.log('🔍 Fetching students from Supabase...');
+                console.log('🔍 Fetching ALL students from Supabase using pagination...');
                 
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*');
-                
-                if (error) {
-                    console.error('❌ Error fetching students:', error);
-                    throw error;
+                let allStudents = [];
+                let page = 0;
+                const pageSize = 1000; // Supabase max per request
+                let hasMore = true;
+
+                // Fetch data in pages of 1000
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    console.log(`📄 Fetching page ${page + 1}: ${from} to ${to}`);
+                    
+                    const { data, error } = await supabase
+                        .from('students')
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) {
+                        console.error('❌ Error fetching students page:', error);
+                        throw error;
+                    }
+
+                    if (data && data.length > 0) {
+                        allStudents = allStudents.concat(data);
+                        console.log(`✅ Page ${page + 1}: ${data.length} students, total: ${allStudents.length}`);
+                        
+                        // If we got less than pageSize, we've reached the end
+                        if (data.length < pageSize) {
+                            hasMore = false;
+                            console.log(`🏁 Reached end of data at page ${page + 1}`);
+                        } else {
+                            page++;
+                        }
+                    } else {
+                        hasMore = false;
+                        console.log(`🏁 No more data at page ${page + 1}`);
+                    }
                 }
                 
-                console.log(`✅ Fetched ${data.length} students from Supabase`);
-                students = data;
-                totalStudentsElement.textContent = data.length;
+                console.log(`🎉 FINAL: Fetched ${allStudents.length} students from Supabase`);
+                students = allStudents;
+                totalStudentsElement.textContent = allStudents.length;
                 return students;
             } catch (error) {
                 console.error('❌ Error fetching students:', error);
@@ -819,6 +849,61 @@
                 // Return empty array to prevent further errors
                 students = [];
                 return students;
+            }
+        }
+
+        // ទាញយកទិន្នន័យស្កេនថ្ងៃនេះពី Supabase
+        async function fetchTodayScans() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                
+                const { data, error } = await supabase
+                    .from('attendance_reports')
+                    .select('*')
+                    .eq('date', today);
+                
+                if (error) {
+                    console.error('❌ Error fetching today scans:', error);
+                    throw error;
+                }
+                
+                console.log(`✅ Fetched ${data.length} today scans from Supabase`);
+                return data;
+            } catch (error) {
+                console.error('❌ Error fetching today scans:', error);
+                return [];
+            }
+        }
+
+        // ទាញយកទិន្នន័យទាំងអស់ពី Supabase
+        async function fetchAllData() {
+            try {
+                console.log('🔍 Fetching all data from Supabase...');
+                
+                // Fetch students (all records)
+                const studentsData = await fetchStudents();
+                
+                // Fetch today scans
+                const todayScans = await fetchTodayScans();
+                
+                // Update UI
+                todayScansElement.textContent = todayScans.length;
+                totalStudentsElement.textContent = studentsData.length;
+                
+                console.log('✅ All data fetched successfully');
+                console.log(`📊 Students: ${studentsData.length}, Today Scans: ${todayScans.length}`);
+                
+                return {
+                    students: studentsData,
+                    todayScans: todayScans
+                };
+            } catch (error) {
+                console.error('❌ Error fetching all data:', error);
+                showError('⚠️ មិនអាចទាញយកទិន្នន័យពីមូលដ្ឋានទិន្នន័យបាន');
+                return {
+                    students: [],
+                    todayScans: []
+                };
             }
         }
 
@@ -1366,8 +1451,8 @@
             }
             updateButtonStates();
             
-            // Fetch students from Supabase
-            await fetchStudents();
+            // Fetch all data from Supabase
+            await fetchAllData();
             
             // Update scan count
             updateScanCount();

@@ -338,10 +338,11 @@
             box-shadow: var(--shadow);
         }
 
-        .data-table {
+                .data-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
+            table-layout: fixed; /* ធានាថាតារាងមានទម្រង់ដូចគ្នា */
         }
 
         .data-table th {
@@ -351,12 +352,19 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.9rem;
+            word-wrap: break-word; /* អនុញ្ញាតអោយពាក្យធ្លាក់ចុះក្រោម */
+            overflow-wrap: break-word; /* ធានាថាអក្សរអាចធ្លាក់ចុះក្រោម */
+            white-space: normal; /* អនុញ្ញាតអោយអក្សរធ្លាក់ចុះក្រោម */
         }
 
         .data-table td {
             padding: 12px;
             border-bottom: 1px solid #e9ecef;
             font-size: 0.9rem;
+            word-wrap: break-word; /* អនុញ្ញាតអោយពាក្យធ្លាក់ចុះក្រោម */
+            overflow-wrap: break-word; /* ធានាថាអក្សរអាចធ្លាក់ចុះក្រោម */
+            white-space: normal; /* អនុញ្ញាតអោយអក្សរធ្លាក់ចុះក្រោម */
+            line-height: 1.4; /* បង្កើនចម្ងាយជួរដេកដើម្បីអោយអាចអានបានកាន់តែងាយ */
         }
 
         .data-table tr:hover {
@@ -365,6 +373,42 @@
 
         .data-table tr:last-child td {
             border-bottom: none;
+        }
+
+        /* កំណត់ទទឹងជួរឈរសម្រាប់ទិន្នន័យផ្សេងៗ */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            width: 5%; /* ល.រ */
+        }
+
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            width: 25%; /* ឈ្មោះសិស្ស */
+        }
+
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) {
+            width: 15%; /* ថ្នាក់ */
+        }
+
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) {
+            width: 10%; /* ភេទ */
+        }
+
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) {
+            width: 15%; /* ពេលវេលា */
+        }
+
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) {
+            width: 15%; /* កាលបរិច្ឆេទ */
+        }
+
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) {
+            width: 15%; /* ប្រភេទ */
         }
 
         .badge {
@@ -480,6 +524,20 @@
             .back-buttons {
                 flex-direction: column;
                 gap: 10px;
+            }
+             .data-table {
+                table-layout: auto; /* អនុញ្ញាតអោយតារាងមានទម្រង់ដោយស្វ័យប្រវត្តិនៅលើឧបករណ៍ចល័ត */
+            }
+            
+            .data-table th,
+            .data-table td {
+                font-size: 0.8rem; /* កាត់បន្ថយទំហំអក្សរនៅលើឧបករណ៍ចល័ត */
+                padding: 8px 6px; /* កាត់បន្ថយការបញ្ចូលខាងក្នុង */
+            }
+            
+            .data-table th:nth-child(n),
+            .data-table td:nth-child(n) {
+                width: auto; /* លុបការកំណត់ទទឹងជួរឈរនៅលើឧបករណ៍ចល័ត */
             }
         }
     </style>
@@ -1243,7 +1301,7 @@
 
         // ទៅកាន់ទំព័រស្កេន
         function goToScanner() {
-            window.location.href = 'scan.html';
+            window.location.href = 'scanner.html';
         }
 
         // Handle date filter change
@@ -1265,4 +1323,3 @@
     </script>
 </body>
 </html>
-

@@ -338,11 +338,11 @@
             box-shadow: var(--shadow);
         }
 
-                .data-table {
+                    .data-table {
             width: 100%;
             border-collapse: collapse;
             background: white;
-            table-layout: fixed; /* ធានាថាតារាងមានទម្រង់ដូចគ្នា */
+            table-layout: auto; /* អនុញ្ញាតអោយតារាងមានទម្រង់ដោយស្វ័យប្រវត្តិ */
         }
 
         .data-table th {
@@ -352,19 +352,17 @@
             text-align: left;
             font-weight: 600;
             font-size: 0.9rem;
-            word-wrap: break-word; /* អនុញ្ញាតអោយពាក្យធ្លាក់ចុះក្រោម */
-            overflow-wrap: break-word; /* ធានាថាអក្សរអាចធ្លាក់ចុះក្រោម */
-            white-space: normal; /* អនុញ្ញាតអោយអក្សរធ្លាក់ចុះក្រោម */
+            white-space: nowrap; /* មិនអោយអក្សរធ្លាក់ចុះក្រោម */
+            overflow: visible; /* មិនលាក់អត្ថបទ */
         }
 
         .data-table td {
             padding: 12px;
             border-bottom: 1px solid #e9ecef;
             font-size: 0.9rem;
-            word-wrap: break-word; /* អនុញ្ញាតអោយពាក្យធ្លាក់ចុះក្រោម */
-            overflow-wrap: break-word; /* ធានាថាអក្សរអាចធ្លាក់ចុះក្រោម */
-            white-space: normal; /* អនុញ្ញាតអោយអក្សរធ្លាក់ចុះក្រោម */
-            line-height: 1.4; /* បង្កើនចម្ងាយជួរដេកដើម្បីអោយអាចអានបានកាន់តែងាយ */
+            white-space: nowrap; /* មិនអោយអក្សរធ្លាក់ចុះក្រោម */
+            overflow: visible; /* មិនលាក់អត្ថបទ */
+            line-height: 1.4;
         }
 
         .data-table tr:hover {
@@ -375,40 +373,135 @@
             border-bottom: none;
         }
 
-        /* កំណត់ទទឹងជួរឈរសម្រាប់ទិន្នន័យផ្សេងៗ */
+        /* ធានាថាតារាងមានទម្រង់ល្អនៅពេលមានទិន្នន័យច្រើន */
+        .table-container {
+            overflow-x: auto; /* អនុញ្ញាតអោយរំកិលផ្ដេកនៅពេលត្រូវការ */
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: block;
+            white-space: nowrap; /* មិនអោយតារាងធ្លាក់ចុះក្រោម */
+        }
+
+        /* កំណត់ទទឹងអប្បបរមាសម្រាប់ជួរឈរនីមួយៗ */
         .data-table th:nth-child(1),
         .data-table td:nth-child(1) {
-            width: 5%; /* ល.រ */
+            min-width: 60px; /* ល.រ */
+            max-width: 60px;
         }
 
         .data-table th:nth-child(2),
         .data-table td:nth-child(2) {
-            width: 25%; /* ឈ្មោះសិស្ស */
+            min-width: 200px; /* ឈ្មោះសិស្ស */
+            max-width: 200px;
         }
 
         .data-table th:nth-child(3),
         .data-table td:nth-child(3) {
-            width: 15%; /* ថ្នាក់ */
+            min-width: 120px; /* ថ្នាក់ */
+            max-width: 120px;
         }
 
         .data-table th:nth-child(4),
         .data-table td:nth-child(4) {
-            width: 10%; /* ភេទ */
+            min-width: 100px; /* ភេទ */
+            max-width: 100px;
         }
 
         .data-table th:nth-child(5),
         .data-table td:nth-child(5) {
-            width: 15%; /* ពេលវេលា */
+            min-width: 120px; /* ពេលវេលា */
+            max-width: 120px;
         }
 
         .data-table th:nth-child(6),
         .data-table td:nth-child(6) {
-            width: 15%; /* កាលបរិច្ឆេទ */
+            min-width: 150px; /* កាលបរិច្ឆេទ */
+            max-width: 150px;
         }
 
         .data-table th:nth-child(7),
         .data-table td:nth-child(7) {
-            width: 15%; /* ប្រភេទ */
+            min-width: 150px; /* ប្រភេទ */
+            max-width: 150px;
+        }
+
+        /* ធានាថាអត្ថបទមិនធ្លាក់ចុះក្រោមនៅក្នុងកោសិកា */
+        .data-table td,
+        .data-table th {
+            text-overflow: clip; /* មិនប្រើ ellipsis */
+        }
+
+        /* ការកែសម្រួលសម្រាប់ឧបករណ៍ចល័ត */
+        @media (max-width: 768px) {
+            .data-table th,
+            .data-table td {
+                font-size: 0.8rem;
+                padding: 10px 8px;
+                white-space: nowrap; /* បន្តមិនអោយធ្លាក់ចុះក្រោមនៅលើឧបករណ៍ចល័ត */
+                overflow: visible;
+            }
+            
+            /* កាត់បន្ថយទទឹងអប្បបរមានៅលើឧបករណ៍ចល័ត */
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                min-width: 50px;
+                max-width: 50px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                min-width: 150px;
+                max-width: 150px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) {
+                min-width: 80px;
+                max-width: 80px;
+            }
+            
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .data-table th:nth-child(7),
+            .data-table td:nth-child(7) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .table-container {
+                overflow-x: auto; /* អនុញ្ញាតអោយរំកិលផ្ដេកនៅលើឧបករណ៍ចល័ត */
+                -webkit-overflow-scrolling: touch; /* ធ្វើអោយរលូនសម្រាប់ touch devices */
+            }
+        }
+
+        /* ធានាថាតារាងមានទម្រង់ល្អនៅពេលបោះពុម្ព */
+        @media print {
+            .data-table th,
+            .data-table td {
+                white-space: nowrap;
+                overflow: visible;
+            }
+            
+            .table-container {
+                overflow-x: visible;
+            }
         }
 
         .badge {
@@ -525,20 +618,7 @@
                 flex-direction: column;
                 gap: 10px;
             }
-             .data-table {
-                table-layout: auto; /* អនុញ្ញាតអោយតារាងមានទម្រង់ដោយស្វ័យប្រវត្តិនៅលើឧបករណ៍ចល័ត */
-            }
-            
-            .data-table th,
-            .data-table td {
-                font-size: 0.8rem; /* កាត់បន្ថយទំហំអក្សរនៅលើឧបករណ៍ចល័ត */
-                padding: 8px 6px; /* កាត់បន្ថយការបញ្ចូលខាងក្នុង */
-            }
-            
-            .data-table th:nth-child(n),
-            .data-table td:nth-child(n) {
-                width: auto; /* លុបការកំណត់ទទឹងជួរឈរនៅលើឧបករណ៍ចល័ត */
-            }
+             
         }
     </style>
 </head>

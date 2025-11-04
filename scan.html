@@ -3,15 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ស្កេនសិស្សមកយឺត</title>
-    <script>
-        // Check login: if not logged in, redirect to login page
-        if (localStorage.getItem('adminLoggedIn') !== 'true') {
-            window.location.href = 'login.html';
-        }
-    </script>
+    <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -19,15 +12,12 @@
             --primary-dark: #3a56d4;
             --secondary: #7209b7;
             --success: #4cc9f0;
-            --success-dark: #2fb5e0;
             --warning: #f72585;
             --danger: #f94144;
             --light: #f8f9fa;
             --dark: #212529;
-            --gray: #6c757d;
             --border-radius: 16px;
             --shadow: 0 8px 24px rgba(0,0,0,0.12);
-            --transition: all 0.3s ease;
         }
 
         * {
@@ -37,11 +27,10 @@
         }
 
         body {
-            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: var(--dark);
         }
 
         .app-container {
@@ -51,69 +40,86 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 30px 25px;
+            padding: 25px;
             text-align: center;
-            position: relative;
         }
 
         .header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
         }
 
         .back-buttons {
             display: flex;
-            gap: 12px;
-            padding: 18px 25px;
+            gap: 10px;
+            padding: 15px 25px;
             background: var(--light);
             border-bottom: 1px solid #e9ecef;
         }
 
         .content {
-            padding: 30px 25px;
+            padding: 25px;
         }
 
         .card {
             background: white;
             border-radius: var(--border-radius);
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            border: 1px solid #e9ecef;
-        }
-
-        .card-title {
-            font-size: 1.4rem;
-            font-weight: 600;
+            padding: 20px;
             margin-bottom: 20px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            box-shadow: var(--shadow);
         }
 
-        /* Scanner Styles */
+        .scan-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .scan-type-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .scan-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .scan-type-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .scan-type-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .scan-type-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
         #scanner-container {
             text-align: center;
-            margin: 25px 0;
-            position: relative;
+            margin: 20px 0;
         }
 
         .scanner-frame {
@@ -121,25 +127,13 @@
             display: inline-block;
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
         }
 
         video {
             width: 100%;
-            max-width: 450px;
-            height: 340px;
-            display: block;
+            max-width: 400px;
+            height: 300px;
             background: #000;
-        }
-
-        .scanner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            border: 3px solid var(--primary);
         }
 
         .scanner-line {
@@ -149,7 +143,6 @@
             background: var(--primary);
             top: 50%;
             animation: scanLine 2s infinite ease-in-out;
-            box-shadow: 0 0 10px rgba(67, 97, 238, 0.7);
         }
 
         @keyframes scanLine {
@@ -157,378 +150,101 @@
             50% { top: 90%; }
         }
 
-        /* Stats Section */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 18px;
-            margin: 25px 0;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .stat-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: var(--border-radius);
             text-align: center;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
         }
 
         .stat-number {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        .stat-label {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
-        /* Button Styles */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 25px;
         }
 
         .btn {
-            padding: 18px 22px;
+            padding: 15px 20px;
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            transition: var(--transition);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
-            text-decoration: none;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            gap: 8px;
         }
 
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none !important;
-        }
-
-        .btn-primary { 
-            background: var(--primary);
-            color: white; 
-        }
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
         }
 
         .btn-success { 
             background: var(--success);
             color: white; 
         }
-        .btn-success:hover:not(:disabled) {
-            background: var(--success-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
         }
-
         .btn-warning { 
             background: var(--warning);
             color: white; 
         }
-        .btn-warning:hover:not(:disabled) {
-            background: #e51775;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
-        }
-
         .btn-info { 
             background: var(--secondary);
             color: white; 
         }
-        .btn-info:hover:not(:disabled) {
-            background: #65199e;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(114, 9, 183, 0.3);
-        }
-
         .btn-danger { 
             background: var(--danger);
             color: white; 
         }
-        .btn-danger:hover:not(:disabled) {
-            background: #d32f2f;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(249, 65, 68, 0.3);
-        }
-
-        /* Result Messages */
-        #result {
-            margin: 25px 0;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
 
         .message {
-            padding: 25px;
-            border-left: 6px solid;
+            padding: 20px;
             border-radius: var(--border-radius);
+            margin: 15px 0;
         }
 
         .message-success {
             background: #d4edda;
-            border-color: var(--success);
+            border: 1px solid #c3e6cb;
             color: #155724;
         }
 
         .message-error {
             background: #f8d7da;
-            border-color: var(--danger);
+            border: 1px solid #f5c6cb;
             color: #721c24;
-        }
-
-        .message-warning {
-            background: #fff3cd;
-            border-color: var(--warning);
-            color: #856404;
         }
 
         .message-info {
             background: #d1ecf1;
-            border-color: var(--primary);
+            border: 1px solid #bee5eb;
             color: #0c5460;
         }
 
-        /* Status Indicator */
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            margin: 15px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .status-scanning {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
-        }
-
-        .status-stopped {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-        }
-
-        .status-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        .status-scanning .status-dot {
-            background: #28a745;
-        }
-
-        .status-stopped .status-dot {
-            background: #dc3545;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.1); }
-        }
-
-        /* Loading Animation */
-        .loading {
-            display: inline-block;
-            width: 22px;
-            height: 22px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(8px);
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: var(--border-radius);
-            width: 90%;
-            max-width: 550px;
-            max-height: 80vh;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 26px;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            width: 38px;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-        }
-
-        .close-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            padding: 25px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 14px 18px;
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-        }
-
-        .student-list {
-            border: 2px solid #e9ecef;
-            border-radius: var(--border-radius);
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .student-item {
-            padding: 18px;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .student-item:hover {
-            background: #f8f9fa;
-            transform: translateX(8px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .student-item:last-child {
-            border-bottom: none;
-        }
-
-        .student-info {
-            flex: 1;
-        }
-
-        .student-name {
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 8px;
-            font-size: 1.1rem;
-        }
-
-        .student-details {
-            font-size: 0.95rem;
-            color: var(--gray);
-        }
-
-        .student-class {
-            background: var(--primary);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        /* Camera Permission Section */
         #camera-permission {
             text-align: center;
-            padding: 30px;
+            padding: 25px;
             background: #f8f9fa;
             border-radius: var(--border-radius);
             margin: 20px 0;
@@ -538,118 +254,92 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px 28px;
+            padding: 12px 25px;
             border-radius: var(--border-radius);
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
-            transition: var(--transition);
-            margin-top: 15px;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+            margin-top: 10px;
         }
 
-        .permission-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        .current-scan-type {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+            text-align: center;
         }
 
-        /* Scan Count Display */
         .scan-count {
             background: var(--light);
-            padding: 12px 20px;
+            padding: 10px 20px;
             border-radius: var(--border-radius);
             display: inline-block;
-            margin: 15px 0;
+            margin: 10px 0;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .button-grid {
                 grid-template-columns: 1fr;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            
-            .header p {
-                font-size: 1rem;
-            }
-            
-            .card-title {
-                font-size: 1.2rem;
-            }
-            
-            .btn {
-                padding: 16px 20px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-            
-            .stats-grid {
+            .scan-type-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .header {
-                padding: 25px 20px;
-            }
-            
-            .back-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .modal-content {
-                width: 95%;
             }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <div class="header">
-            <h1>🔍 ស្កេនសិស្សមកយឺត</h1>
-            <p>ប្រព័ន្ធកត់ត្រាការមកយឺតរបស់សិស្សតាមរយៈ QR Code</p>
+            <h1>🔍 ការកំណត់ការស្កេន</h1>
+            <p>ជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន</p>
         </div>
         
-        <!-- Back Buttons -->
         <div class="back-buttons">
-            <button class="btn btn-primary" onclick="goToHome()">
-                🏠 ត្រលប់ទៅទំព័រដើម
-            </button>
-            <button class="btn btn-secondary" onclick="goBack()">
-                ↩️ ត្រលប់ក្រោយ
-            </button>
+            <button class="btn btn-primary" onclick="goToHome()">🏠 ត្រឡប់ទៅទំព័រដើម</button>
+            <button class="btn btn-primary" onclick="goBack()">↩️ ត្រឡប់ក្រោយ</button>
         </div>
         
-        <!-- Main Content -->
         <div class="content">
-            <!-- Camera Permission Section -->
+            <div class="card">
+                <h2>📋 ជ្រើសរើសប្រភេទសិស្ស</h2>
+                <div class="scan-type-grid">
+                    <div class="scan-type-card" data-type="late" onclick="selectScanType('late')">
+                        <div class="scan-type-icon">⏰</div>
+                        <div class="scan-type-title">សិស្សមកយឺត</div>
+                        <div class="scan-type-desc">សិស្សដែលមកយឺត មិនគោរពទង់ជាតិ</div>
+                    </div>
+                    <div class="scan-type-card" data-type="discipline" onclick="selectScanType('discipline')">
+                        <div class="scan-type-icon">⚠️</div>
+                        <div class="scan-type-title">មិនគោរពវិន័យ</div>
+                        <div class="scan-type-desc">សិស្សដែលមិនគោរពវិន័យសាលា</div>
+                    </div>
+                    <div class="scan-type-card" data-type="helpful" onclick="selectScanType('helpful')">
+                        <div class="scan-type-icon">🤝</div>
+                        <div class="scan-type-title">ជួយការងារ</div>
+                        <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
+                    </div>
+                    <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
+                        <div class="scan-type-icon">💇</div>
+                        <div class="scan-type-title">ត្រូវកាត់សក់</div>
+                        <div class="scan-type-desc">សិស្សដែលត្រូវកាត់សក់តាមវិន័យ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="current-scan-type" class="current-scan-type" style="display: none;">
+                <h3 id="current-scan-title">កំពុងស្កេន</h3>
+                <p id="current-scan-description">ស្កេនសិស្ស</p>
+            </div>
+
             <div id="camera-permission">
-                <h3>ការអនុញ្ញាត់ប្រើកាមេរ៉ា</h3>
-                <p>កម្មវិធីនេះត្រូវការអនុញ្ញាត់ប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
-                <button class="permission-btn" onclick="requestCameraPermission()">
-                    អនុញ្ញាត់កាមេរ៉ា
-                </button>
+                <h3>ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
+                <p>ត្រូវការអនុញ្ញាតប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
+                <button class="permission-btn" onclick="requestCameraPermission()">អនុញ្ញាតកាមេរ៉ា</button>
             </div>
             
-            <!-- Scanner Section -->
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
                     <video id="camera" playsinline></video>
@@ -660,17 +350,10 @@
                 <div id="scan-count" class="scan-count" style="display: none;">
                     ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
                 </div>
-                
-                <div id="status-indicator" class="status-indicator status-stopped">
-                    <div class="status-dot"></div>
-                    <span>ការស្កេនបានបញ្ឈប់</span>
-                </div>
             </div>
 
-            <!-- Result Display -->
             <div id="result"></div>
 
-            <!-- Stats Section -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="today-scans">0</div>
@@ -680,49 +363,29 @@
                     <div class="stat-number" id="total-students">0</div>
                     <div class="stat-label">សិស្សសរុប</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="selected-type-count">0</div>
+                    <div class="stat-label" id="selected-type-label">ប្រភេទដែលជ្រើស</div>
+                </div>
             </div>
 
-            <!-- Action Buttons -->
             <div class="button-grid">
-                <button id="start-btn" class="btn btn-success" onclick="startCamera()">
-                    <span class="loading" style="display: none;"></span>
-                    ▶️ ចាប់ផ្ដើមស្កេន
-                </button>
-                <button class="btn btn-primary" onclick="window.location.href='list.html'">
-                    📊 មើលរបាយការណ៍
-                </button>
-                <button id="stop-btn" class="btn btn-secondary" onclick="stopCamera()" disabled>
-                    ⏹️ បញ្ឈប់កាមេរ៉ា
-                </button>
-                <button class="btn btn-info" onclick="openManualEntryModal()">
-                    📝 កត់ត្រាតាមអត្តលេខ
-                </button>
-                <button class="btn btn-warning" onclick="resetTodayScans()">
-                    🔄 កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
-                </button>
+                <button id="start-btn" class="btn btn-success" onclick="startCamera()" disabled>▶️ ចាប់ផ្ដើមស្កេន</button>
+                <button class="btn btn-primary" onclick="viewReports()">📊 មើលរបាយការណ៍</button>
+                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>⏹️ បញ្ឈប់កាមេរ៉ា</button>
+                <button class="btn btn-info" onclick="openManualEntryModal()">📝 កត់ត្រាតាមអត្តលេខ</button>
+                <button class="btn btn-danger" onclick="resetTodayScans()">🔄 កំណត់ស្កេនឡើងវិញ</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal for manual student entry -->
-    <div id="manualEntryModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">កត់ត្រាសិស្សមកយឺតតាមអត្តលេខ</h3>
-                <button class="close-btn" onclick="closeManualEntryModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="studentSearch">ស្វែងរកសិស្សតាមឈ្មោះ ឬអត្តលេខ:</label>
-                    <input type="text" id="studentSearch" class="form-control" placeholder="វាយឈ្មោះ ឬអត្តលេខសិស្ស..." onkeyup="filterStudents()">
-                </div>
-                <div class="student-list" id="studentList">
-                    <!-- Student list will be populated here -->
-                </div>
-            </div>
-            <div style="padding: 20px; border-top: 1px solid #e9ecef; text-align: right;">
-                <button class="btn btn-secondary" onclick="closeManualEntryModal()">បិទ</button>
-            </div>
+    <!-- Modal for manual entry -->
+    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+        <div style="background: white; padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 500px;">
+            <h3>កត់ត្រាសិស្សតាមអត្តលេខ</h3>
+            <input type="text" id="studentSearch" placeholder="ស្វែងរកសិស្ស..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div id="studentList" style="max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 10px;">បិទ</button>
         </div>
     </div>
 
@@ -731,36 +394,156 @@
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
-        // Initialize Supabase client
+        // Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // DOM Elements
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
         const scannerContainer = document.getElementById('scanner-container');
         const cameraPermissionDiv = document.getElementById('camera-permission');
         const scanCountDiv = document.getElementById('scan-count');
         const scannedCountSpan = document.getElementById('scanned-count');
-        const statusIndicator = document.getElementById('status-indicator');
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
-        const startBtnLoading = startBtn.querySelector('.loading');
+        const todayScansElement = document.getElementById('today-scans');
+        const totalStudentsElement = document.getElementById('total-students');
+        const selectedTypeCountElement = document.getElementById('selected-type-count');
+        const selectedTypeLabelElement = document.getElementById('selected-type-label');
+        const currentScanTypeDiv = document.getElementById('current-scan-type');
+        const currentScanTitle = document.getElementById('current-scan-title');
+        const currentScanDescription = document.getElementById('current-scan-description');
         const manualEntryModal = document.getElementById('manualEntryModal');
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
-        const todayScansElement = document.getElementById('today-scans');
-        const totalStudentsElement = document.getElementById('total-students');
-        
+
+        // Global Variables
         let stream = null;
         let isScanning = false;
+        let selectedScanType = null;
+        let students = [];
         let scanAnimationFrame = null;
-        let lastScannedQR = '';
-        let isCameraStarting = false;
-        let students = []; // Array to store students from Supabase
 
-        // Function scanFrame ត្រូវតែនៅក្រៅ function ដទៃទៀត
+        // Scan Types Configuration - កំណត់តារាងត្រឹមត្រូវសម្រាប់រាល់ប្រភេទ
+        const scanTypes = {
+            late: {
+                title: "សិស្សមកយឺត",
+                description: "ស្កេនសិស្សដែលមកយឺត មិនគោរពទង់ជាតិ",
+                table: "attendance_reports"
+            },
+            discipline: {
+                title: "សិស្សមិនគោរពវិន័យ",
+                description: "ស្កេនសិស្សដែលមិនគោរពវិន័យសាលា",
+                table: "discipline_reports"  // តារាងសម្រាប់មិនគោរពវិន័យ
+            },
+            helpful: {
+                title: "សិស្សជួយការងារ",
+                description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
+                table: "helpful_reports"  // តារាងសម្រាប់ជួយការងារ
+            },
+            haircut: {
+                title: "សិស្សត្រូវកាត់សក់",
+                description: "ស្កេនសិស្សដែលត្រូវកាត់សក់តាមវិន័យ",
+                table: "haircut_reports"  // តារាងសម្រាប់ត្រូវកាត់សក់
+            }
+        };
+
+        // Initialize App
+        async function initApp() {
+            console.log('🚀 Starting app initialization...');
+            await fetchStudents();
+            await updateAllStats();
+            testSupabaseConnection();
+        }
+
+        // Select Scan Type
+        function selectScanType(type) {
+            console.log('Selected scan type:', type);
+            
+            // Update UI
+            document.querySelectorAll('.scan-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+            
+            // Set selected type
+            selectedScanType = type;
+            
+            // Update current scan type display
+            currentScanTitle.textContent = `កំពុងស្កេន: ${scanTypes[type].title}`;
+            currentScanDescription.textContent = scanTypes[type].description;
+            currentScanTypeDiv.style.display = 'block';
+            
+            // Enable start button
+            startBtn.disabled = false;
+            
+            // Update stats
+            updateSelectedTypeStats();
+        }
+
+        // Request Camera Permission
+        async function requestCameraPermission() {
+            console.log('Requesting camera permission...');
+            
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ');
+                    return;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+
+                cameraPermissionDiv.style.display = 'none';
+                showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា');
+            }
+        }
+
+        // Start Camera
+        function startCamera() {
+            if (!selectedScanType) {
+                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
+                return;
+            }
+
+            if (!stream) {
+                requestCameraPermission();
+                return;
+            }
+
+            video.srcObject = stream;
+            scannerContainer.style.display = 'block';
+            scanCountDiv.style.display = 'block';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            video.play().then(() => {
+                startQRScanning();
+            }).catch(err => {
+                showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
+            });
+        }
+
+        // Start QR Scanning
+        function startQRScanning() {
+            isScanning = true;
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}...</div>`;
+            scanFrame();
+        }
+
+        // Scan Frame Function
         function scanFrame() {
             if (!isScanning) return;
-            
+
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -771,695 +554,552 @@
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
                 
-                if (code && code.data !== lastScannedQR) {
-                    lastScannedQR = code.data;
+                if (code) {
                     handleScannedQR(code.data);
-                    return; // ឈប់ស្កេនបណ្តោះអាសន្ន
+                    return;
                 }
             }
-            
+
             if (isScanning) {
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
         }
 
-        // ពិនិត្យភាពឆបគ្នានៃ browser
-        function checkCompatibility() {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari');
-                return false;
+        // Handle Scanned QR
+        async function handleScannedQR(qrData) {
+            console.log('QR Scanned:', qrData);
+            
+            // Stop scanning temporarily
+            isScanning = false;
+            if (scanAnimationFrame) {
+                cancelAnimationFrame(scanAnimationFrame);
             }
-            return true;
+            
+            // Extract student ID
+            let studentId = qrData;
+            if (qrData.includes('?')) {
+                try {
+                    const url = new URL(qrData);
+                    studentId = url.searchParams.get('id') || qrData;
+                } catch (e) {
+                    // Not a URL, use raw data
+                }
+            }
+
+            // Find student
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+            
+            if (student) {
+                // Check if already scanned today
+                const alreadyScanned = await checkStudentScanToday(student.id);
+                if (alreadyScanned) {
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
+                    setTimeout(() => restartScanning(), 3000);
+                } else {
+                    await recordStudent(student);
+                }
+            } else {
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+                setTimeout(() => restartScanning(), 2000);
+            }
         }
 
-        // ទាញយកទិន្នន័យសិស្សពី Supabase (ទាំងអស់ដោយប្រើ pagination)
+        // Restart Scanning
+        function restartScanning() {
+            isScanning = true;
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}... ស្កេនសិស្សបន្ទាប់</div>`;
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
+        }
+
+        // Check if student was scanned today
+        async function checkStudentScanToday(studentId) {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const tableName = scanTypes[selectedScanType].table;
+                
+                console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
+                
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .select('*')
+                    .eq('student_id', studentId)
+                    .eq('date', today);
+
+                if (error) {
+                    console.error('Error checking scan:', error);
+                    return false;
+                }
+
+                console.log(`📊 Found ${data.length} records for student ${studentId}`);
+                return data.length > 0;
+            } catch (error) {
+                console.error('Error checking student scan:', error);
+                return false;
+            }
+        }
+
+        // Record Student - រក្សាទុកទិន្នន័យក្នុងតារាងត្រឹមត្រូវ
+        async function recordStudent(student) {
+            const now = new Date();
+            const record = {
+                student_id: student.id,
+                name: student.name,
+                class: student.class,
+                gender: student.gender || 'មិនមានទិន្នន័យ',
+                scan_time: now.toTimeString().split(' ')[0],
+                date: now.toISOString().split('T')[0],
+                timestamp: now.toISOString(),
+                scan_type: selectedScanType
+            };
+
+            try {
+                console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
+                
+                const tableName = scanTypes[selectedScanType].table;
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .insert([record])
+                    .select();
+
+                if (error) {
+                    console.error('❌ Supabase error:', error);
+                    
+                    // Check if it's an RLS policy error
+                    if (error.message.includes('row-level security policy')) {
+                        showError('កំហុសសុវត្ថិភាព៖ មិនមានសិទ្ធិកត់ត្រាទិន្នន័យក្នុងតារាងនេះ');
+                        // Try alternative table
+                        await tryAlternativeTable(record);
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    console.log('✅ Successfully saved to Supabase:', data);
+
+                    // Save to localStorage as backup
+                    saveToLocalStorage(record);
+                    
+                    showSuccess(`
+                        ✅ កត់ត្រាបានជោគ!<br>
+                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                        <strong>ថ្នាក់:</strong> ${student.class}<br>
+                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                        <strong>តារាង:</strong> ${tableName}<br>
+                        <em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>
+                    `);
+
+                    await updateAllStats();
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving to Supabase:', error);
+                
+                // Fallback to localStorage
+                saveToLocalStorage(record);
+                
+                showSuccess(`
+                    ✅ កត់ត្រាបានជោគ! (Local)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                    <strong>ថ្នាក់:</strong> ${student.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    <p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+                    <small>កំហុស: ${error.message}</small>
+                `);
+
+                await updateAllStats();
+            }
+
+            setTimeout(() => restartScanning(), 2000);
+        }
+
+        // Try alternative table if RLS policy fails
+        async function tryAlternativeTable(record) {
+            try {
+                // Try using a generic table
+                const { data, error } = await supabase
+                    .from('student_reports')
+                    .insert([record])
+                    .select();
+
+                if (error) throw error;
+                
+                console.log('✅ Successfully saved to alternative table:', data);
+                showSuccess(`
+                    ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${record.name}<br>
+                    <strong>ថ្នាក់:</strong> ${record.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    <em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>
+                `);
+                
+                await updateAllStats();
+            } catch (altError) {
+                console.error('❌ Error saving to alternative table:', altError);
+                throw altError;
+            }
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage(record) {
+            const key = `${selectedScanType}Reports`;
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const localRecord = {
+                ...record,
+                date: new Date().toDateString(),
+                timestamp: new Date().getTime()
+            };
+            existing.push(localRecord);
+            localStorage.setItem(key, JSON.stringify(existing));
+            console.log(`💾 Saved to localStorage with key: ${key}`);
+        }
+
+        // Fetch Students
         async function fetchStudents() {
             try {
-                console.log('🔍 Fetching ALL students from Supabase using pagination...');
+                console.log('Fetching students...');
                 
                 let allStudents = [];
                 let page = 0;
-                const pageSize = 1000; // Supabase max per request
+                const pageSize = 1000;
                 let hasMore = true;
 
-                // Fetch data in pages of 1000
                 while (hasMore) {
                     const from = page * pageSize;
                     const to = from + pageSize - 1;
-                    
-                    console.log(`📄 Fetching page ${page + 1}: ${from} to ${to}`);
                     
                     const { data, error } = await supabase
                         .from('students')
                         .select('*')
                         .range(from, to);
 
-                    if (error) {
-                        console.error('❌ Error fetching students page:', error);
-                        throw error;
-                    }
+                    if (error) throw error;
 
                     if (data && data.length > 0) {
                         allStudents = allStudents.concat(data);
-                        console.log(`✅ Page ${page + 1}: ${data.length} students, total: ${allStudents.length}`);
                         
-                        // If we got less than pageSize, we've reached the end
                         if (data.length < pageSize) {
                             hasMore = false;
-                            console.log(`🏁 Reached end of data at page ${page + 1}`);
                         } else {
                             page++;
                         }
                     } else {
                         hasMore = false;
-                        console.log(`🏁 No more data at page ${page + 1}`);
                     }
                 }
                 
-                console.log(`🎉 FINAL: Fetched ${allStudents.length} students from Supabase`);
                 students = allStudents;
-                totalStudentsElement.textContent = allStudents.length;
-                return students;
+                totalStudentsElement.textContent = students.length;
+                console.log(`Fetched ${students.length} students`);
+                
             } catch (error) {
-                console.error('❌ Error fetching students:', error);
-                
-                // Show error but continue with empty students array
-                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន។ សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត');
-                
-                // Return empty array to prevent further errors
+                console.error('Error fetching students:', error);
                 students = [];
-                return students;
+                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន');
             }
         }
 
-        // ទាញយកទិន្នន័យស្កេនថ្ងៃនេះពី Supabase
-        async function fetchTodayScans() {
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                
-                const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .select('*')
-                    .eq('date', today);
-                
-                if (error) {
-                    console.error('❌ Error fetching today scans:', error);
-                    throw error;
-                }
-                
-                console.log(`✅ Fetched ${data.length} today scans from Supabase`);
-                return data;
-            } catch (error) {
-                console.error('❌ Error fetching today scans:', error);
-                return [];
-            }
+        // Update All Stats
+        async function updateAllStats() {
+            await updateScanCount();
+            await updateSelectedTypeStats();
+            updateScannedCount();
         }
 
-        // ទាញយកទិន្នន័យទាំងអស់ពី Supabase
-        async function fetchAllData() {
-            try {
-                console.log('🔍 Fetching all data from Supabase...');
-                
-                // Fetch students (all records)
-                const studentsData = await fetchStudents();
-                
-                // Fetch today scans
-                const todayScans = await fetchTodayScans();
-                
-                // Update UI
-                todayScansElement.textContent = todayScans.length;
-                totalStudentsElement.textContent = studentsData.length;
-                
-                console.log('✅ All data fetched successfully');
-                console.log(`📊 Students: ${studentsData.length}, Today Scans: ${todayScans.length}`);
-                
-                return {
-                    students: studentsData,
-                    todayScans: todayScans
-                };
-            } catch (error) {
-                console.error('❌ Error fetching all data:', error);
-                showError('⚠️ មិនអាចទាញយកទិន្នន័យពីមូលដ្ឋានទិន្នន័យបាន');
-                return {
-                    students: [],
-                    todayScans: []
-                };
-            }
-        }
-
-        // ធ្វើបច្ចុប្បន្នភាពស្ថានភាពប៊ូតុង
-        function updateButtonStates() {
-            if (isScanning) {
-                startBtn.disabled = true;
-                startBtn.innerHTML = '<span class="loading"></span>🔄 កំពុងស្កេន...';
-                startBtnLoading.style.display = 'inline-block';
-                stopBtn.disabled = false;
-                statusIndicator.textContent = 'កំពុងស្កេន';
-                statusIndicator.className = 'status-indicator status-scanning';
-            } else if (isCameraStarting) {
-                startBtn.disabled = true;
-                startBtn.innerHTML = '<span class="loading"></span>⏳ កំពុងបើកកាមេរ៉ា...';
-                startBtnLoading.style.display = 'inline-block';
-                stopBtn.disabled = true;
-                statusIndicator.textContent = 'កំពុងបើកកាមេរ៉ា';
-                statusIndicator.className = 'status-indicator status-stopped';
-            } else {
-                startBtn.disabled = false;
-                startBtn.innerHTML = '▶️ ចាប់ផ្ដើមស្កេន';
-                startBtnLoading.style.display = 'none';
-                stopBtn.disabled = true;
-                statusIndicator.textContent = 'ការស្កេនបានបញ្ឈប់';
-                statusIndicator.className = 'status-indicator status-stopped';
-            }
-        }
-
-        // ស្នើសុំអនុញ្ញាត់កាមេរ៉ា
-        function requestCameraPermission() {
-            if (!checkCompatibility()) return;
-            
-            isCameraStarting = true;
-            updateButtonStates();
-            
-            navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: "environment",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                } 
-            }).then(function(s) {
-                stream = s;
-                startCamera();
-            }).catch(function(err) {
-                console.error('Camera error:', err);
-                isCameraStarting = false;
-                updateButtonStates();
-                showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាត់កាមេរ៉ា');
-                cameraPermissionDiv.style.display = 'block';
-                scannerContainer.style.display = 'none';
-            });
-        }
-
-        // ចាប់ផ្ដើមកាមេរ៉ា
-        function startCamera() {
-            if (stream) {
-                isCameraStarting = true;
-                updateButtonStates();
-                
-                video.srcObject = stream;
-                video.play().then(() => {
-                    scannerContainer.style.display = 'block';
-                    cameraPermissionDiv.style.display = 'none';
-                    scanCountDiv.style.display = 'block';
-                    updateScanCount();
-                    
-                    // ពន្យារពេលបន្តិចមុនពេលចាប់ផ្ដើមស្កេន
-                    setTimeout(() => {
-                        isCameraStarting = false;
-                        startQRScanning();
-                    }, 1000);
-                    
-                }).catch(err => {
-                    isCameraStarting = false;
-                    updateButtonStates();
-                    showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
-                });
-            } else {
-                requestCameraPermission();
-            }
-        }
-
-        // ចាប់ផ្ដើមស្កេន QR
-        function startQRScanning() {
-            if (isScanning) return;
-            
-            isScanning = true;
-            updateButtonStates();
-            
-            resultDiv.innerHTML = '<div class="message message-info">🔍 កំពុងស្កេន QR code... សូមយកកាមេរ៉ាចង្អុលទៅកាន់កាតសិស្ស</div>';
-            lastScannedQR = ''; // កំណត់ឡើងវិញដើម្បីអោយអាចស្កេនសិស្សដដែលបាន
-            
-            scanAnimationFrame = requestAnimationFrame(scanFrame);
-        }
-
-        // ចាប់ផ្ដើមស្កេនម្តងទៀត
-        function restartScanning() {
-            if (!isScanning) {
-                console.log("🔄 ចាប់ផ្ដើមស្កេនម្តងទៀត...");
-                isScanning = true;
-                updateButtonStates();
-                resultDiv.innerHTML = '<div class="message message-info">🔍 កំពុងស្កេន QR code... ស្កេនសិស្សបន្ទាប់</div>';
-                lastScannedQR = ''; // កំណត់ឡើងវិញ
-                scanAnimationFrame = requestAnimationFrame(scanFrame);
-            }
-        }
-
-        // ដោះស្រាយ QR code ដែលស្កេនបាន
-        async function handleScannedQR(qrData) {
-            console.log("QR Scanned:", qrData);
-            
-            // បញ្ឈប់ការស្កេនបណ្តោះអាសន្ន
-            if (isScanning) {
-                isScanning = false;
-                updateButtonStates();
-                if (scanAnimationFrame) {
-                    cancelAnimationFrame(scanAnimationFrame);
-                }
-            }
-            
-            // ទាញយក ID ពី URL
-            let studentId = extractStudentIdFromURL(qrData);
-            
-            // បើមិនមាន ID នៅក្នុង URL, ពិនិត្យដោយផ្ទាល់
-            if (!studentId) {
-                studentId = qrData;
-            }
-            
-            // Find student in the array from Supabase
-            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
-            
-            if (student) {
-                // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
-                checkStudentScanToday(student.id).then(todayScanCheck => {
-                    if (todayScanCheck.scanned) {
-                        showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនមកយឺតថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
-                        
-                        // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 3 វិនាទី
-                        setTimeout(() => {
-                            restartScanning();
-                        }, 3000);
-                    } else {
-                        recordLateStudent(student);
-                    }
-                }).catch(error => {
-                    console.error('Error checking scan:', error);
-                    showError('កំហុសក្នុងការពិនិត្យទិន្នន័យ');
-                    setTimeout(() => {
-                        restartScanning();
-                    }, 2000);
-                });
-            } else {
-                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
-                
-                // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
-                setTimeout(() => {
-                    restartScanning();
-                }, 2000);
-            }
-        }
-
-        // ពិនិត្យប្រសិនបើសិស្សបានស្កេនរួចថ្ងៃនេះ (ពី Supabase)
-        async function checkStudentScanToday(studentId) {
-            try {
-                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                console.log(`🔍 Checking scan for student ${studentId} on ${today}`);
-                
-                const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .select('*')
-                    .eq('student_id', studentId)
-                    .eq('date', today);
-                
-                if (error) {
-                    console.error('❌ Error checking student scan:', error);
-                    throw error;
-                }
-
-                console.log(`📊 Scan check result: ${data.length} records found`);
-                
-                return {
-                    scanned: data.length > 0,
-                    scanCount: data.length
-                };
-            } catch (error) {
-                console.error('❌ Error checking student scan:', error);
-                // Fallback to localStorage if Supabase fails
-                const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                const today = new Date().toDateString();
-                
-                const todayScans = reports.filter(report => 
-                    report.student_id === studentId && 
-                    report.date === today
-                );
-                
-                console.log(`📱 Fallback to localStorage: ${todayScans.length} records found`);
-                
-                return {
-                    scanned: todayScans.length > 0,
-                    scanCount: todayScans.length
-                };
-            }
-        }
-
-        // កត់ត្រាសិស្សមកយឺត
-        async function recordLateStudent(student) {
-            const now = new Date();
-            const record = {
-                student_id: student.id,
-                name: student.name,
-                class: student.class,
-                gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender និងដាក់តម្លៃ default
-                late_time: now.toTimeString().split(' ')[0],
-                date: now.toISOString().split('T')[0],
-                timestamp: now.toISOString()
-            };
-
-            try {
-                console.log('🔐 Trying to save to Supabase...', record);
-                
-                // រក្សាទុកក្នុង Supabase
-                const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .insert([record])
-                    .select();
-
-                if (error) {
-                    console.error('❌ Supabase error:', error);
-                    throw error;
-                }
-
-                console.log('✅ Saved to Supabase successfully:', data);
-
-                // រក្សាទុកក្នុង localStorage ជាការបម្លែង (fallback)
-                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                reports.push({
-                    ...record,
-                    date: now.toDateString()
-                });
-                localStorage.setItem('lateReports', JSON.stringify(reports));
-
-                // បង្ហាញលទ្ធផល
-                resultDiv.innerHTML = `
-                    <div class="message message-success">
-                        <h3>✅ កត់ត្រាបានជោគ!</h3>
-                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                        <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
-                        <p><strong>ពេលវេលា:</strong> ${record.late_time}</p>
-                        <p><strong>កាលបរិច្ឆេទ:</strong> ${now.toDateString()}</p>
-                        <p><em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em></p>
-                    </div>
-                `;
-
-                // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេន
-                updateScanCount();
-
-            } catch (error) {
-                console.error('❌ Error saving to Supabase:', error);
-                
-                // Fallback to localStorage only
-                let reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                const fallbackRecord = {
-                    student_id: student.id,
-                    name: student.name,
-                    class: student.class,
-                    gender: student.gender || 'មិនមានទិន្នន័យ', // បន្ថែម gender
-                    late_time: now.toTimeString().split(' ')[0],
-                    date: now.toDateString(),
-                    timestamp: now.getTime()
-                };
-                reports.push(fallbackRecord);
-                localStorage.setItem('lateReports', JSON.stringify(reports));
-
-                resultDiv.innerHTML = `
-                    <div class="message message-success">
-                        <h3>✅ កត់ត្រាបានជោគ! (Local)</h3>
-                        <p><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                        <p><strong>ថ្នាក់:</strong> ${student.class}</p>
-                        <p><strong>ភេទ:</strong> ${student.gender || 'មិនមានទិន្នន័យ'}</p>
-                        <p><strong>ពេលវេលា:</strong> ${fallbackRecord.late_time}</p>
-                        <p><strong>កាលបរិច្ឆេទ:</strong> ${fallbackRecord.date}</p>
-                        <p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
-                        <p><small>កំហុស: ${error.message}</small></p>
-                    </div>
-                `;
-
-                updateScanCount();
-            }
-
-            // ចាប់ផ្ដើមស្កេនម្តងទៀតបន្ទាប់ពី 2 វិនាទី
-            setTimeout(() => {
-                restartScanning();
-            }, 2000);
-        }
-
-        // ធ្វើបច្ចុប្បន្នភាពចំនួនស្កេនថ្ងៃនេះ
+        // Update Scan Count - រាប់ស្កេនពីតារាងទាំងអស់
         async function updateScanCount() {
             try {
                 const today = new Date().toISOString().split('T')[0];
+                let totalScans = 0;
+
+                // Count scans from all tables for today
+                for (const type in scanTypes) {
+                    const tableName = scanTypes[type].table;
+                    try {
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*', { count: 'exact' })
+                            .eq('date', today);
+
+                        if (!error && data) {
+                            totalScans += data.length;
+                            console.log(`📊 Table ${tableName}: ${data.length} scans today`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
+                    }
+                }
+
+                todayScansElement.textContent = totalScans;
+                console.log(`📈 Total scans today: ${totalScans}`);
+                
+            } catch (error) {
+                console.error('Error updating scan count:', error);
+                // Fallback to localStorage
+                let totalScans = 0;
+                for (const type in scanTypes) {
+                    const key = `${type}Reports`;
+                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                    const today = new Date().toDateString();
+                    const todayScans = reports.filter(report => report.date === today);
+                    totalScans += todayScans.length;
+                }
+                todayScansElement.textContent = totalScans;
+            }
+        }
+
+        // Update Selected Type Stats
+        async function updateSelectedTypeStats() {
+            if (!selectedScanType) return;
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const tableName = scanTypes[selectedScanType].table;
+                
+                console.log(`📊 Updating stats for ${selectedScanType} from table ${tableName}`);
                 
                 const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .select('*')
+                    .from(tableName)
+                    .select('*', { count: 'exact' })
                     .eq('date', today);
-                
+
                 if (!error) {
-                    const count = data.length;
-                    scannedCountSpan.textContent = count;
-                    todayScansElement.textContent = count;
-                    return;
+                    selectedTypeCountElement.textContent = data.length;
+                    selectedTypeLabelElement.textContent = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    console.log(`📈 ${selectedScanType} scans today: ${data.length}`);
+                } else {
+                    console.error('Error fetching selected type stats:', error);
                 }
             } catch (error) {
-                console.error('Error fetching scan count:', error);
+                console.error('Error updating selected type stats:', error);
+                // Fallback to localStorage
+                const key = `${selectedScanType}Reports`;
+                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                const today = new Date().toDateString();
+                const todayScans = reports.filter(report => report.date === today);
+                selectedTypeCountElement.textContent = todayScans.length;
+                selectedTypeLabelElement.textContent = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
             }
+        }
+
+        // Update Scanned Count Display
+        function updateScannedCount() {
+            if (!selectedScanType) return;
             
-            // Fallback to localStorage
-            const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+            const key = `${selectedScanType}Reports`;
+            const reports = JSON.parse(localStorage.getItem(key) || '[]');
             const today = new Date().toDateString();
             const todayScans = reports.filter(report => report.date === today);
-            const count = todayScans.length;
-            scannedCountSpan.textContent = count;
-            todayScansElement.textContent = count;
+            scannedCountSpan.textContent = todayScans.length;
         }
 
-        // កំណត់ស្កេនថ្ងៃនេះឡើងវិញ
-        async function resetTodayScans() {
-            if (confirm('តើអ្នកចង់កំណត់ស្កេនថ្ងៃនេះឡើងវិញមែនទេ? សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។')) {
-                try {
-                    const today = new Date().toISOString().split('T')[0];
-                    
-                    // Delete from Supabase
-                    const { error } = await supabase
-                        .from('attendance_reports')
-                        .delete()
-                        .eq('date', today);
-                    
-                    if (error) {
-                        throw error;
-                    }
-                } catch (error) {
-                    console.error('Error resetting scans in Supabase:', error);
-                }
-                
-                // Reset localStorage
-                const reports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                const today = new Date().toDateString();
-                const previousScans = reports.filter(report => report.date !== today);
-                localStorage.setItem('lateReports', JSON.stringify(previousScans));
-                
-                updateScanCount();
-                showSuccess('✅ កំណត់ស្កេនថ្ងៃនេះឡើងវិញរួចរាល់! សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។');
-                
-                if (!isScanning) {
-                    setTimeout(() => {
-                        restartScanning();
-                    }, 2000);
-                }
-            }
-        }
-
-        // បង្ហាញការព្រមានស្កេនរួច
-        function showWarning(message) {
-            resultDiv.innerHTML = `
-                <div class="message message-warning">
-                    <h3>⚠️ ស្កេនរួចរាល់</h3>
-                    <p>${message}</p>
-                </div>
-            `;
-        }
-
-        // បង្ហាញសារជោគជ័យ
-        function showSuccess(message) {
-            resultDiv.innerHTML = `
-                <div class="message message-success">
-                    <h3>✅ ប្រតិបត្តិការជោគជ័យ</h3>
-                    <p>${message}</p>
-                </div>
-            `;
-        }
-
-        // ទាញយក Student ID ពី URL
-        function extractStudentIdFromURL(url) {
-            try {
-                if (url.includes('?')) {
-                    const urlObj = new URL(url);
-                    const idParam = urlObj.searchParams.get('id');
-                    return idParam;
-                }
-                return null;
-            } catch (e) {
-                console.log("Not a valid URL, using raw data");
-                return null;
-            }
-        }
-
-        // បញ្ឈប់កាមេរ៉ា
+        // Stop Camera
         function stopCamera() {
             isScanning = false;
-            isCameraStarting = false;
-            updateButtonStates();
-            
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
             }
+            
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
                 stream = null;
             }
+            
             scannerContainer.style.display = 'none';
             scanCountDiv.style.display = 'none';
             cameraPermissionDiv.style.display = 'block';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
             resultDiv.innerHTML = '<div class="message message-info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
 
-        // បង្ហាញកំហុស
-        function showError(message) {
-            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
-        }
-
-        // ពិនិត្យការភ្ជាប់ Supabase
-        async function testSupabaseConnection() {
-            try {
-                console.log('🔗 Testing Supabase connection...');
-                
-                const { data, error } = await supabase
-                    .from('attendance_reports')
-                    .select('*')
-                    .limit(1);
-                
-                if (error) {
-                    console.warn('❌ Supabase connection test failed:', error);
-                    
-                    // Show detailed error message
-                    let errorMessage = 'ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ';
-                    
-                    if (error.code === 'PGRST301') {
-                        errorMessage += 'តារាង "attendance_reports" មិនមានទេ។';
-                    } else if (error.code === '42501') {
-                        errorMessage += 'មិនមានសិទ្ធិចូលប្រើ។ សូមពិនិត្យ RLS Policies។';
-                    } else {
-                        errorMessage += `កំហុស: ${error.message}`;
-                    }
-                    
-                    showError('⚠️ ' + errorMessage + ' ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
-                } else {
-                    console.log('✅ Supabase connection successful');
-                    // Hide the error message if connection is successful
-                    const existingError = document.querySelector('.message-error');
-                    if (existingError && existingError.textContent.includes('Supabase')) {
-                        existingError.remove();
-                    }
-                }
-            } catch (error) {
-                console.warn('❌ Supabase connection test failed:', error);
-                showError('⚠️ ការភ្ជាប់ទៅកាន់មូលដ្ឋានទិន្នន័យមិនដំណើរការ។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ។');
-            }
-        }
-
-        // បើក Modal កត់ត្រាតាមអត្តលេខ
+        // Manual Entry Functions
         function openManualEntryModal() {
+            if (!selectedScanType) {
+                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកត់ត្រាតាមអត្តលេខ');
+                return;
+            }
             populateStudentList();
             manualEntryModal.style.display = 'flex';
         }
 
-        // បិទ Modal កត់ត្រាតាមអត្តលេខ
         function closeManualEntryModal() {
             manualEntryModal.style.display = 'none';
             studentSearch.value = '';
         }
 
-        // បំពេញបញ្ជីសិស្ស
         function populateStudentList() {
             studentList.innerHTML = '';
             
             if (students.length === 0) {
-                studentList.innerHTML = '<div class="student-item">មិនមានទិន្នន័យសិស្ស</div>';
+                studentList.innerHTML = '<div>មិនមានទិន្នន័យសិស្ស</div>';
                 return;
             }
             
             students.forEach(student => {
                 const studentItem = document.createElement('div');
                 studentItem.className = 'student-item';
+                studentItem.style.padding = '10px';
+                studentItem.style.borderBottom = '1px solid #eee';
+                studentItem.style.cursor = 'pointer';
                 studentItem.onclick = () => selectStudent(student);
                 
                 studentItem.innerHTML = `
-                    <div class="student-info">
-                        <div class="student-name">${student.name}</div>
-                        <div class="student-details">អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</div>
-                    </div>
-                    <div class="student-class">${student.class}</div>
+                    <strong>${student.name}</strong><br>
+                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</small>
                 `;
                 
                 studentList.appendChild(studentItem);
             });
         }
 
-        // ត្រងសិស្ស
         function filterStudents() {
             const searchTerm = studentSearch.value.toLowerCase();
             const studentItems = studentList.getElementsByClassName('student-item');
             
             for (let i = 0; i < studentItems.length; i++) {
-                const studentName = studentItems[i].querySelector('.student-name').textContent.toLowerCase();
-                const studentDetails = studentItems[i].querySelector('.student-details').textContent.toLowerCase();
-                
-                if (studentName.includes(searchTerm) || studentDetails.includes(searchTerm)) {
-                    studentItems[i].style.display = 'flex';
+                const studentText = studentItems[i].textContent.toLowerCase();
+                if (studentText.includes(searchTerm)) {
+                    studentItems[i].style.display = 'block';
                 } else {
                     studentItems[i].style.display = 'none';
                 }
             }
         }
 
-        // ជ្រើសរើសសិស្ស
         async function selectStudent(student) {
             closeManualEntryModal();
             
-            // ពិនិត្យប្រសិនបើសិស្សនេះបានស្កេនរួចថ្ងៃនេះ
-            const todayScanCheck = await checkStudentScanToday(student.id);
-            
-            if (todayScanCheck.scanned) {
-                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេនមកយឺតថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
+            const alreadyScanned = await checkStudentScanToday(student.id);
+            if (alreadyScanned) {
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះរួចរាល់`);
             } else {
-                recordLateStudent(student);
+                await recordStudent(student);
             }
         }
 
-        // Function to go back to previous page
-        function goBack() {
-            window.history.back();
+        // Reset Today's Scans
+        async function resetTodayScans() {
+            if (!selectedScanType) {
+                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកំណត់ឡើងវិញ');
+                return;
+            }
+            
+            if (confirm(`តើអ្នកចង់កំណត់ស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះឡើងវិញមែនទេ? សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។`)) {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const tableName = scanTypes[selectedScanType].table;
+                    
+                    console.log(`🔄 Resetting scans in table: ${tableName} for date: ${today}`);
+                    
+                    const { error } = await supabase
+                        .from(tableName)
+                        .delete()
+                        .eq('date', today);
+
+                    if (error) throw error;
+                    
+                    console.log(`✅ Successfully reset scans in ${tableName}`);
+                } catch (error) {
+                    console.error('Error resetting scans in Supabase:', error);
+                }
+                
+                // Reset localStorage
+                const key = `${selectedScanType}Reports`;
+                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                const today = new Date().toDateString();
+                const previousScans = reports.filter(report => report.date !== today);
+                localStorage.setItem(key, JSON.stringify(previousScans));
+                
+                await updateAllStats();
+                showSuccess(`✅ កំណត់ស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះឡើងវិញរួចរាល់!`);
+            }
         }
 
-        // Function to go back to home page
+        // Test Supabase Connection and Tables
+        async function testSupabaseConnection() {
+            try {
+                console.log('🔗 Testing Supabase connection and tables...');
+                
+                // Test connection to students table
+                const { data: studentsData, error: studentsError } = await supabase
+                    .from('students')
+                    .select('*')
+                    .limit(1);
+
+                if (studentsError) {
+                    console.warn('❌ Students table connection failed:', studentsError);
+                } else {
+                    console.log('✅ Students table connection successful');
+                }
+
+                // Test all report tables
+                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'haircut_reports'];
+                
+                for (const tableName of tablesToTest) {
+                    try {
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*')
+                            .limit(1);
+
+                        if (error) {
+                            console.warn(`❌ Table ${tableName} connection failed:`, error);
+                        } else {
+                            console.log(`✅ Table ${tableName} connection successful`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`❌ Table ${tableName} test failed:`, tableError);
+                    }
+                }
+
+            } catch (error) {
+                console.warn('Supabase connection test failed:', error);
+            }
+        }
+
+        // Utility Functions
+        function showSuccess(message) {
+            resultDiv.innerHTML = `<div class="message message-success">${message}</div>`;
+        }
+
+        function showError(message) {
+            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
+        }
+
+        function showWarning(message) {
+            resultDiv.innerHTML = `<div class="message message-warning">${message}</div>`;
+        }
+
         function goToHome() {
             window.location.href = 'index.html';
         }
 
-        // ពិនិត្យភាពឆបគ្នានៅពេលទំព័រត្រូវបានផ្ទុក
-        window.onload = async function() {
-            if (!checkCompatibility()) {
-                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើ iPhone');
+        function goBack() {
+            window.history.back();
+        }
+
+        function viewReports() {
+            window.location.href = 'list.html';
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
+            initApp();
+            
+            // Add event listener for student search
+            studentSearch.addEventListener('input', filterStudents);
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && isScanning) {
+                stopCamera();
             }
-            updateButtonStates();
-            
-            // Fetch all data from Supabase
-            await fetchAllData();
-            
-            // Update scan count
-            updateScanCount();
-            
-            // Test Supabase connection
-            testSupabaseConnection();
-        };
+        });
     </script>
 </body>
 </html>

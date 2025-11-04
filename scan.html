@@ -242,6 +242,12 @@
             color: #0c5460;
         }
 
+        .message-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
         #camera-permission {
             text-align: center;
             padding: 25px;
@@ -277,6 +283,16 @@
             display: inline-block;
             margin: 10px 0;
             font-weight: 600;
+        }
+
+        .time-remaining {
+            background: var(--warning);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
         }
 
         @media (max-width: 768px) {
@@ -332,6 +348,9 @@
             <div id="current-scan-type" class="current-scan-type" style="display: none;">
                 <h3 id="current-scan-title">កំពុងស្កេន</h3>
                 <p id="current-scan-description">ស្កេនសិស្ស</p>
+                <div id="time-limit-info" class="time-remaining" style="display: none;">
+                    សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
+                </div>
             </div>
 
             <div id="camera-permission">
@@ -413,6 +432,7 @@
         const currentScanTypeDiv = document.getElementById('current-scan-type');
         const currentScanTitle = document.getElementById('current-scan-title');
         const currentScanDescription = document.getElementById('current-scan-description');
+        const timeLimitInfo = document.getElementById('time-limit-info');
         const manualEntryModal = document.getElementById('manualEntryModal');
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
@@ -423,6 +443,8 @@
         let selectedScanType = null;
         let students = [];
         let scanAnimationFrame = null;
+        const TIME_LIMIT_MINUTES = 10; // 10 minutes time limit
+        const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000; // Convert to milliseconds
 
         // Scan Types Configuration - កំណត់តារាងត្រឹមត្រូវសម្រាប់រាល់ប្រភេទ
         const scanTypes = {
@@ -473,6 +495,7 @@
             currentScanTitle.textContent = `កំពុងស្កេន: ${scanTypes[type].title}`;
             currentScanDescription.textContent = scanTypes[type].description;
             currentScanTypeDiv.style.display = 'block';
+            timeLimitInfo.style.display = 'block';
             
             // Enable start button
             startBtn.disabled = false;
@@ -590,10 +613,11 @@
             const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
-                // Check if already scanned today
-                const alreadyScanned = await checkStudentScanToday(student.id);
-                if (alreadyScanned) {
-                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះរួចរាល់\n\nថ្ងៃស្អែកអាចស្កេនម្តងទៀតបាន`);
+                // Check if scanned within time limit (10 minutes)
+                const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+                if (timeCheckResult.withinLimit) {
+                    const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
                     setTimeout(() => restartScanning(), 3000);
                 } else {
                     await recordStudent(student);
@@ -604,38 +628,53 @@
             }
         }
 
-        // Restart Scanning
-        function restartScanning() {
-            isScanning = true;
-            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}... ស្កេនសិស្សបន្ទាប់</div>`;
-            scanAnimationFrame = requestAnimationFrame(scanFrame);
-        }
-
-        // Check if student was scanned today
-        async function checkStudentScanToday(studentId) {
+        // Check if student was scanned within time limit
+        async function checkStudentScanTimeLimit(studentId) {
             try {
-                const today = new Date().toISOString().split('T')[0];
                 const tableName = scanTypes[selectedScanType].table;
                 
                 console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
                 
                 const { data, error } = await supabase
                     .from(tableName)
-                    .select('*')
+                    .select('timestamp')
                     .eq('student_id', studentId)
-                    .eq('date', today);
+                    .order('timestamp', { ascending: false })
+                    .limit(1);
 
                 if (error) {
-                    console.error('Error checking scan:', error);
-                    return false;
+                    console.error('Error checking scan time:', error);
+                    return { withinLimit: false, remainingTime: 0 };
                 }
 
-                console.log(`📊 Found ${data.length} records for student ${studentId}`);
-                return data.length > 0;
+                if (!data || data.length === 0) {
+                    console.log('No previous scan found for student');
+                    return { withinLimit: false, remainingTime: 0 };
+                }
+
+                const lastScanTime = new Date(data[0].timestamp).getTime();
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastScanTime;
+                const remainingTime = TIME_LIMIT_MS - timeDiff;
+
+                console.log(`Time since last scan: ${Math.floor(timeDiff/1000/60)} minutes, Remaining: ${Math.ceil(remainingTime/1000/60)} minutes`);
+
+                return {
+                    withinLimit: timeDiff < TIME_LIMIT_MS,
+                    remainingTime: remainingTime > 0 ? remainingTime : 0
+                };
+
             } catch (error) {
-                console.error('Error checking student scan:', error);
-                return false;
+                console.error('Error checking student scan time limit:', error);
+                return { withinLimit: false, remainingTime: 0 };
             }
+        }
+
+        // Restart Scanning
+        function restartScanning() {
+            isScanning = true;
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}... ស្កេនសិស្សបន្ទាប់</div>`;
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
         // Record Student - រក្សាទុកទិន្នន័យក្នុងតារាងត្រឹមត្រូវ
@@ -972,9 +1011,11 @@
         async function selectStudent(student) {
             closeManualEntryModal();
             
-            const alreadyScanned = await checkStudentScanToday(student.id);
-            if (alreadyScanned) {
-                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះរួចរាល់`);
+            // Check if scanned within time limit (10 minutes)
+            const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+            if (timeCheckResult.withinLimit) {
+                const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
             } else {
                 await recordStudent(student);
             }

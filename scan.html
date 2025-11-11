@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -1144,4 +1150,5 @@
     </script>
 </body>
 </html>
+
 

@@ -37,7 +37,7 @@
                 localStorage.setItem('adminLoggedIn', 'true');
                 messageDiv.innerHTML = '<div class="alert alert-success">Login successful! You will be redirected to the Add Student page.</div>';
                 setTimeout(function() {
-                    window.location.href = 'admin.html';
+                    window.location.href = 'scan.html';
                 }, 1500); // Increased delay for better user experience
             } else {
                 messageDiv.innerHTML = '<div class="alert alert-danger">Invalid username or password.</div>';

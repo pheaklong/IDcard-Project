@@ -936,26 +936,21 @@
                     true
                 );
                 
+           // ក្នុង catch block នៃ form submission
             } catch (error) {
                 console.error('Error adding student:', error);
                 
-                // Show error alert
                 let errorMessage = `កំហុស: ${error.message}`;
                 
-                if (error.message.includes('duplicate key') || error.message.includes('duplicate')) {
+                if (error.message.includes('row-level security') || error.message.includes('RLS')) {
+                    errorMessage = 'កំហុស: គោលនីតិវិធីសុវត្ថិភាពរារាំងការបញ្ចូលទិន្នន័យ។ សូមទាក់ទងអ្នកគ្រប់គ្រងប្រព័ន្ធ។';
+                } else if (error.message.includes('duplicate key')) {
                     errorMessage = 'កំហុស: អត្តលេខនេះមានរួចហើយនៅក្នុងប្រព័ន្ធ';
-                } else if (error.message.includes('permission')) {
-                    errorMessage = 'កំហុស: មិនមានសិទ្ធិបន្ថែមទិន្នន័យ';
-                } else if (error.message.includes('network') || error.message.includes('fetch')) {
-                    errorMessage = 'កំហុស: បញ្ហាការតភ្ជាប់អ៊ីនធឺណិត';
                 }
                 
-                showAlert(
-                    'error',
-                    'កំហុស!',
-                    errorMessage,
-                    false
-                );
+                showAlert('error', 'កំហុស!', errorMessage, false);
+            }
+                
             } finally {
                 // Reset button state
                 const submitBtn = document.getElementById('addStudentBtn');

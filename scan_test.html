@@ -186,6 +186,25 @@
             margin-bottom: 5px;
         }
 
+        /* Other Description Input */
+        .other-description-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .other-description-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
         #scanner-container {
             text-align: center;
             margin: 20px 0;
@@ -463,6 +482,12 @@
                         </div>
                     </div>
                     
+                    <!-- Other Description Input -->
+                    <div id="otherDescriptionContainer" class="other-description-container">
+                        <label for="otherDescription">សរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ:</label>
+                        <textarea id="otherDescription" placeholder="សរសេរបញ្ជាក់នៅទីនេះ..."></textarea>
+                    </div>
+                    
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
                         <button class="btn btn-warning" onclick="confirmDisciplineSubtype()" style="flex: 1;">
                             ✅ បញ្ជាក់
@@ -565,6 +590,8 @@
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
         const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+        const otherDescription = document.getElementById('otherDescription');
 
         // Global Variables
         let stream = null;
@@ -653,6 +680,10 @@
                 card.classList.remove('selected');
             });
             
+            // Hide other description input
+            otherDescriptionContainer.style.display = 'none';
+            otherDescription.value = '';
+            
             disciplineSubtypesModal.style.display = 'flex';
         }
 
@@ -678,12 +709,26 @@
             document.querySelector(`[data-subtype="${subtype}"]`).classList.add('selected');
             
             selectedDisciplineSubtype = subtype;
+            
+            // Show/hide other description input
+            if (subtype === 'other') {
+                otherDescriptionContainer.style.display = 'block';
+            } else {
+                otherDescriptionContainer.style.display = 'none';
+                otherDescription.value = '';
+            }
         }
 
         // Confirm Discipline Subtype Selection
         function confirmDisciplineSubtype() {
             if (!selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            // For "other" subtype, check if description is provided
+            if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
+                showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
                 return;
             }
             
@@ -718,8 +763,15 @@
             
             // Add discipline subtype info if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                displayTitle += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
-                displayDescription = `ស្កេនសិស្សដែល${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+                let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                // For "other" subtype, use the custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    subtypeTitle = otherDescription.value.trim();
+                }
+                
+                displayTitle += ` - ${subtypeTitle}`;
+                displayDescription = `ស្កេនសិស្សដែល${subtypeTitle}`;
             }
             
             currentScanTitle.textContent = `កំពុងស្កេន: ${displayTitle}`;
@@ -916,7 +968,7 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Record Student - Updated to include discipline subtype
+        // Record Student - Updated to include discipline subtype and custom description
         async function recordStudent(student) {
             const now = new Date();
             const record = {
@@ -933,7 +985,13 @@
             // Add discipline subtype if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
-                record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                // For "other" subtype, use custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    record.discipline_description = otherDescription.value.trim();
+                } else {
+                    record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                }
             }
 
             try {
@@ -971,7 +1029,7 @@
                     
                     // Add discipline subtype info if applicable
                     if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                     }
                     
                     successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
@@ -996,7 +1054,7 @@
                 `;
                 
                 if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                 }
                 
                 successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
@@ -1030,7 +1088,7 @@
                 `;
                 
                 if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                 }
                 
                 successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;

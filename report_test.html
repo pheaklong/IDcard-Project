@@ -9,7 +9,7 @@
         if (localStorage.getItem('adminLoggedIn') !== 'true') {
             window.location.href = 'login.html';
         }
-   </script>
+    </script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js for statistics -->
@@ -693,11 +693,6 @@
                             <div class="report-type-title">សិស្សត្រូវកាត់សក់</div>
                             <div class="report-type-desc">របាយការណ៍សិស្សដែលត្រូវកាត់សក់តាមវិន័យ</div>
                         </div>
-                        <div class="report-type-card" data-type="summary" onclick="selectReportType('summary')">
-                            <div class="report-type-icon">📈</div>
-                            <div class="report-type-title">របាយការណ៍សង្ខេប</div>
-                            <div class="report-type-desc">របាយការណ៍ចំនួនដងសិស្សមកយឺតក្នុងមួយសប្តាហ៍/ខែ</div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -759,16 +754,6 @@
                 </div>
             </div>
 
-            <!-- Chart Section -->
-            <div id="chart-section" style="display: none;">
-                <div class="card">
-                    <h2 class="card-title">📈 តារាងស្ថិតិ</h2>
-                    <div class="chart-container">
-                        <canvas id="reportChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
             <!-- Data Table for Regular Reports -->
             <div id="table-section" style="display: none;">
                 <div class="card">
@@ -791,7 +776,7 @@
                                     <th>ឈ្មោះសិស្ស</th>
                                     <th>ថ្នាក់</th>
                                     <th>ភេទ</th>
-                                    <th>ប្រភេទអំពើ</th>
+                                    <th>ប្រភេទបញ្ហា</th>
                                     <th>ពេលវេលា</th>
                                     <th>កាលបរិច្ឆេទ</th>
                                 </tr>
@@ -828,7 +813,6 @@
         let allReports = [];
         let filteredReports = [];
         let chart = null;
-        let students = [];
 
         // Report type definitions
         const reportTypes = {
@@ -887,7 +871,6 @@
             // Show/hide appropriate sections
             document.getElementById('filter-section').style.display = 'block';
             document.getElementById('stats-section').style.display = 'none';
-            document.getElementById('chart-section').style.display = 'none';
             document.getElementById('table-section').style.display = 'none';
             
             loadReportData();
@@ -933,9 +916,6 @@
                 // Update stats
                 updateStats();
                 
-                // Update chart
-                updateChart();
-                
                 // Populate class filter
                 populateClassFilter();
                 
@@ -948,7 +928,6 @@
                 
                 applyFilters();
                 updateStats();
-                updateChart();
                 populateClassFilter();
             }
         }
@@ -1013,14 +992,14 @@
             if (searchFilter) {
                 filtered = filtered.filter(report => 
                     report.name.toLowerCase().includes(searchFilter) ||
-                    (report.student_id && report.student_id.toLowerCase().includes(searchFilter))
+                    (report.student_id && report.student_id.toLowerCase().includes(searchFilter)) ||
+                    (report.discipline_description && report.discipline_description.toLowerCase().includes(searchFilter))
                 );
             }
             
             filteredReports = filtered;
             renderTable();
             updateStats();
-            updateChart();
         }
 
         // បង្ហាញតារាង
@@ -1035,7 +1014,6 @@
                 tableEmpty.style.display = 'block';
                 tableBody.innerHTML = '';
                 document.getElementById('stats-section').style.display = 'none';
-                document.getElementById('chart-section').style.display = 'none';
                 return;
             }
             
@@ -1051,8 +1029,8 @@
                     day: 'numeric'
                 });
                 
-                // For discipline reports, show violation type if available
-                const violationType = report.violation_type || 'មិនគោរពវិន័យ';
+                // For discipline reports, show discipline_description
+                const disciplineDescription = report.discipline_description || 'មិនមានការពិពណ៌នា';
                 
                 html += `
                     <tr>
@@ -1063,7 +1041,9 @@
                         </td>
                         <td>${report.class}</td>
                         <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                        <td>${violationType}</td>
+                        <td class="discipline-description">
+                            <div>${disciplineDescription}</div>
+                        </td>
                         <td>${report.scan_time || report.late_time || 'N/A'}</td>
                         <td>${displayDate}</td>
                     </tr>
@@ -1073,7 +1053,6 @@
             tableBody.innerHTML = html;
             document.getElementById('table-section').style.display = 'block';
             document.getElementById('stats-section').style.display = 'grid';
-            document.getElementById('chart-section').style.display = 'block';
         }
 
         // ធ្វើបច្ចុប្បន្នភាពស្ថិតិ
@@ -1101,90 +1080,6 @@
             document.getElementById('today-scans').textContent = todayScans;
             document.getElementById('unique-students').textContent = uniqueStudents;
             document.getElementById('most-frequent').textContent = mostFrequent;
-        }
-
-        // ធ្វើបច្ចុប្បន្នភាពតារាង
-        function updateChart() {
-            if (!currentReportType || filteredReports.length === 0) {
-                return;
-            }
-            
-            // Prepare data for chart - last 7 days
-            const last7Days = [];
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date();
-                date.setDate(date.getDate() - i);
-                last7Days.push(date.toISOString().split('T')[0]);
-            }
-            
-            const dailyCounts = last7Days.map(date => {
-                return filteredReports.filter(report => report.date === date).length;
-            });
-            
-            const chartLabels = last7Days.map(date => {
-                const d = new Date(date);
-                return d.toLocaleDateString('km-KH', { month: 'short', day: 'numeric' });
-            });
-            
-            const ctx = document.getElementById('reportChart').getContext('2d');
-            
-            // Destroy existing chart
-            if (chart) {
-                chart.destroy();
-            }
-            
-            // Create new chart
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: `ចំនួនស្កេន${reportTypes[currentReportType].title}`,
-                        data: dailyCounts,
-                        backgroundColor: '#4361ee',
-                        borderColor: '#3a56d4',
-                        borderWidth: 2,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: `ស្ថិតិស្កេន${reportTypes[currentReportType].title} ៧ថ្ងៃចុងក្រោយ`,
-                            font: {
-                                size: 16,
-                                family: 'Khmer OS, Noto Sans Khmer, Arial'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 0
-                            },
-                            title: {
-                                display: true,
-                                text: 'ចំនួនស្កេន'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'កាលបរិច្ឆេទ'
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         // បំពេញតម្រៀបថ្នាក់
@@ -1223,8 +1118,8 @@
                         day: 'numeric'
                     });
                     
-                    // For discipline reports, include violation type
-                    const violationType = report.violation_type || 'មិនគោរពវិន័យ';
+                    // For discipline reports, include discipline_description
+                    const disciplineDescription = report.discipline_description || 'មិនមានការពិពណ៌នា';
                     
                     return {
                         'ល.រ': index + 1,
@@ -1232,7 +1127,7 @@
                         'អត្តលេខ': report.student_id,
                         'ថ្នាក់': report.class,
                         'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
-                        'ប្រភេទអំពើ': violationType,
+                        'ប្រភេទបញ្ហា': disciplineDescription,
                         'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
                         'កាលបរិច្ឆេទ': displayDate
                     };
@@ -1285,6 +1180,7 @@
                         th { background-color: #f5f5f5; font-weight: bold; }
                         .summary { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
                         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                        .discipline-description { max-width: 300px; word-wrap: break-word; }
                     </style>
                 </head>
                 <body>
@@ -1300,7 +1196,7 @@
                                 <th>ឈ្មោះសិស្ស</th>
                                 <th>ថ្នាក់</th>
                                 <th>ភេទ</th>
-                                <th>ប្រភេទអំពើ</th>
+                                <th>ប្រភេទបញ្ហា</th>
                                 <th>ពេលវេលា</th>
                                 <th>កាលបរិច្ឆេទ</th>
                             </tr>
@@ -1314,7 +1210,7 @@
                                     day: 'numeric'
                                 });
                                 
-                                const violationType = report.violation_type || 'មិនគោរពវិន័យ';
+                                const disciplineDescription = report.discipline_description || 'មិនមានការពិពណ៌នា';
                                 
                                 return `
                                     <tr>
@@ -1322,7 +1218,7 @@
                                         <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
                                         <td>${report.class}</td>
                                         <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                                        <td>${violationType}</td>
+                                        <td class="discipline-description">${disciplineDescription}</td>
                                         <td>${report.scan_time || report.late_time || 'N/A'}</td>
                                         <td>${displayDate}</td>
                                     </tr>

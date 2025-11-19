@@ -123,6 +123,88 @@
             color: #666;
         }
 
+        /* Sub-type Modal Styles */
+        .subtype-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .subtype-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .subtype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .subtype-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .subtype-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--warning);
+        }
+
+        .subtype-card.selected {
+            border-color: var(--warning);
+            background: rgba(247, 37, 133, 0.05);
+        }
+
+        .subtype-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtype-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        /* Other Description Input */
+        .other-description-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .other-description-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
         #scanner-container {
             text-align: center;
             margin: 20px 0;
@@ -309,6 +391,10 @@
             .scan-type-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .subtype-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -333,7 +419,7 @@
                         <div class="scan-type-title">សិស្សមកយឺត</div>
                         <div class="scan-type-desc">សិស្សដែលមកយឺត មិនគោរពទង់ជាតិ</div>
                     </div>
-                    <div class="scan-type-card" data-type="discipline" onclick="selectScanType('discipline')">
+                    <div class="scan-type-card" data-type="discipline" onclick="openDisciplineSubtypes()">
                         <div class="scan-type-icon">⚠️</div>
                         <div class="scan-type-title">មិនគោរពវិន័យ</div>
                         <div class="scan-type-desc">សិស្សដែលមិនគោរពវិន័យសាលា</div>
@@ -344,9 +430,71 @@
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
                     </div>
                     <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
-                        <div class="scan-type-icon">🧑‍🤝‍🧑</div>
-                        <div class="scan-type-title">ការរៀបចំខ្លូន</div>
+                        <div class="scan-type-icon">💇</div>
+                        <div class="scan-type-title">ការៀបចំខ្លូន</div>
                         <div class="scan-type-desc">សិស្សដែលត្រូវវិន័យទាក់ទងការរៀបចំខ្លួន</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discipline Subtypes Modal -->
+            <div id="disciplineSubtypesModal" class="subtype-modal">
+                <div class="subtype-content">
+                    <h3>⚠️ ជ្រើសរើសប្រភេទមិនគោរពវិន័យ</h3>
+                    <p>សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យដែលសិស្សបានប្រព្រឹត្ត</p>
+                    
+                    <div class="subtype-grid">
+                        <div class="subtype-card" data-subtype="shoes" onclick="selectDisciplineSubtype('shoes')">
+                            <div class="subtype-icon">👞</div>
+                            <div class="subtype-title">ស្បែកជើង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="uniform" onclick="selectDisciplineSubtype('uniform')">
+                            <div class="subtype-icon">👔</div>
+                            <div class="subtype-title">មិនទនុយ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="canteen" onclick="selectDisciplineSubtype('canteen')">
+                            <div class="subtype-icon">🍽️</div>
+                            <div class="subtype-title">នៅរោងបាយមិនចូលថ្នាក់</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fence" onclick="selectDisciplineSubtype('fence')">
+                            <div class="subtype-icon">🚧</div>
+                            <div class="subtype-title">ផ្លោះរបង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fight" onclick="selectDisciplineSubtype('fight')">
+                            <div class="subtype-icon">👊</div>
+                            <div class="subtype-title">វ៉ៃគ្នា</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="litter" onclick="selectDisciplineSubtype('litter')">
+                            <div class="subtype-icon">🗑️</div>
+                            <div class="subtype-title">ចោលសំរាម</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="phone" onclick="selectDisciplineSubtype('phone')">
+                            <div class="subtype-icon">📱</div>
+                            <div class="subtype-title">លេងទូរស័ព្ទ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="escape" onclick="selectDisciplineSubtype('escape')">
+                            <div class="subtype-icon">🏃</div>
+                            <div class="subtype-title">គេចម៉ោងរៀន</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="other" onclick="selectDisciplineSubtype('other')">
+                            <div class="subtype-icon">📝</div>
+                            <div class="subtype-title">ផ្សេងៗ</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Other Description Input -->
+                    <div id="otherDescriptionContainer" class="other-description-container">
+                        <label for="otherDescription">សរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ:</label>
+                        <textarea id="otherDescription" placeholder="សរសេរបញ្ជាក់នៅទីនេះ..."></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-warning" onclick="confirmDisciplineSubtype()" style="flex: 1;">
+                            ✅ បញ្ជាក់
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeDisciplineSubtypes()" style="flex: 1;">
+                            ❌ បោះបង់
+                        </button>
                     </div>
                 </div>
             </div>
@@ -399,13 +547,12 @@
                 <button class="btn btn-primary" onclick="viewReports()">📊 មើលរបាយការណ៍</button>
                 <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>⏹️ បញ្ឈប់កាមេរ៉ា</button>
                 <button class="btn btn-info" onclick="openManualEntryModal()">📝 កត់ត្រាតាមអត្តលេខ</button>
-               <!-- <button class="btn btn-danger" onclick="resetTodayScans()">🔄 កំណត់ស្កេនឡើងវិញ</button> -->
             </div>
         </div>
     </div>
 
-    <!-- Modal for manual entry -->
-    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+    <!-- Manual Entry Modal -->
+    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001;">
         <div style="background: white; padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 500px;">
             <h3>កត់ត្រាសិស្សតាមអត្តលេខ</h3>
             <input type="text" id="studentSearch" placeholder="ស្វែងរកសិស្ស..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
@@ -442,17 +589,21 @@
         const manualEntryModal = document.getElementById('manualEntryModal');
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
+        const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+        const otherDescription = document.getElementById('otherDescription');
 
         // Global Variables
         let stream = null;
         let isScanning = false;
         let selectedScanType = null;
+        let selectedDisciplineSubtype = null;
         let students = [];
         let scanAnimationFrame = null;
-        const TIME_LIMIT_MINUTES = 10; // 10 minutes time limit
-        const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000; // Convert to milliseconds
+        const TIME_LIMIT_MINUTES = 10;
+        const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
 
-        // Scan Types Configuration - កំណត់តារាងត្រឹមត្រូវសម្រាប់រាល់ប្រភេទ
+        // Scan Types Configuration
         const scanTypes = {
             late: {
                 title: "សិស្សមកយឺត",
@@ -462,18 +613,31 @@
             discipline: {
                 title: "សិស្សមិនគោរពវិន័យ",
                 description: "ស្កេនសិស្សដែលមិនគោរពវិន័យសាលា",
-                table: "discipline_reports"  // តារាងសម្រាប់មិនគោរពវិន័យ
+                table: "discipline_reports"
             },
             helpful: {
                 title: "សិស្សជួយការងារ",
                 description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
-                table: "helpful_reports"  // តារាងសម្រាប់ជួយការងារ
+                table: "helpful_reports"
             },
             haircut: {
-                title: "រៀបចំខ្លួនមិនបានល្អ",
-                description: "ស្កេនសិស្សដែលត្រូវវិន័យលើការរៀបចំខ្លួន",
-                table: "haircut_reports"  // តារាងសម្រាប់ត្រូវវិន័យលើការរៀបចំខ្លួន
+                title: "សិស្សត្រូវកាត់សក់",
+                description: "ស្កេនសិស្សដែលត្រូវកាត់សក់តាមវិន័យ",
+                table: "haircut_reports"
             }
+        };
+
+        // Discipline Subtypes Configuration
+        const disciplineSubtypes = {
+            shoes: { title: "ស្បែកជើង", icon: "👞" },
+            uniform: { title: "មិនទនុយ", icon: "👔" },
+            canteen: { title: "នៅរោងបាយមិនចូលថ្នាក់", icon: "🍽️" },
+            fence: { title: "ផ្លោះរបង", icon: "🚧" },
+            fight: { title: "វ៉ៃគ្នា", icon: "👊" },
+            litter: { title: "ចោលសំរាម", icon: "🗑️" },
+            phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
+            escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
+            other: { title: "ផ្សេងៗ", icon: "📝" }
         };
 
         // Initialize App
@@ -496,18 +660,124 @@
             
             // Set selected type
             selectedScanType = type;
+            selectedDisciplineSubtype = null; // Reset discipline subtype
             
             // Update current scan type display
-            currentScanTitle.textContent = `កំពុងស្កេន: ${scanTypes[type].title}`;
-            currentScanDescription.textContent = scanTypes[type].description;
-            currentScanTypeDiv.style.display = 'block';
-            timeLimitInfo.style.display = 'block';
+            updateCurrentScanDisplay();
             
             // Enable start button
             startBtn.disabled = false;
             
             // Update stats
             updateSelectedTypeStats();
+        }
+
+        // Open Discipline Subtypes Modal
+        function openDisciplineSubtypes() {
+            // Reset any previously selected subtype
+            selectedDisciplineSubtype = null;
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Hide other description input
+            otherDescriptionContainer.style.display = 'none';
+            otherDescription.value = '';
+            
+            disciplineSubtypesModal.style.display = 'flex';
+        }
+
+        // Close Discipline Subtypes Modal
+        function closeDisciplineSubtypes() {
+            disciplineSubtypesModal.style.display = 'none';
+            // Reset main selection if no subtype was chosen
+            if (!selectedDisciplineSubtype) {
+                document.querySelectorAll('.scan-type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                selectedScanType = null;
+                startBtn.disabled = true;
+            }
+        }
+
+        // Select Discipline Subtype
+        function selectDisciplineSubtype(subtype) {
+            // Update UI
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-subtype="${subtype}"]`).classList.add('selected');
+            
+            selectedDisciplineSubtype = subtype;
+            
+            // Show/hide other description input
+            if (subtype === 'other') {
+                otherDescriptionContainer.style.display = 'block';
+            } else {
+                otherDescriptionContainer.style.display = 'none';
+                otherDescription.value = '';
+            }
+        }
+
+        // Confirm Discipline Subtype Selection
+        function confirmDisciplineSubtype() {
+            if (!selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            // For "other" subtype, check if description is provided
+            if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
+                showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            // Set main scan type to discipline
+            selectedScanType = 'discipline';
+            
+            // Update main UI
+            document.querySelectorAll('.scan-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector('[data-type="discipline"]').classList.add('selected');
+            
+            // Update current scan display
+            updateCurrentScanDisplay();
+            
+            // Enable start button
+            startBtn.disabled = false;
+            
+            // Close modal
+            disciplineSubtypesModal.style.display = 'none';
+            
+            // Update stats
+            updateSelectedTypeStats();
+            
+            console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype} - ${disciplineSubtypes[selectedDisciplineSubtype].title}`);
+        }
+
+        // Update Current Scan Display
+        function updateCurrentScanDisplay() {
+            let displayTitle = scanTypes[selectedScanType].title;
+            let displayDescription = scanTypes[selectedScanType].description;
+            
+            // Add discipline subtype info if applicable
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                // For "other" subtype, use the custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    subtypeTitle = otherDescription.value.trim();
+                }
+                
+                displayTitle += ` - ${subtypeTitle}`;
+                displayDescription = `ស្កេនសិស្សដែល${subtypeTitle}`;
+            }
+            
+            currentScanTitle.textContent = `កំពុងស្កេន: ${displayTitle}`;
+            currentScanDescription.textContent = displayDescription;
+            currentScanTypeDiv.style.display = 'block';
+            timeLimitInfo.style.display = 'block';
         }
 
         // Request Camera Permission
@@ -544,6 +814,13 @@
                 return;
             }
 
+            // For discipline type, check if subtype is selected
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
+                return;
+            }
+
             if (!stream) {
                 requestCameraPermission();
                 return;
@@ -565,7 +842,11 @@
         // Start QR Scanning
         function startQRScanning() {
             isScanning = true;
-            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}...</div>`;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
             scanFrame();
         }
 
@@ -679,11 +960,15 @@
         // Restart Scanning
         function restartScanning() {
             isScanning = true;
-            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypes[selectedScanType].title}... ស្កេនសិស្សបន្ទាប់</div>`;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Record Student - រក្សាទុកទិន្នន័យក្នុងតារាងត្រឹមត្រូវ
+        // Record Student - Updated to include discipline subtype and custom description
         async function recordStudent(student) {
             const now = new Date();
             const record = {
@@ -697,6 +982,18 @@
                 scan_type: selectedScanType
             };
 
+            // Add discipline subtype if applicable
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                record.discipline_subtype = selectedDisciplineSubtype;
+                
+                // For "other" subtype, use custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    record.discipline_description = otherDescription.value.trim();
+                } else {
+                    record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                }
+            }
+
             try {
                 console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
                 
@@ -709,10 +1006,8 @@
                 if (error) {
                     console.error('❌ Supabase error:', error);
                     
-                    // Check if it's an RLS policy error
                     if (error.message.includes('row-level security policy')) {
                         showError('កំហុសសុវត្ថិភាព៖ មិនមានសិទ្ធិកត់ត្រាទិន្នន័យក្នុងតារាងនេះ');
-                        // Try alternative table
                         await tryAlternativeTable(record);
                     } else {
                         throw error;
@@ -723,16 +1018,24 @@
                     // Save to localStorage as backup
                     saveToLocalStorage(record);
                     
-                    showSuccess(`
+                    // Prepare success message
+                    let successMessage = `
                         ✅ កត់ត្រាបានជោគ!<br>
                         <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
                         <strong>ឈ្មោះ:</strong> ${student.name}<br>
                         <strong>ថ្នាក់:</strong> ${student.class}<br>
                         <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                        <strong>តារាង:</strong> ${tableName}<br>
-                        <em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>
-                    `);
-
+                    `;
+                    
+                    // Add discipline subtype info if applicable
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                    }
+                    
+                    successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
+                    successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>`;
+                    
+                    showSuccess(successMessage);
                     await updateAllStats();
                 }
 
@@ -742,16 +1045,22 @@
                 // Fallback to localStorage
                 saveToLocalStorage(record);
                 
-                showSuccess(`
+                let successMessage = `
                     ✅ កត់ត្រាបានជោគ! (Local)<br>
                     <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
                     <strong>ឈ្មោះ:</strong> ${student.name}<br>
                     <strong>ថ្នាក់:</strong> ${student.class}<br>
                     <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                    <p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
-                    <small>កំហុស: ${error.message}</small>
-                `);
-
+                `;
+                
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                }
+                
+                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
+                successMessage += `<small>កំហុស: ${error.message}</small>`;
+                
+                showSuccess(successMessage);
                 await updateAllStats();
             }
 
@@ -761,7 +1070,6 @@
         // Try alternative table if RLS policy fails
         async function tryAlternativeTable(record) {
             try {
-                // Try using a generic table
                 const { data, error } = await supabase
                     .from('student_reports')
                     .insert([record])
@@ -770,15 +1078,22 @@
                 if (error) throw error;
                 
                 console.log('✅ Successfully saved to alternative table:', data);
-                showSuccess(`
+                
+                let successMessage = `
                     ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
                     <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
                     <strong>ឈ្មោះ:</strong> ${record.name}<br>
                     <strong>ថ្នាក់:</strong> ${record.class}<br>
                     <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                    <em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>
-                `);
+                `;
                 
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                }
+                
+                successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;
+                
+                showSuccess(successMessage);
                 await updateAllStats();
             } catch (altError) {
                 console.error('❌ Error saving to alternative table:', altError);
@@ -852,13 +1167,12 @@
             updateScannedCount();
         }
 
-        // Update Scan Count - រាប់ស្កេនពីតារាងទាំងអស់
+        // Update Scan Count
         async function updateScanCount() {
             try {
                 const today = new Date().toISOString().split('T')[0];
                 let totalScans = 0;
 
-                // Count scans from all tables for today
                 for (const type in scanTypes) {
                     const tableName = scanTypes[type].table;
                     try {
@@ -911,7 +1225,11 @@
 
                 if (!error) {
                     selectedTypeCountElement.textContent = data.length;
-                    selectedTypeLabelElement.textContent = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                    }
+                    selectedTypeLabelElement.textContent = label;
                     console.log(`📈 ${selectedScanType} scans today: ${data.length}`);
                 } else {
                     console.error('Error fetching selected type stats:', error);
@@ -924,7 +1242,11 @@
                 const today = new Date().toDateString();
                 const todayScans = reports.filter(report => report.date === today);
                 selectedTypeCountElement.textContent = todayScans.length;
-                selectedTypeLabelElement.textContent = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                }
+                selectedTypeLabelElement.textContent = label;
             }
         }
 
@@ -966,6 +1288,14 @@
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកត់ត្រាតាមអត្តលេខ');
                 return;
             }
+            
+            // For discipline type, check if subtype is selected
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
+                return;
+            }
+            
             populateStudentList();
             manualEntryModal.style.display = 'flex';
         }
@@ -1024,44 +1354,6 @@
                 showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
             } else {
                 await recordStudent(student);
-            }
-        }
-
-        // Reset Today's Scans
-        async function resetTodayScans() {
-            if (!selectedScanType) {
-                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកំណត់ឡើងវិញ');
-                return;
-            }
-            
-            if (confirm(`តើអ្នកចង់កំណត់ស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះឡើងវិញមែនទេ? សិស្សទាំងអស់អាចស្កេនម្តងទៀតបាន។`)) {
-                try {
-                    const today = new Date().toISOString().split('T')[0];
-                    const tableName = scanTypes[selectedScanType].table;
-                    
-                    console.log(`🔄 Resetting scans in table: ${tableName} for date: ${today}`);
-                    
-                    const { error } = await supabase
-                        .from(tableName)
-                        .delete()
-                        .eq('date', today);
-
-                    if (error) throw error;
-                    
-                    console.log(`✅ Successfully reset scans in ${tableName}`);
-                } catch (error) {
-                    console.error('Error resetting scans in Supabase:', error);
-                }
-                
-                // Reset localStorage
-                const key = `${selectedScanType}Reports`;
-                const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                const today = new Date().toDateString();
-                const previousScans = reports.filter(report => report.date !== today);
-                localStorage.setItem(key, JSON.stringify(previousScans));
-                
-                await updateAllStats();
-                showSuccess(`✅ កំណត់ស្កេន${scanTypes[selectedScanType].title}ថ្ងៃនេះឡើងវិញរួចរាល់!`);
             }
         }
 
@@ -1150,7 +1442,3 @@
     </script>
 </body>
 </html>
-
-
-
-

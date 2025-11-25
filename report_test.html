@@ -354,6 +354,15 @@
             font-size: 0.9rem;
             white-space: nowrap;
             overflow: visible;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--transition);
+            padding-right: 30px;
+        }
+
+        .data-table th:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
         }
 
         .data-table td {
@@ -371,6 +380,21 @@
 
         .data-table tr:last-child td {
             border-bottom: none;
+        }
+
+        /* Sort Icon Styles */
+        .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sortable-header {
+            position: relative;
+            padding-right: 30px !important;
         }
 
         /* Additional styles for discipline description */
@@ -493,6 +517,15 @@
             .table-container {
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
+            }
+
+            .sort-icon {
+                right: 5px;
+                font-size: 10px;
+            }
+
+            .sortable-header {
+                padding-right: 25px !important;
             }
         }
 
@@ -790,14 +823,14 @@
                     <table class="data-table" id="discipline-summary-table">
                         <thead>
                             <tr>
-                                <th>ល.រ</th>
-                                <th>ឈ្មោះសិស្ស</th>
-                                <th>ថ្នាក់</th>
-                                <th>ភេទ</th>
-                                <th>ចំនួនដងមិនគោរពវិន័យ</th>
-                                <th>ប្រភេទបញ្ហាចម្បង</th>
-                                <th>ថ្ងៃចុងក្រោយដែលមិនគោរពវិន័យ</th>
-                                <th>ស្ថានភាព</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(4)">ចំនួនដងមិនគោរពវិន័យ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(5)">ប្រភេទបញ្ហាចម្បង</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(6)">ថ្ងៃចុងក្រោយដែលមិនគោរពវិន័យ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(7)">ស្ថានភាព</th>
                             </tr>
                         </thead>
                         <tbody id="discipline-summary-table-body">
@@ -887,13 +920,13 @@
                     <table class="data-table" id="summary-table">
                         <thead>
                             <tr>
-                                <th>ល.រ</th>
-                                <th>ឈ្មោះសិស្ស</th>
-                                <th>ថ្នាក់</th>
-                                <th>ភេទ</th>
-                                <th>ចំនួនដងមកយឺត</th>
-                                <th>ថ្ងៃចុងក្រោយដែលមកយឺត</th>
-                                <th>ស្ថានភាព</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(4)">ចំនួនដងមកយឺត</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(5)">ថ្ងៃចុងក្រោយដែលមកយឺត</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(6)">ស្ថានភាព</th>
                             </tr>
                         </thead>
                         <tbody id="summary-table-body">
@@ -991,13 +1024,13 @@
                         <table class="data-table" id="report-table">
                             <thead>
                                 <tr>
-                                    <th>ល.រ</th>
-                                    <th>ឈ្មោះសិស្ស</th>
-                                    <th>ថ្នាក់</th>
-                                    <th>ភេទ</th>
-                                    <th>ប្រភេទបញ្ហា</th>
-                                    <th>ពេលវេលា</th>
-                                    <th>កាលបរិច្ឆេទ</th>
+                                    <th class="sortable-header" onclick="sortTable(0)">ល.រ</th>
+                                    <th class="sortable-header" onclick="sortTable(1)">ឈ្មោះសិស្ស</th>
+                                    <th class="sortable-header" onclick="sortTable(2)">ថ្នាក់</th>
+                                    <th class="sortable-header" onclick="sortTable(3)">ភេទ</th>
+                                    <th class="sortable-header" onclick="sortTable(4)">ប្រភេទបញ្ហា</th>
+                                    <th class="sortable-header" onclick="sortTable(5)">ពេលវេលា</th>
+                                    <th class="sortable-header" onclick="sortTable(6)">កាលបរិច្ឆេទ</th>
                                 </tr>
                             </thead>
                             <tbody id="report-table-body">
@@ -1035,6 +1068,11 @@
         let students = [];
         let summaryData = [];
         let disciplineSummaryData = [];
+
+        // Sorting variables
+        let currentSort = { column: null, direction: 'asc' };
+        let currentSummarySort = { column: null, direction: 'asc' };
+        let currentDisciplineSummarySort = { column: null, direction: 'asc' };
 
         // Report type definitions
         const reportTypes = {
@@ -1088,52 +1126,136 @@
             }
         };
 
-        // ជ្រើសរើសប្រភេទរបាយការណ៍
-        function selectReportType(type) {
-            // Remove selected class from all cards
-            document.querySelectorAll('.report-type-card').forEach(card => {
-                card.classList.remove('selected');
-            });
+        // ========== SORTING FUNCTIONS ==========
+
+        // តម្រៀបតារាងធម្មតា
+        function sortTable(column) {
+            const tableBody = document.getElementById('report-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
             
-            // Add selected class to clicked card
-            document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
-            
-            // Store selected type
-            currentReportType = type;
-            
-            // Update current report type display
-            document.getElementById('current-report-title').textContent = `របាយការណ៍${reportTypes[type].title}`;
-            document.getElementById('current-report-description').textContent = reportTypes[type].description;
-            document.getElementById('current-report-type').style.display = 'block';
-            
-            // Update table title
-            document.getElementById('table-title').textContent = `📋 ទិន្នន័យ${reportTypes[type].title}`;
-            
-            // Show/hide appropriate sections
-            if (type === 'summary') {
-                document.getElementById('filter-section').style.display = 'none';
-                document.getElementById('stats-section').style.display = 'none';
-                document.getElementById('table-section').style.display = 'none';
-                document.getElementById('summary-section').style.display = 'block';
-                document.getElementById('discipline-summary-section').style.display = 'none';
-                loadSummaryReport();
-            } else if (type === 'discipline-summary') {
-                document.getElementById('filter-section').style.display = 'none';
-                document.getElementById('stats-section').style.display = 'none';
-                document.getElementById('table-section').style.display = 'none';
-                document.getElementById('summary-section').style.display = 'none';
-                document.getElementById('discipline-summary-section').style.display = 'block';
-                loadDisciplineSummaryReport();
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
-                document.getElementById('filter-section').style.display = 'block';
-                document.getElementById('stats-section').style.display = 'none';
-                document.getElementById('table-section').style.display = 'none';
-                document.getElementById('summary-section').style.display = 'none';
-                document.getElementById('discipline-summary-section').style.display = 'none';
-                loadReportData();
+                currentSort.column = column;
+                currentSort.direction = 'asc';
             }
             
-            console.log(`✅ Selected report type: ${type} - ${reportTypes[type].title}`);
+            rows.sort((a, b) => {
+                const aValue = a.cells[column].textContent.trim();
+                const bValue = b.cells[column].textContent.trim();
+                
+                if (column === 0) {
+                    const aNum = parseInt(aValue) || 0;
+                    const bNum = parseInt(bValue) || 0;
+                    return currentSort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                if (currentSort.direction === 'asc') {
+                    return aValue.localeCompare(bValue, 'km');
+                } else {
+                    return bValue.localeCompare(aValue, 'km');
+                }
+            });
+            
+            rows.forEach(row => tableBody.appendChild(row));
+            updateSortIcons('report-table', column, currentSort.direction);
+        }
+
+        // តម្រៀបតារាងសង្ខេប
+        function sortSummaryTable(column) {
+            const tableBody = document.getElementById('summary-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            if (currentSummarySort.column === column) {
+                currentSummarySort.direction = currentSummarySort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSummarySort.column = column;
+                currentSummarySort.direction = 'asc';
+            }
+            
+            rows.sort((a, b) => {
+                const aValue = a.cells[column].textContent.trim();
+                const bValue = b.cells[column].textContent.trim();
+                
+                if (column === 0 || column === 4) {
+                    const aNum = parseInt(aValue) || 0;
+                    const bNum = parseInt(bValue) || 0;
+                    return currentSummarySort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                if (column === 5) {
+                    const aDate = new Date(aValue);
+                    const bDate = new Date(bValue);
+                    return currentSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
+                }
+                
+                if (currentSummarySort.direction === 'asc') {
+                    return aValue.localeCompare(bValue, 'km');
+                } else {
+                    return bValue.localeCompare(aValue, 'km');
+                }
+            });
+            
+            rows.forEach(row => tableBody.appendChild(row));
+            updateSortIcons('summary-table', column, currentSummarySort.direction);
+        }
+
+        // តម្រៀបតារាងសង្ខេបសិស្សមិនគោរពវិន័យ
+        function sortDisciplineSummaryTable(column) {
+            const tableBody = document.getElementById('discipline-summary-table-body');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+            
+            if (currentDisciplineSummarySort.column === column) {
+                currentDisciplineSummarySort.direction = currentDisciplineSummarySort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentDisciplineSummarySort.column = column;
+                currentDisciplineSummarySort.direction = 'asc';
+            }
+            
+            rows.sort((a, b) => {
+                const aValue = a.cells[column].textContent.trim();
+                const bValue = b.cells[column].textContent.trim();
+                
+                if (column === 0 || column === 4) {
+                    const aNum = parseInt(aValue) || 0;
+                    const bNum = parseInt(bValue) || 0;
+                    return currentDisciplineSummarySort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                }
+                
+                if (column === 6) {
+                    const aDate = new Date(aValue);
+                    const bDate = new Date(bValue);
+                    return currentDisciplineSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
+                }
+                
+                if (currentDisciplineSummarySort.direction === 'asc') {
+                    return aValue.localeCompare(bValue, 'km');
+                } else {
+                    return bValue.localeCompare(aValue, 'km');
+                }
+            });
+            
+            rows.forEach(row => tableBody.appendChild(row));
+            updateSortIcons('discipline-summary-table', column, currentDisciplineSummarySort.direction);
+        }
+
+        // ធ្វើបច្ចុប្បន្នភាពរូបសញ្ញាតម្រៀប
+        function updateSortIcons(tableId, currentColumn, direction) {
+            const table = document.getElementById(tableId);
+            const headers = table.querySelectorAll('th');
+            
+            headers.forEach((header, index) => {
+                // Remove existing sort icons
+                const existingIcons = header.querySelectorAll('.sort-icon');
+                existingIcons.forEach(icon => icon.remove());
+                
+                if (index === currentColumn) {
+                    const sortIcon = document.createElement('span');
+                    sortIcon.className = 'sort-icon';
+                    sortIcon.textContent = direction === 'asc' ? '▲' : '▼';
+                    header.appendChild(sortIcon);
+                }
+            });
         }
 
         // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
@@ -1142,13 +1264,11 @@
         async function loadDisciplineSummaryReport() {
             if (currentReportType !== 'discipline-summary') return;
             
-            // Show loading state
             document.getElementById('discipline-summary-loading').style.display = 'block';
             document.getElementById('discipline-summary-empty').style.display = 'none';
             document.getElementById('discipline-summary-table-body').innerHTML = '';
             
             try {
-                // Load discipline student data
                 const tableName = "discipline_reports";
                 console.log(`🔍 Loading discipline summary data from ${tableName}...`);
                 
@@ -1169,16 +1289,12 @@
                     console.log(`✅ Loaded ${allReports.length} discipline records for summary from Supabase`);
                 }
                 
-                // Update discipline summary report
                 updateDisciplineSummaryReport();
                 
             } catch (error) {
                 console.error('❌ Error loading discipline summary data:', error);
-                
-                // Fallback to localStorage
                 allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
                 console.log(`📱 Fallback to localStorage: ${allReports.length} discipline records`);
-                
                 updateDisciplineSummaryReport();
             }
         }
@@ -1195,7 +1311,6 @@
             const minDisciplineCount = parseInt(document.getElementById('min-discipline-count').value) || 1;
             const classFilter = document.getElementById('discipline-summary-class-filter').value;
             
-            // Calculate date range
             const today = new Date();
             let startDate, endDate;
             
@@ -1215,7 +1330,6 @@
                     if (customDate) {
                         startDate = new Date(customDate);
                         endDate = new Date(customDate);
-                        // For custom date, show data for that specific date only
                         startDate.setHours(0, 0, 0, 0);
                         endDate.setHours(23, 59, 59, 999);
                     } else {
@@ -1230,21 +1344,14 @@
                     endDate = today;
             }
             
-            // Ensure dates are properly set
             startDate.setHours(0, 0, 0, 0);
             endDate.setHours(23, 59, 59, 999);
             
-            console.log(`📅 Discipline date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
-            
-            // Filter reports by date range
             const filteredByDate = allReports.filter(report => {
                 const reportDate = new Date(report.date);
                 return reportDate >= startDate && reportDate <= endDate;
             });
             
-            console.log(`📊 Filtered ${filteredByDate.length} discipline records by date range`);
-            
-            // Group by student and count discipline occurrences
             const studentDisciplineCounts = {};
             const studentLastDisciplineDate = {};
             const studentDetails = {};
@@ -1265,21 +1372,17 @@
                 
                 studentDisciplineCounts[studentId]++;
                 
-                // Track discipline problems
                 const problem = report.discipline_description || 'មិនមានការពិពណ៌នា';
                 studentMainProblems[studentId][problem] = (studentMainProblems[studentId][problem] || 0) + 1;
                 
-                // Track last discipline date
                 const reportDate = new Date(report.date);
                 if (!studentLastDisciplineDate[studentId] || reportDate > studentLastDisciplineDate[studentId]) {
                     studentLastDisciplineDate[studentId] = reportDate;
                 }
             });
             
-            // Convert to array and apply filters
             disciplineSummaryData = Object.keys(studentDisciplineCounts)
                 .map(studentId => {
-                    // Find most common problem
                     const problems = studentMainProblems[studentId];
                     const mainProblem = Object.keys(problems).reduce((a, b) => problems[a] > problems[b] ? a : b, 'មិនមានការពិពណ៌នា');
                     
@@ -1296,8 +1399,6 @@
                 .filter(student => student.discipline_count >= minDisciplineCount)
                 .filter(student => classFilter === 'all' || student.class === classFilter)
                 .sort((a, b) => b.discipline_count - a.discipline_count);
-            
-            console.log(`🎯 Final discipline summary data: ${disciplineSummaryData.length} students`);
             
             renderDisciplineSummaryTable();
             updateDisciplineSummaryStats();
@@ -1328,7 +1429,6 @@
                     day: 'numeric'
                 });
                 
-                // Determine status based on discipline count
                 let status = '';
                 let statusClass = '';
                 
@@ -1387,14 +1487,10 @@
         // បំពេញតម្រៀបថ្នាក់សម្រាប់របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ
         function populateDisciplineSummaryClassFilter() {
             const classFilter = document.getElementById('discipline-summary-class-filter');
-            
-            // Get unique classes from all reports (not just summary data)
             const classes = [...new Set(allReports.map(report => report.class))].sort();
             
-            // Clear existing options except "all"
             classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
             
-            // Add class options
             classes.forEach(className => {
                 const option = document.createElement('option');
                 option.value = className;
@@ -1403,205 +1499,56 @@
             });
         }
 
-      // នៅក្នុងផ្នែកនាំចេញទៅ Excel សម្រាប់របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ
-function exportDisciplineSummaryToExcel() {
-    if (disciplineSummaryData.length === 0) {
-        alert('❗ មិនមានទិន្នន័យដើម្បីនាំចេញ');
-        return;
-    }
-    
-    try {
-        // Prepare data for Excel
-        const excelData = disciplineSummaryData.map((student, index) => {
-            const lastDisciplineDate = student.last_discipline_date.toLocaleDateString('km-KH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Determine status
-            let status = '';
-            if (student.discipline_count >= 5) {
-                status = 'មិនគោរពវិន័យច្រើនណាស់';
-            } else if (student.discipline_count >= 3) {
-                status = 'មិនគោរពវិន័យច្រើន';
-            } else {
-                status = 'មិនគោរពវិន័យតិច';
-            }
-            
-            return {
-                'ល.រ': index + 1,
-                'ឈ្មោះសិស្ស': student.name,
-                'អត្តលេខ': student.student_id,
-                'ថ្នាក់': student.class,
-                'ភេទ': student.gender,
-                'ចំនួនដងមិនគោរពវិន័យ': student.discipline_count,
-                'ប្រភេទបញ្ហាចម្បង': student.main_problem,
-                'ថ្ងៃចុងក្រោយដែលមិនគោរពវិន័យ': lastDisciplineDate,
-                'ស្ថានភាព': status
-            };
-        });
-        
-        // Create worksheet
-        const ws = XLSX.utils.json_to_sheet(excelData);
-        
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        
-        // Use shorter sheet name (max 31 characters)
-        const sheetName = 'សិស្សមិនគោរពវិន័យ';
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        
-        // Generate filename
-        const today = new Date().toISOString().split('T')[0];
-        const filename = `របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ_${today}.xlsx`;
-        
-        // Export to Excel
-        XLSX.writeFile(wb, filename);
-        
-        console.log(`✅ Exported ${disciplineSummaryData.length} discipline summary records to Excel`);
-    } catch (error) {
-        console.error('❌ Error exporting discipline summary to Excel:', error);
-        alert('❗ កំហុសក្នុងការនាំចេញទិន្នន័យ: ' + error.message);
-    }
-}
-
-// កែឈ្មោះសន្លឹកសម្រាប់របាយការណ៍សង្ខេបសិស្សមកយឺត
-function exportSummaryToExcel() {
-    if (summaryData.length === 0) {
-        alert('❗ មិនមានទិន្នន័យដើម្បីនាំចេញ');
-        return;
-    }
-    
-    try {
-        // Prepare data for Excel
-        const excelData = summaryData.map((student, index) => {
-            const lastLateDate = student.last_late_date.toLocaleDateString('km-KH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            
-            // Determine status
-            let status = '';
-            if (student.late_count >= 5) {
-                status = 'យឺតច្រើនណាស់';
-            } else if (student.late_count >= 3) {
-                status = 'យឺតច្រើន';
-            } else {
-                status = 'យឺតតិច';
-            }
-            
-            return {
-                'ល.រ': index + 1,
-                'ឈ្មោះសិស្ស': student.name,
-                'អត្តលេខ': student.student_id,
-                'ថ្នាក់': student.class,
-                'ភេទ': student.gender,
-                'ចំនួនដងមកយឺត': student.late_count,
-                'ថ្ងៃចុងក្រោយដែលមកយឺត': lastLateDate,
-                'ស្ថានភាព': status
-            };
-        });
-        
-        // Create worksheet
-        const ws = XLSX.utils.json_to_sheet(excelData);
-        
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        
-        // Use shorter sheet name (max 31 characters)
-        const sheetName = 'សិស្សមកយឺត';
-        XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        
-        // Generate filename
-        const today = new Date().toISOString().split('T')[0];
-        const filename = `របាយការណ៍សង្ខេបសិស្សមកយឺត_${today}.xlsx`;
-        
-        // Export to Excel
-        XLSX.writeFile(wb, filename);
-        
-        console.log(`✅ Exported ${summaryData.length} summary records to Excel`);
-    } catch (error) {
-        console.error('❌ Error exporting summary to Excel:', error);
-        alert('❗ កំហុសក្នុងការនាំចេញទិន្នន័យ: ' + error.message);
-    }
-}
-
-        // កែឈ្មោះសន្លឹកសម្រាប់របាយការណ៍ធម្មតា
-        function exportToExcel() {
-            if (filteredReports.length === 0) {
+        // នាំចេញទៅ Excel សម្រាប់របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ
+        function exportDisciplineSummaryToExcel() {
+            if (disciplineSummaryData.length === 0) {
                 alert('❗ មិនមានទិន្នន័យដើម្បីនាំចេញ');
                 return;
             }
             
             try {
-                // Prepare data for Excel
-                const excelData = filteredReports.map((report, index) => {
-                    const dateObj = new Date(report.date);
-                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                const excelData = disciplineSummaryData.map((student, index) => {
+                    const lastDisciplineDate = student.last_discipline_date.toLocaleDateString('km-KH', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     });
                     
-                    // Get problem type based on report type
-                    let problemTypeText = '';
-                    if (currentReportType === 'discipline') {
-                        problemTypeText = report.discipline_description || 'មិនមានការពិពណ៌នា';
+                    let status = '';
+                    if (student.discipline_count >= 5) {
+                        status = 'មិនគោរពវិន័យច្រើនណាស់';
+                    } else if (student.discipline_count >= 3) {
+                        status = 'មិនគោរពវិន័យច្រើន';
                     } else {
-                        problemTypeText = reportTypes[currentReportType].problemType;
+                        status = 'មិនគោរពវិន័យតិច';
                     }
                     
                     return {
                         'ល.រ': index + 1,
-                        'ឈ្មោះសិស្ស': report.name,
-                        'អត្តលេខ': report.student_id,
-                        'ថ្នាក់': report.class,
-                        'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
-                        'ប្រភេទបញ្ហា': problemTypeText,
-                        'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
-                        'កាលបរិច្ឆេទ': displayDate
+                        'ឈ្មោះសិស្ស': student.name,
+                        'អត្តលេខ': student.student_id,
+                        'ថ្នាក់': student.class,
+                        'ភេទ': student.gender,
+                        'ចំនួនដងមិនគោរពវិន័យ': student.discipline_count,
+                        'ប្រភេទបញ្ហាចម្បង': student.main_problem,
+                        'ថ្ងៃចុងក្រោយដែលមិនគោរពវិន័យ': lastDisciplineDate,
+                        'ស្ថានភាព': status
                     };
                 });
                 
-                // Create worksheet
                 const ws = XLSX.utils.json_to_sheet(excelData);
-                
-                // Create workbook
                 const wb = XLSX.utils.book_new();
-                
-                // Use shorter sheet names based on report type
-                let sheetName = '';
-                switch(currentReportType) {
-                    case 'late':
-                        sheetName = 'សិស្សមកយឺត';
-                        break;
-                    case 'discipline':
-                        sheetName = 'សិស្សមិនគោរពវិន័យ';
-                        break;
-                    case 'helpful':
-                        sheetName = 'សិស្សជួយការងារ';
-                        break;
-                    case 'haircut':
-                        sheetName = 'សិស្សត្រូវកាត់សក់';
-                        break;
-                    default:
-                        sheetName = 'ទិន្នន័យសិស្ស';
-                }
-                
+                const sheetName = 'សិស្សមិនគោរពវិន័យ';
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 
-                // Generate filename
                 const today = new Date().toISOString().split('T')[0];
-                const filename = `${reportTypes[currentReportType].title}_${today}.xlsx`;
+                const filename = `របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ_${today}.xlsx`;
                 
-                // Export to Excel
                 XLSX.writeFile(wb, filename);
                 
-                console.log(`✅ Exported ${filteredReports.length} records to Excel`);
+                console.log(`✅ Exported ${disciplineSummaryData.length} discipline summary records to Excel`);
             } catch (error) {
-                console.error('❌ Error exporting to Excel:', error);
+                console.error('❌ Error exporting discipline summary to Excel:', error);
                 alert('❗ កំហុសក្នុងការនាំចេញទិន្នន័យ: ' + error.message);
             }
         }
@@ -1629,7 +1576,9 @@ function exportSummaryToExcel() {
                         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
                         .header h1 { color: #333; margin-bottom: 10px; }
                         .header .date { color: #666; }
-                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px
+
+                                .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
                         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
                         th { background-color: #f5f5f5; font-weight: bold; }
@@ -1726,13 +1675,11 @@ function exportSummaryToExcel() {
         async function loadSummaryReport() {
             if (currentReportType !== 'summary') return;
             
-            // Show loading state
             document.getElementById('summary-loading').style.display = 'block';
             document.getElementById('summary-empty').style.display = 'none';
             document.getElementById('summary-table-body').innerHTML = '';
             
             try {
-                // Load late student data
                 const tableName = "attendance_reports";
                 console.log(`🔍 Loading summary data from ${tableName}...`);
                 
@@ -1753,16 +1700,12 @@ function exportSummaryToExcel() {
                     console.log(`✅ Loaded ${allReports.length} records for summary from Supabase`);
                 }
                 
-                // Update summary report
                 updateSummaryReport();
                 
             } catch (error) {
                 console.error('❌ Error loading summary data:', error);
-                
-                // Fallback to localStorage
                 allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                 console.log(`📱 Fallback to localStorage: ${allReports.length} records`);
-                
                 updateSummaryReport();
             }
         }
@@ -1779,7 +1722,6 @@ function exportSummaryToExcel() {
             const minLateCount = parseInt(document.getElementById('min-late-count').value) || 1;
             const classFilter = document.getElementById('summary-class-filter').value;
             
-            // Calculate date range
             const today = new Date();
             let startDate, endDate;
             
@@ -1799,7 +1741,6 @@ function exportSummaryToExcel() {
                     if (customDate) {
                         startDate = new Date(customDate);
                         endDate = new Date(customDate);
-                        // For custom date, show data for that specific date only
                         startDate.setHours(0, 0, 0, 0);
                         endDate.setHours(23, 59, 59, 999);
                     } else {
@@ -1814,21 +1755,14 @@ function exportSummaryToExcel() {
                     endDate = today;
             }
             
-            // Ensure dates are properly set
             startDate.setHours(0, 0, 0, 0);
             endDate.setHours(23, 59, 59, 999);
             
-            console.log(`📅 Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`);
-            
-            // Filter reports by date range
             const filteredByDate = allReports.filter(report => {
                 const reportDate = new Date(report.date);
                 return reportDate >= startDate && reportDate <= endDate;
             });
             
-            console.log(`📊 Filtered ${filteredByDate.length} records by date range`);
-            
-            // Group by student and count late occurrences
             const studentLateCounts = {};
             const studentLastLateDate = {};
             const studentDetails = {};
@@ -1847,14 +1781,12 @@ function exportSummaryToExcel() {
                 
                 studentLateCounts[studentId]++;
                 
-                // Track last late date
                 const reportDate = new Date(report.date);
                 if (!studentLastLateDate[studentId] || reportDate > studentLastLateDate[studentId]) {
                     studentLastLateDate[studentId] = reportDate;
                 }
             });
             
-            // Convert to array and apply filters
             summaryData = Object.keys(studentLateCounts)
                 .map(studentId => ({
                     student_id: studentId,
@@ -1867,8 +1799,6 @@ function exportSummaryToExcel() {
                 .filter(student => student.late_count >= minLateCount)
                 .filter(student => classFilter === 'all' || student.class === classFilter)
                 .sort((a, b) => b.late_count - a.late_count);
-            
-            console.log(`🎯 Final summary data: ${summaryData.length} students`);
             
             renderSummaryTable();
             updateSummaryStats();
@@ -1899,7 +1829,6 @@ function exportSummaryToExcel() {
                     day: 'numeric'
                 });
                 
-                // Determine status based on late count
                 let status = '';
                 let statusClass = '';
                 
@@ -1953,21 +1882,16 @@ function exportSummaryToExcel() {
             document.getElementById('avg-late-per-student').textContent = avgLatePerStudent;
             document.getElementById('max-late-count').textContent = maxLateCount;
             
-            // Show stats section
             document.getElementById('stats-section').style.display = 'grid';
         }
 
         // បំពេញតម្រៀបថ្នាក់សម្រាប់របាយការណ៍សង្ខេប
         function populateSummaryClassFilter() {
             const classFilter = document.getElementById('summary-class-filter');
-            
-            // Get unique classes from all reports (not just summary data)
             const classes = [...new Set(allReports.map(report => report.class))].sort();
             
-            // Clear existing options except "all"
             classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
             
-            // Add class options
             classes.forEach(className => {
                 const option = document.createElement('option');
                 option.value = className;
@@ -1984,7 +1908,6 @@ function exportSummaryToExcel() {
             }
             
             try {
-                // Prepare data for Excel
                 const excelData = summaryData.map((student, index) => {
                     const lastLateDate = student.last_late_date.toLocaleDateString('km-KH', {
                         year: 'numeric',
@@ -1992,7 +1915,6 @@ function exportSummaryToExcel() {
                         day: 'numeric'
                     });
                     
-                    // Determine status
                     let status = '';
                     if (student.late_count >= 5) {
                         status = 'យឺតច្រើនណាស់';
@@ -2014,18 +1936,14 @@ function exportSummaryToExcel() {
                     };
                 });
                 
-                // Create worksheet
                 const ws = XLSX.utils.json_to_sheet(excelData);
-                
-                // Create workbook
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'របាយការណ៍សង្ខេបសិស្សមកយឺត');
+                const sheetName = 'សិស្សមកយឺត';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
                 
-                // Generate filename
                 const today = new Date().toISOString().split('T')[0];
                 const filename = `របាយការណ៍សង្ខេបសិស្សមកយឺត_${today}.xlsx`;
                 
-                // Export to Excel
                 XLSX.writeFile(wb, filename);
                 
                 console.log(`✅ Exported ${summaryData.length} summary records to Excel`);
@@ -2148,11 +2066,52 @@ function exportSummaryToExcel() {
 
         // ========== REGULAR REPORT FUNCTIONS ==========
 
+        // ជ្រើសរើសប្រភេទរបាយការណ៍
+        function selectReportType(type) {
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
+            
+            currentReportType = type;
+            
+            document.getElementById('current-report-title').textContent = `របាយការណ៍${reportTypes[type].title}`;
+            document.getElementById('current-report-description').textContent = reportTypes[type].description;
+            document.getElementById('current-report-type').style.display = 'block';
+            
+            document.getElementById('table-title').textContent = `📋 ទិន្នន័យ${reportTypes[type].title}`;
+            
+            if (type === 'summary') {
+                document.getElementById('filter-section').style.display = 'none';
+                document.getElementById('stats-section').style.display = 'none';
+                document.getElementById('table-section').style.display = 'none';
+                document.getElementById('summary-section').style.display = 'block';
+                document.getElementById('discipline-summary-section').style.display = 'none';
+                loadSummaryReport();
+            } else if (type === 'discipline-summary') {
+                document.getElementById('filter-section').style.display = 'none';
+                document.getElementById('stats-section').style.display = 'none';
+                document.getElementById('table-section').style.display = 'none';
+                document.getElementById('summary-section').style.display = 'none';
+                document.getElementById('discipline-summary-section').style.display = 'block';
+                loadDisciplineSummaryReport();
+            } else {
+                document.getElementById('filter-section').style.display = 'block';
+                document.getElementById('stats-section').style.display = 'none';
+                document.getElementById('table-section').style.display = 'none';
+                document.getElementById('summary-section').style.display = 'none';
+                document.getElementById('discipline-summary-section').style.display = 'none';
+                loadReportData();
+            }
+            
+            console.log(`✅ Selected report type: ${type} - ${reportTypes[type].title}`);
+        }
+
         // ផ្ទុកទិន្នន័យរបាយការណ៍
         async function loadReportData() {
             if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary') return;
             
-            // Show loading state
             document.getElementById('table-loading').style.display = 'block';
             document.getElementById('table-empty').style.display = 'none';
             document.getElementById('report-table-body').innerHTML = '';
@@ -2161,14 +2120,12 @@ function exportSummaryToExcel() {
                 const tableName = reportTypes[currentReportType].table;
                 console.log(`🔍 Loading data from ${tableName}...`);
                 
-                // Try to fetch from Supabase first
                 const { data, error } = await supabase
                     .from(tableName)
                     .select('*')
                     .order('timestamp', { ascending: false });
                 
                 if (error) {
-                    // If table doesn't exist, try localStorage
                     if (error.code === 'PGRST301') {
                         console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
                         allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
@@ -2180,22 +2137,14 @@ function exportSummaryToExcel() {
                     console.log(`✅ Loaded ${allReports.length} records from Supabase`);
                 }
                 
-                // Apply initial filters
                 applyFilters();
-                
-                // Update stats
                 updateStats();
-                
-                // Populate class filter
                 populateClassFilter();
                 
             } catch (error) {
                 console.error('❌ Error loading report data:', error);
-                
-                // Fallback to localStorage
                 allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
                 console.log(`📱 Fallback to localStorage: ${allReports.length} records`);
-                
                 applyFilters();
                 updateStats();
                 populateClassFilter();
@@ -2212,7 +2161,6 @@ function exportSummaryToExcel() {
             
             let filtered = [...allReports];
             
-            // Apply date filter
             const dateFilter = document.getElementById('date-filter').value;
             const today = new Date();
             
@@ -2251,13 +2199,11 @@ function exportSummaryToExcel() {
                     break;
             }
             
-            // Apply class filter
             const classFilter = document.getElementById('class-filter').value;
             if (classFilter !== 'all') {
                 filtered = filtered.filter(report => report.class === classFilter);
             }
             
-            // Apply search filter
             const searchFilter = document.getElementById('search-filter').value.toLowerCase();
             if (searchFilter) {
                 filtered = filtered.filter(report => 
@@ -2291,7 +2237,6 @@ function exportSummaryToExcel() {
             
             let html = '';
             filteredReports.forEach((report, index) => {
-                // Format date for display
                 const dateObj = new Date(report.date);
                 const displayDate = dateObj.toLocaleDateString('km-KH', {
                     year: 'numeric',
@@ -2299,13 +2244,10 @@ function exportSummaryToExcel() {
                     day: 'numeric'
                 });
                 
-                // Get problem type based on report type
                 let problemTypeText = '';
                 if (currentReportType === 'discipline') {
-                    // For discipline reports, show discipline_description
                     problemTypeText = report.discipline_description || 'មិនមានការពិពណ៌នា';
                 } else {
-                    // For other reports, show the predefined problem type
                     problemTypeText = reportTypes[currentReportType].problemType;
                 }
                 
@@ -2342,10 +2284,8 @@ function exportSummaryToExcel() {
                 return report.date === today;
             }).length;
             
-            // Count unique students
             const uniqueStudents = new Set(allReports.map(report => report.student_id)).size;
             
-            // Find most frequent student
             const studentCounts = {};
             allReports.forEach(report => {
                 studentCounts[report.student_id] = (studentCounts[report.student_id] || 0) + 1;
@@ -2362,14 +2302,10 @@ function exportSummaryToExcel() {
         // បំពេញតម្រៀបថ្នាក់
         function populateClassFilter() {
             const classFilter = document.getElementById('class-filter');
-            
-            // Get unique classes from reports
             const classes = [...new Set(allReports.map(report => report.class))].sort();
             
-            // Clear existing options except "all"
             classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
             
-            // Add class options
             classes.forEach(className => {
                 const option = document.createElement('option');
                 option.value = className;
@@ -2386,7 +2322,6 @@ function exportSummaryToExcel() {
             }
             
             try {
-                // Prepare data for Excel
                 const excelData = filteredReports.map((report, index) => {
                     const dateObj = new Date(report.date);
                     const displayDate = dateObj.toLocaleDateString('km-KH', {
@@ -2395,7 +2330,6 @@ function exportSummaryToExcel() {
                         day: 'numeric'
                     });
                     
-                    // Get problem type based on report type
                     let problemTypeText = '';
                     if (currentReportType === 'discipline') {
                         problemTypeText = report.discipline_description || 'មិនមានការពិពណ៌នា';
@@ -2415,18 +2349,23 @@ function exportSummaryToExcel() {
                     };
                 });
                 
-                // Create worksheet
                 const ws = XLSX.utils.json_to_sheet(excelData);
-                
-                // Create workbook
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, reportTypes[currentReportType].title);
                 
-                // Generate filename
+                let sheetName = '';
+                switch(currentReportType) {
+                    case 'late': sheetName = 'សិស្សមកយឺត'; break;
+                    case 'discipline': sheetName = 'សិស្សមិនគោរពវិន័យ'; break;
+                    case 'helpful': sheetName = 'សិស្សជួយការងារ'; break;
+                    case 'haircut': sheetName = 'សិស្សត្រូវកាត់សក់'; break;
+                    default: sheetName = 'ទិន្នន័យសិស្ស';
+                }
+                
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
                 const today = new Date().toISOString().split('T')[0];
                 const filename = `${reportTypes[currentReportType].title}_${today}.xlsx`;
                 
-                // Export to Excel
                 XLSX.writeFile(wb, filename);
                 
                 console.log(`✅ Exported ${filteredReports.length} records to Excel`);
@@ -2492,7 +2431,6 @@ function exportSummaryToExcel() {
                                     day: 'numeric'
                                 });
                                 
-                                // Get problem type based on report type
                                 let problemTypeText = '';
                                 if (currentReportType === 'discipline') {
                                     problemTypeText = report.discipline_description || 'មិនមានការពិពណ៌នា';
@@ -2541,7 +2479,6 @@ function exportSummaryToExcel() {
         // Initialize page
         window.onload = function() {
             console.log('📊 Report page loaded');
-            // Auto-select discipline report type
             selectReportType('discipline');
         };
 

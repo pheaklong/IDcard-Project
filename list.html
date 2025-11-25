@@ -630,6 +630,41 @@
             opacity: 0.9;
         }
 
+        /* Sort Button Styles */
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sort-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .sort-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .button-grid {
@@ -667,6 +702,15 @@
             .summary-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .sort-buttons {
+                gap: 8px;
+            }
+
+            .sort-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -693,6 +737,15 @@
 
             .summary-stats {
                 grid-template-columns: 1fr;
+            }
+
+            .sort-buttons {
+                flex-direction: column;
+            }
+
+            .sort-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -765,6 +818,22 @@
             <!-- Summary Report Section for Discipline -->
             <div id="discipline-summary-section" class="card" style="display: none;">
                 <h2 class="card-title">📊 របាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ</h2>
+                
+                <!-- Sort Buttons -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByCount()">
+                        🔢 តម្រៀបតាមចំនួនដង
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                </div>
                 
                 <div class="filter-section">
                     <div class="filter-grid">
@@ -863,6 +932,22 @@
             <div id="summary-section" class="card" style="display: none;">
                 <h2 class="card-title">📈 របាយការណ៍ចំនួនដងសិស្សមកយឺត</h2>
                 
+                <!-- Sort Buttons -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortSummaryByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByCount()">
+                        🔢 តម្រៀបតាមចំនួនដង
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                </div>
+                
                 <div class="filter-section">
                     <div class="filter-grid">
                         <div class="form-group">
@@ -958,6 +1043,23 @@
             <!-- Filter Section for Regular Reports -->
             <div id="filter-section" class="filter-section" style="display: none;">
                 <h3 style="margin-bottom: 20px; color: var(--primary);">🔍 ត្រងទិន្នន័យ</h3>
+                
+                <!-- Sort Buttons for Regular Reports -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                    <button class="sort-btn" onclick="sortByTime()">
+                        ⏰ តម្រៀបតាមពេលវេលា
+                    </button>
+                </div>
+                
                 <div class="filter-grid">
                     <div class="form-group">
                         <label for="date-filter">កាលបរិច្ឆេទ</label>
@@ -1256,6 +1358,68 @@
                     header.appendChild(sortIcon);
                 }
             });
+        }
+
+        // ========== BUTTON SORTING FUNCTIONS ==========
+
+        // តម្រៀបតារាងធម្មតាតាមថ្នាក់
+        function sortByClass() {
+            sortTable(2); // Column 2 is class
+        }
+
+        // តម្រៀបតារាងធម្មតាតាមឈ្មោះ
+        function sortByName() {
+            sortTable(1); // Column 1 is name
+        }
+
+        // តម្រៀបតារាងធម្មតាតាមកាលបរិច្ឆេទ
+        function sortByDate() {
+            sortTable(6); // Column 6 is date
+        }
+
+        // តម្រៀបតារាងធម្មតាតាមពេលវេលា
+        function sortByTime() {
+            sortTable(5); // Column 5 is time
+        }
+
+        // តម្រៀបតារាងសង្ខេបតាមថ្នាក់
+        function sortSummaryByClass() {
+            sortSummaryTable(2); // Column 2 is class
+        }
+
+        // តម្រៀបតារាងសង្ខេបតាមឈ្មោះ
+        function sortSummaryByName() {
+            sortSummaryTable(1); // Column 1 is name
+        }
+
+        // តម្រៀបតារាងសង្ខេបតាមចំនួនដង
+        function sortSummaryByCount() {
+            sortSummaryTable(4); // Column 4 is late count
+        }
+
+        // តម្រៀបតារាងសង្ខេបតាមកាលបរិច្ឆេទ
+        function sortSummaryByDate() {
+            sortSummaryTable(5); // Column 5 is last late date
+        }
+
+        // តម្រៀបតារាងសង្ខេបសិស្សមិនគោរពវិន័យតាមថ្នាក់
+        function sortDisciplineSummaryByClass() {
+            sortDisciplineSummaryTable(2); // Column 2 is class
+        }
+
+        // តម្រៀបតារាងសង្ខេបសិស្សមិនគោរពវិន័យតាមឈ្មោះ
+        function sortDisciplineSummaryByName() {
+            sortDisciplineSummaryTable(1); // Column 1 is name
+        }
+
+        // តម្រៀបតារាងសង្ខេបសិស្សមិនគោរពវិន័យតាមចំនួនដង
+        function sortDisciplineSummaryByCount() {
+            sortDisciplineSummaryTable(4); // Column 4 is discipline count
+        }
+
+        // តម្រៀបតារាងសង្ខេបសិស្សមិនគោរពវិន័យតាមកាលបរិច្ឆេទ
+        function sortDisciplineSummaryByDate() {
+            sortDisciplineSummaryTable(6); // Column 6 is last discipline date
         }
 
         // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
@@ -1576,9 +1740,7 @@
                         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
                         .header h1 { color: #333; margin-bottom: 10px; }
                         .header .date { color: #666; }
-                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px
-
-                                .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
                         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
                         th { background-color: #f5f5f5; font-weight: bold; }

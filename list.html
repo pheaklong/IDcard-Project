@@ -843,11 +843,20 @@
                                 <option value="week">មួយសប្តាហ៍</option>
                                 <option value="month">មួយខែ</option>
                                 <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                                <option value="date-range">ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ</option>
                             </select>
                         </div>
                         <div class="form-group" id="custom-discipline-summary-date-group" style="display: none;">
                             <label for="custom-discipline-summary-date">ជ្រើសរើសកាលបរិច្ឆេទ</label>
                             <input type="date" id="custom-discipline-summary-date" class="form-control" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                        <div class="form-group" id="discipline-summary-date-range-start-group" style="display: none;">
+                            <label for="discipline-summary-start-date">ពីថ្ងៃទី</label>
+                            <input type="date" id="discipline-summary-start-date" class="form-control" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                        <div class="form-group" id="discipline-summary-date-range-end-group" style="display: none;">
+                            <label for="discipline-summary-end-date">ដល់ថ្ងៃទី</label>
+                            <input type="date" id="discipline-summary-end-date" class="form-control" onchange="updateDisciplineSummaryReport()">
                         </div>
                         <div class="form-group">
                             <label for="discipline-summary-class-filter">ថ្នាក់</label>
@@ -956,11 +965,20 @@
                                 <option value="week">មួយសប្តាហ៍</option>
                                 <option value="month">មួយខែ</option>
                                 <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                                <option value="date-range">ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ</option>
                             </select>
                         </div>
                         <div class="form-group" id="custom-summary-date-group" style="display: none;">
                             <label for="custom-summary-date">ជ្រើសរើសកាលបរិច្ឆេទ</label>
                             <input type="date" id="custom-summary-date" class="form-control" onchange="updateSummaryReport()">
+                        </div>
+                        <div class="form-group" id="summary-date-range-start-group" style="display: none;">
+                            <label for="summary-start-date">ពីថ្ងៃទី</label>
+                            <input type="date" id="summary-start-date" class="form-control" onchange="updateSummaryReport()">
+                        </div>
+                        <div class="form-group" id="summary-date-range-end-group" style="display: none;">
+                            <label for="summary-end-date">ដល់ថ្ងៃទី</label>
+                            <input type="date" id="summary-end-date" class="form-control" onchange="updateSummaryReport()">
                         </div>
                         <div class="form-group">
                             <label for="summary-class-filter">ថ្នាក់</label>
@@ -1063,17 +1081,27 @@
                 <div class="filter-grid">
                     <div class="form-group">
                         <label for="date-filter">កាលបរិច្ឆេទ</label>
-                        <select id="date-filter" class="form-control" onchange="applyFilters()">
+                        <select id="date-filter" class="form-control" onchange="handleDateFilterChange()">
                             <option value="today">ថ្ងៃនេះ</option>
+                            <option value="today-tomorrow">ថ្ងៃនេះ និងថ្ងៃស្អែក</option>
                             <option value="yesterday">ម្សិលមិញ</option>
                             <option value="week">សប្តាហ៍នេះ</option>
                             <option value="month">ខែនេះ</option>
                             <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                            <option value="date-range">ជ្រើសរើសចន្លោះកាលបរិច្ឆេទ</option>
                         </select>
                     </div>
                     <div class="form-group" id="custom-date-group" style="display: none;">
                         <label for="custom-date">ជ្រើសរើសកាលបរិច្ឆេទ</label>
                         <input type="date" id="custom-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-start-group" style="display: none;">
+                        <label for="start-date">ពីថ្ងៃទី</label>
+                        <input type="date" id="start-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-end-group" style="display: none;">
+                        <label for="end-date">ដល់ថ្ងៃទី</label>
+                        <input type="date" id="end-date" class="form-control" onchange="applyFilters()">
                     </div>
                     <div class="form-group">
                         <label for="class-filter">ថ្នាក់</label>
@@ -1227,6 +1255,77 @@
                 type: "discipline-summary"
             }
         };
+
+        // ========== DATE FILTER HANDLING ==========
+
+        // Handle date filter change for regular reports
+        function handleDateFilterChange() {
+            const dateFilter = document.getElementById('date-filter').value;
+            const customDateGroup = document.getElementById('custom-date-group');
+            const dateRangeStartGroup = document.getElementById('date-range-start-group');
+            const dateRangeEndGroup = document.getElementById('date-range-end-group');
+            
+            // Hide all date input groups first
+            customDateGroup.style.display = 'none';
+            dateRangeStartGroup.style.display = 'none';
+            dateRangeEndGroup.style.display = 'none';
+            
+            // Show the appropriate group
+            if (dateFilter === 'custom') {
+                customDateGroup.style.display = 'block';
+            } else if (dateFilter === 'date-range') {
+                dateRangeStartGroup.style.display = 'block';
+                dateRangeEndGroup.style.display = 'block';
+            }
+            
+            applyFilters();
+        }
+
+        // Handle discipline summary period change
+        function handleDisciplineSummaryPeriodChange() {
+            const period = document.getElementById('discipline-summary-period').value;
+            const customDateGroup = document.getElementById('custom-discipline-summary-date-group');
+            const dateRangeStartGroup = document.getElementById('discipline-summary-date-range-start-group');
+            const dateRangeEndGroup = document.getElementById('discipline-summary-date-range-end-group');
+            
+            // Hide all date input groups first
+            customDateGroup.style.display = 'none';
+            dateRangeStartGroup.style.display = 'none';
+            dateRangeEndGroup.style.display = 'none';
+            
+            // Show the appropriate group
+            if (period === 'custom') {
+                customDateGroup.style.display = 'block';
+            } else if (period === 'date-range') {
+                dateRangeStartGroup.style.display = 'block';
+                dateRangeEndGroup.style.display = 'block';
+            }
+            
+            updateDisciplineSummaryReport();
+        }
+
+        // Handle summary period change
+        function handleSummaryPeriodChange() {
+            const period = document.getElementById('summary-period').value;
+            const customDateGroup = document.getElementById('custom-summary-date-group');
+            const dateRangeStartGroup = document.getElementById('summary-date-range-start-group');
+            const dateRangeEndGroup = document.getElementById('summary-date-range-end-group');
+            
+            // Hide all date input groups first
+            customDateGroup.style.display = 'none';
+            dateRangeStartGroup.style.display = 'none';
+            dateRangeEndGroup.style.display = 'none';
+            
+            // Show the appropriate group
+            if (period === 'custom') {
+                customDateGroup.style.display = 'block';
+            } else if (period === 'date-range') {
+                dateRangeStartGroup.style.display = 'block';
+                dateRangeEndGroup.style.display = 'block';
+            }
+            
+            updateSummaryReport();
+        }
 
         // ========== SORTING FUNCTIONS ==========
 
@@ -1502,14 +1601,25 @@
                         endDate = today;
                     }
                     break;
+                case 'date-range':
+                    const startDateInput = document.getElementById('discipline-summary-start-date').value;
+                    const endDateInput = document.getElementById('discipline-summary-end-date').value;
+                    if (startDateInput && endDateInput) {
+                        startDate = new Date(startDateInput);
+                        endDate = new Date(endDateInput);
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                    } else {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                    }
+                    break;
                 default:
                     startDate = new Date(today);
                     startDate.setDate(today.getDate() - 7);
                     endDate = today;
             }
-            
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(23, 59, 59, 999);
             
             const filteredByDate = allReports.filter(report => {
                 const reportDate = new Date(report.date);
@@ -1727,7 +1837,7 @@
             const printWindow = window.open('', '_blank');
             const today = new Date().toLocaleDateString('km-KH');
             const period = document.getElementById('discipline-summary-period').value;
-            const periodText = period === 'week' ? 'មួយសប្តាហ៍' : period === 'month' ? 'មួយខែ' : 'កាលបរិច្ឆេទជាក់លាក់';
+            const periodText = period === 'week' ? 'មួយសប្តាហ៍' : period === 'month' ? 'មួយខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
             
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -1820,17 +1930,6 @@
             printWindow.close();
         }
 
-        // Handle discipline summary period change
-        document.getElementById('discipline-summary-period').addEventListener('change', function() {
-            const customDateGroup = document.getElementById('custom-discipline-summary-date-group');
-            if (this.value === 'custom') {
-                customDateGroup.style.display = 'block';
-            } else {
-                customDateGroup.style.display = 'none';
-                updateDisciplineSummaryReport();
-            }
-        });
-
         // ========== LATE STUDENTS SUMMARY REPORT FUNCTIONS ==========
 
         // ផ្ទុកទិន្នន័យរបាយការណ៍សង្ខេប
@@ -1911,14 +2010,25 @@
                         endDate = today;
                     }
                     break;
+                case 'date-range':
+                    const startDateInput = document.getElementById('summary-start-date').value;
+                    const endDateInput = document.getElementById('summary-end-date').value;
+                    if (startDateInput && endDateInput) {
+                        startDate = new Date(startDateInput);
+                        endDate = new Date(endDateInput);
+                        startDate.setHours(0, 0, 0, 0);
+                        endDate.setHours(23, 59, 59, 999);
+                    } else {
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                    }
+                    break;
                 default:
                     startDate = new Date(today);
                     startDate.setDate(today.getDate() - 7);
                     endDate = today;
             }
-            
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(23, 59, 59, 999);
             
             const filteredByDate = allReports.filter(report => {
                 const reportDate = new Date(report.date);
@@ -2125,7 +2235,7 @@
             const printWindow = window.open('', '_blank');
             const today = new Date().toLocaleDateString('km-KH');
             const period = document.getElementById('summary-period').value;
-            const periodText = period === 'week' ? 'មួយសប្តាហ៍' : period === 'month' ? 'មួយខែ' : 'កាលបរិច្ឆេទជាក់លាក់';
+            const periodText = period === 'week' ? 'មួយសប្តាហ៍' : period === 'month' ? 'មួយខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
             
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -2214,17 +2324,6 @@
             printWindow.print();
             printWindow.close();
         }
-
-        // Handle summary period change
-        document.getElementById('summary-period').addEventListener('change', function() {
-            const customDateGroup = document.getElementById('custom-summary-date-group');
-            if (this.value === 'custom') {
-                customDateGroup.style.display = 'block';
-            } else {
-                customDateGroup.style.display = 'none';
-                updateSummaryReport();
-            }
-        });
 
         // ========== REGULAR REPORT FUNCTIONS ==========
 
@@ -2331,6 +2430,18 @@
                     const todayStr = today.toISOString().split('T')[0];
                     filtered = filtered.filter(report => report.date === todayStr);
                     break;
+                case 'today-tomorrow':
+                    const todayDate = new Date();
+                    const tomorrow = new Date(todayDate);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    const todayString = todayDate.toISOString().split('T')[0];
+                    const tomorrowString = tomorrow.toISOString().split('T')[0];
+                    
+                    filtered = filtered.filter(report => 
+                        report.date === todayString || report.date === tomorrowString
+                    );
+                    break;
                 case 'yesterday':
                     const yesterday = new Date(today);
                     yesterday.setDate(yesterday.getDate() - 1);
@@ -2357,6 +2468,21 @@
                     const customDate = document.getElementById('custom-date').value;
                     if (customDate) {
                         filtered = filtered.filter(report => report.date === customDate);
+                    }
+                    break;
+                case 'date-range':
+                    const startDate = document.getElementById('start-date').value;
+                    const endDate = document.getElementById('end-date').value;
+                    
+                    if (startDate && endDate) {
+                        filtered = filtered.filter(report => {
+                            const reportDate = new Date(report.date);
+                            const start = new Date(startDate);
+                            const end = new Date(endDate);
+                            start.setHours(0, 0, 0, 0);
+                            end.setHours(23, 59, 59, 999);
+                            return reportDate >= start && reportDate <= end;
+                        });
                     }
                     break;
             }
@@ -2546,6 +2672,19 @@
             
             const printWindow = window.open('', '_blank');
             const today = new Date().toLocaleDateString('km-KH');
+            const dateFilter = document.getElementById('date-filter').value;
+            let periodText = '';
+            
+            switch(dateFilter) {
+                case 'today': periodText = 'ថ្ងៃនេះ'; break;
+                case 'today-tomorrow': periodText = 'ថ្ងៃនេះ និងថ្ងៃស្អែក'; break;
+                case 'yesterday': periodText = 'ម្សិលមិញ'; break;
+                case 'week': periodText = 'សប្តាហ៍នេះ'; break;
+                case 'month': periodText = 'ខែនេះ'; break;
+                case 'custom': periodText = 'កាលបរិច្ឆេទជាក់លាក់'; break;
+                case 'date-range': periodText = 'ចន្លោះកាលបរិច្ឆេទ'; break;
+                default: periodText = 'ទាំងអស់';
+            }
             
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -2570,6 +2709,7 @@
                     <div class="header">
                         <h1>របាយការណ៍${reportTypes[currentReportType].title}</h1>
                         <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                        <div class="date">រយៈពេល: ${periodText}</div>
                         <div class="date">ចំនួនស្កេនសរុប: ${filteredReports.length}</div>
                     </div>
                     <table>
@@ -2627,20 +2767,15 @@
             printWindow.close();
         }
 
-        // Handle date filter change
-        document.getElementById('date-filter').addEventListener('change', function() {
-            const customDateGroup = document.getElementById('custom-date-group');
-            if (this.value === 'custom') {
-                customDateGroup.style.display = 'block';
-            } else {
-                customDateGroup.style.display = 'none';
-                applyFilters();
-            }
-        });
-
         // Initialize page
         window.onload = function() {
             console.log('📊 Report page loaded');
+            
+            // Add event listeners for period changes
+            document.getElementById('date-filter').addEventListener('change', handleDateFilterChange);
+            document.getElementById('discipline-summary-period').addEventListener('change', handleDisciplineSummaryPeriodChange);
+            document.getElementById('summary-period').addEventListener('change', handleSummaryPeriodChange);
+            
             selectReportType('discipline');
         };
 

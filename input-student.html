@@ -438,16 +438,24 @@
             margin-top: 5px;
             font-style: italic;
         }
+        
+        .phone-info {
+            font-size: 14px;
+            color: var(--gray);
+            margin-top: 5px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Back Button -->
-                <div class="container mt-3">
-                    <button class="btn btn-secondary" onclick="goBack()">
-                        <i class="fas fa-arrow-left me-2"></i>Back
-                    </button>
-                </div>
+        <div class="container mt-3">
+            <button class="btn btn-secondary" onclick="goBack()">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </button>
+        </div>
+        
         <header>
             <div class="header-content">
                 <h1><i class="fas fa-user-graduate"></i> ប្រព័ន្ធគ្រប់គ្រងសិស្ស</h1>
@@ -542,14 +550,27 @@
                 <div class="form-row">
                     <div class="form-col">
                         <div class="form-group">
-                            <label for="phone">លេខទូរស័ព្ទ</label>
+                            <label for="phone">លេខទូរស័ព្ទសិស្ស</label>
                             <div class="input-container">
-                                <input type="tel" id="phone" name="phone" placeholder="បញ្ចូលលេខទូរស័ព្ទ">
+                                <input type="tel" id="phone" name="phone" placeholder="បញ្ចូលលេខទូរស័ព្ទសិស្ស">
                                 <i class="fas fa-phone input-icon"></i>
                             </div>
                         </div>
                     </div>
                     
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="guardain_number">លេខទូរស័ព្ទអាណាព្យាបាល</label>
+                            <div class="input-container">
+                                <input type="tel" id="guardain_number" name="guardain_number" placeholder="បញ្ចូលលេខទូរស័ព្ទអាណាព្យាបាល">
+                                <i class="fas fa-phone input-icon"></i>
+                            </div>
+                            <div class="phone-info">លេខទូរស័ព្ទអាណាព្យាបាល (ឪពុក/ម្តាយ/អាណាព្យាបាល)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
                     <div class="form-col">
                         <div class="form-group">
                             <label for="father">ឈ្មោះឪពុក</label>
@@ -559,9 +580,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-row">
+                    
                     <div class="form-col">
                         <div class="form-group">
                             <label for="mother">ឈ្មោះម្តាយ</label>
@@ -570,10 +589,6 @@
                                 <i class="fas fa-female input-icon"></i>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="form-col">
-                        <!-- Empty column for better layout -->
                     </div>
                 </div>
                 
@@ -693,6 +708,18 @@
                 errors.push('Study year should be between 2020 and 2030');
             }
             
+            // Validate phone numbers if provided
+            const phone = formData.get('phone');
+            const guardianPhone = formData.get('guardain_number');
+            
+            if (phone && !/^\+?[\d\s\-\(\)]+$/.test(phone)) {
+                errors.push('លេខទូរស័ព្ទសិស្សមានទម្រង់មិនត្រឹមត្រូវ');
+            }
+            
+            if (guardianPhone && !/^\+?[\d\s\-\(\)]+$/.test(guardianPhone)) {
+                errors.push('លេខទូរស័ព្ទអាណាព្យាបាលមានទម្រង់មិនត្រឹមត្រូវ');
+            }
+            
             return errors;
             }
             
@@ -799,6 +826,7 @@
                 class: formData.get('class'),
                 address: formData.get('address'),
                 phone: formData.get('phone'),
+                guardain_number: formData.get('guardain_number'),
                 father: formData.get('father'),
                 mother: formData.get('mother'),
                 studyYear: formData.get('studyYear')
@@ -815,6 +843,7 @@
                 class: formData.get('class'),
                 address: formData.get('address'),
                 phone: formData.get('phone') || null,
+                guardain_number: formData.get('guardain_number') || null,
                 father: formData.get('father') || null,
                 mother: formData.get('mother') || null,
                 studyYear: parseInt(formData.get('studyYear'))
@@ -909,6 +938,7 @@
                         class_name: studentData.class,
                         address: studentData.address,
                         phone_number: studentData.phone,
+                        guardain_number: studentData.guardain_number,
                         father_name: studentData.father,
                         mother_name: studentData.mother,
                         study_year: studentData.studyYear,

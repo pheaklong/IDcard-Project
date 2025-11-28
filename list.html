@@ -1535,22 +1535,45 @@
                 const tableName = "discipline_reports";
                 console.log(`🔍 Loading discipline summary data from ${tableName}...`);
                 
-                const { data, error } = await supabase
-                    .from(tableName)
-                    .select('*')
-                    .order('timestamp', { ascending: false });
-                
-                if (error) {
-                    if (error.code === 'PGRST301') {
-                        console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
-                        allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
+                // Use pagination to fetch all records
+                let allDisciplineReports = [];
+                let page = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await supabase
+                        .from(tableName)
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) {
+                        if (error.code === 'PGRST301') {
+                            console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
+                            allDisciplineReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
+                            hasMore = false;
+                        } else {
+                            throw error;
+                        }
                     } else {
-                        throw error;
+                        if (data && data.length > 0) {
+                            allDisciplineReports = allDisciplineReports.concat(data);
+                            if (data.length < pageSize) {
+                                hasMore = false;
+                            } else {
+                                page++;
+                            }
+                        } else {
+                            hasMore = false;
+                        }
                     }
-                } else {
-                    allReports = data || [];
-                    console.log(`✅ Loaded ${allReports.length} discipline records for summary from Supabase`);
                 }
+                
+                allReports = allDisciplineReports;
+                console.log(`✅ Loaded ${allReports.length} discipline records for summary from Supabase`);
                 
                 updateDisciplineSummaryReport();
                 
@@ -1944,22 +1967,45 @@
                 const tableName = "attendance_reports";
                 console.log(`🔍 Loading summary data from ${tableName}...`);
                 
-                const { data, error } = await supabase
-                    .from(tableName)
-                    .select('*')
-                    .order('timestamp', { ascending: false });
-                
-                if (error) {
-                    if (error.code === 'PGRST301') {
-                        console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
-                        allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                // Use pagination to fetch all records
+                let allLateReports = [];
+                let page = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await supabase
+                        .from(tableName)
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) {
+                        if (error.code === 'PGRST301') {
+                            console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
+                            allLateReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                            hasMore = false;
+                        } else {
+                            throw error;
+                        }
                     } else {
-                        throw error;
+                        if (data && data.length > 0) {
+                            allLateReports = allLateReports.concat(data);
+                            if (data.length < pageSize) {
+                                hasMore = false;
+                            } else {
+                                page++;
+                            }
+                        } else {
+                            hasMore = false;
+                        }
                     }
-                } else {
-                    allReports = data || [];
-                    console.log(`✅ Loaded ${allReports.length} records for summary from Supabase`);
                 }
+                
+                allReports = allLateReports;
+                console.log(`✅ Loaded ${allReports.length} records for summary from Supabase`);
                 
                 updateSummaryReport();
                 
@@ -2381,22 +2427,45 @@
                 const tableName = reportTypes[currentReportType].table;
                 console.log(`🔍 Loading data from ${tableName}...`);
                 
-                const { data, error } = await supabase
-                    .from(tableName)
-                    .select('*')
-                    .order('timestamp', { ascending: false });
-                
-                if (error) {
-                    if (error.code === 'PGRST301') {
-                        console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
-                        allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
+                // Use pagination to fetch all records
+                let allReportData = [];
+                let page = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await supabase
+                        .from(tableName)
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) {
+                        if (error.code === 'PGRST301') {
+                            console.log(`Table ${tableName} doesn't exist, trying localStorage...`);
+                            allReportData = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
+                            hasMore = false;
+                        } else {
+                            throw error;
+                        }
                     } else {
-                        throw error;
+                        if (data && data.length > 0) {
+                            allReportData = allReportData.concat(data);
+                            if (data.length < pageSize) {
+                                hasMore = false;
+                            } else {
+                                page++;
+                            }
+                        } else {
+                            hasMore = false;
+                        }
                     }
-                } else {
-                    allReports = data || [];
-                    console.log(`✅ Loaded ${allReports.length} records from Supabase`);
                 }
+                
+                allReports = allReportData || [];
+                console.log(`✅ Loaded ${allReports.length} records from Supabase`);
                 
                 applyFilters();
                 updateStats();

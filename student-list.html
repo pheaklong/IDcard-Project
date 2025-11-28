@@ -15,38 +15,20 @@
     <style>
       :root {
         --primary-color: #3498db;
-        --secondary-color: #2c3e50;
-        --accent-color: #e74c3c;
-        --success-color: #27ae60;
-        --warning-color: #f39c12;
-        --light-bg: #f8f9fa;
-        --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-        --hover-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-      }
-
-      body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--light-bg);
-        color: #333;
+        --secondary-color: #3498db;
+        --update-color: #ff9800;
+        --update-hover: #e68900;
       }
 
       .navbar {
-        background: linear-gradient(135deg, var(--primary-color), #2980b9);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        padding: 12px 0;
-      }
-
-      .navbar-brand {
-        font-weight: 700;
-        font-size: 1.5rem;
-      }
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(88, 173, 243, 0.1);
+        }
 
       .section-title {
         position: relative;
-        margin-bottom: 40px;
-        padding-bottom: 20px;
-        font-weight: 700;
-        color: var(--secondary-color);
+        margin-bottom: 30px;
+        padding-bottom: 15px;
       }
 
       .section-title:after {
@@ -55,124 +37,36 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 100px;
-        height: 4px;
-        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-        border-radius: 2px;
+        width: 80px;
+        height: 3px;
+        background-color: var(--secondary-color);
       }
-      
-      .stats-container {
-        background: white;
-        border-radius: 16px;
-        padding: 25px;
-        margin-bottom: 30px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-      
-      .stats-container:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--hover-shadow);
-      }
-      
-      .stat-card {
-        text-align: center;
-        padding: 20px 15px;
-        border-radius: 12px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        position: relative;
+@media (min-width: 768px) {
+  
+
+      .table-responsive {
+        border-radius: 10px;
         overflow: hidden;
-      }
-      
-      .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      }
-      
-      .stat-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-      }
-      
-      .stat-card.total {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-        border: none;
-      }
-      
-      .stat-card.total::before {
-        background: var(--primary-color);
-      }
-      
-      .stat-card.grade {
-        background: linear-gradient(135deg, #fff3e0, #ffe0b2);
-        border: none;
-      }
-      
-      .stat-card.grade::before {
-        background: var(--warning-color);
-      }
-      
-      .stat-number {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 5px;
-        color: var(--secondary-color);
-      }
-      
-      .stat-label {
-        font-size: 0.95rem;
-        color: #666;
-        font-weight: 500;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
       }
 
-      @media (min-width: 768px) {
-        .table-responsive {
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: var(--card-shadow);
-          border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .table thead {
-          background: linear-gradient(135deg, var(--primary-color), #2980b9);
-          color: white;
-        }
-        
-        .table thead th {
-          border: none;
-          padding: 16px 12px;
-          font-weight: 600;
-          text-align: center;
-        }
-        
-        .table tbody td {
-          padding: 14px 12px;
-          vertical-align: middle;
-          border-color: rgba(0, 0, 0, 0.05);
-          text-align: center;
-        }
-        
-        .table tbody tr {
-          transition: all 0.2s ease;
-        }
-        
-        .table tbody tr:hover {
-          background-color: #f1f9ff;
-          transform: scale(1.002);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
-        }
+      .table thead {
+        background-color: var(--primary-color);
+        color: white;
       }
+      .table tbody tr:hover {
+        background-color: #f1f1f1;
+      
+        cursor: pointer;
+    }
+  }
+
 
       footer {
-        background: linear-gradient(135deg, var(--secondary-color), #1a252f);
+        background-color: var(--primary-color);
         color: white;
-        padding: 40px 0 20px;
-        margin-top: 60px;
+        padding: 30px 0;
+        margin-top: 50px;
       }
 
       .student-photo {
@@ -180,116 +74,52 @@
         height: 50px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #e9ecef;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-      }
-      
-      .student-photo:hover {
-        transform: scale(1.1);
-        border-color: var(--primary-color);
+        border: 2px solid #e9ecef;
       }
 
       .action-buttons {
         white-space: nowrap;
       }
       
-      .btn {
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
       .btn-sm {
-        padding: 0.4rem 0.8rem;
+        padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
-        border-radius: 6px;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
       }
       
       .btn-sm i {
-        margin-right: 0.3rem;
-      }
-
-      .btn-primary {
-        background: linear-gradient(135deg, var(--primary-color), #2980b9);
-        border: none;
-      }
-      
-      .btn-primary:hover {
-        background: linear-gradient(135deg, #2980b9, var(--primary-color));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
-      }
-
-      .btn-info {
-        background: linear-gradient(135deg, #17a2b8, #138496);
-        border: none;
-      }
-      
-      .btn-info:hover {
-        background: linear-gradient(135deg, #138496, #17a2b8);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(23, 162, 184, 0.3);
-      }
-
-      .btn-danger {
-        background: linear-gradient(135deg, var(--accent-color), #c0392b);
-        border: none;
-      }
-      
-      .btn-danger:hover {
-        background: linear-gradient(135deg, #c0392b, var(--accent-color));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(231, 76, 60, 0.3);
+        margin-right: 0.25rem;
       }
 
       /* Update Button Styling */
       .btn-update {
-        background: linear-gradient(135deg, var(--warning-color), #e67e22);
-        border: none;
+        background-color: var(--update-color);
+        border-color: var(--update-color);
         color: white;
       }
       
       .btn-update:hover {
-        background: linear-gradient(135deg, #e67e22, var(--warning-color));
+        background-color: var(--update-hover);
+        border-color: var(--update-hover);
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(243, 156, 18, 0.3);
-      }
-
-      .btn-success {
-        background: linear-gradient(135deg, var(--success-color), #219653);
-        border: none;
+        box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
       }
       
-      .btn-success:hover {
-        background: linear-gradient(135deg, #219653, var(--success-color));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(39, 174, 96, 0.3);
+      .btn-update:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
       }
 
       .modal-header {
-        background: linear-gradient(135deg, var(--primary-color), #2980b9);
+        background-color: var(--primary-color);
         color: white;
-        border-bottom: none;
-        padding: 20px;
       }
       
       .modal-update-header {
-        background: linear-gradient(135deg, var(--warning-color), #e67e22);
+        background-color: var(--update-color);
         color: white;
-        border-bottom: none;
-        padding: 20px;
-      }
-
-      .modal-danger-header {
-        background: linear-gradient(135deg, var(--accent-color), #c0392b);
-        color: white;
-        border-bottom: none;
-        padding: 20px;
       }
 
       .modal-photo {
@@ -299,8 +129,7 @@
         object-fit: cover;
         margin: 0 auto 20px;
         display: block;
-        border: 4px solid var(--primary-color);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border: 3px solid var(--secondary-color);
       }
       
       .loading-spinner {
@@ -318,27 +147,6 @@
         to { transform: rotate(360deg); }
       }
       
-      /* Form Styling */
-      .form-control, .form-select {
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
-        padding: 0.75rem 1rem;
-        transition: all 0.3s ease;
-      }
-      
-      .form-control:focus, .form-select:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-      }
-      
-      .input-group .btn {
-        border-radius: 0 8px 8px 0;
-      }
-      
-      .input-group .form-control {
-        border-radius: 8px 0 0 8px;
-      }
-
       /* Update Form Styling */
       .update-form-group {
         margin-bottom: 1.5rem;
@@ -353,15 +161,15 @@
       }
       
       .update-form-control {
-        border-radius: 8px;
+        border-radius: 0.5rem;
         border: 2px solid #e9ecef;
         padding: 0.75rem 1rem;
         transition: all 0.3s ease;
       }
       
       .update-form-control:focus {
-        border-color: var(--warning-color);
-        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
+        border-color: var(--update-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
       }
       
       .update-form-control:read-only {
@@ -371,84 +179,8 @@
       
       /* Button Group Styling */
       .action-buttons .btn {
-        margin-right: 0.3rem;
-        margin-bottom: 0.3rem;
-      }
-      
-      /* Pagination Styling */
-      .pagination-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 30px;
-      }
-      
-      .page-link {
-        border-radius: 8px;
-        margin: 0 3px;
-        border: 1px solid #dee2e6;
-        color: var(--primary-color);
-        font-weight: 500;
-        transition: all 0.3s ease;
-      }
-      
-      .page-link:hover {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-        color: white;
-        transform: translateY(-2px);
-      }
-      
-      .page-item.active .page-link {
-        background: linear-gradient(135deg, var(--primary-color), #2980b9);
-        border-color: var(--primary-color);
-      }
-      
-      .pagination-info {
-        text-align: center;
-        margin-top: 15px;
-        color: #6c757d;
-        font-weight: 500;
-      }
-      
-      /* Progress Bar Styling */
-      .progress-container {
-        margin: 20px 0;
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        box-shadow: var(--card-shadow);
-      }
-      
-      .progress {
-        height: 20px;
-        border-radius: 10px;
-        background-color: #e9ecef;
-        overflow: hidden;
-      }
-      
-      .progress-bar {
-        background: linear-gradient(135deg, var(--primary-color), #2980b9);
-        border-radius: 10px;
-      }
-      
-      /* Card styling for sections */
-      .section-card {
-        background: white;
-        border-radius: 16px;
-        padding: 30px;
-        margin-bottom: 30px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-      }
-      
-      /* Search and filter section */
-      .search-filter-section {
-        background: white;
-        border-radius: 16px;
-        padding: 25px;
-        margin-bottom: 30px;
-        box-shadow: var(--card-shadow);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
       }
       
       /* Responsive adjustments */
@@ -460,42 +192,9 @@
         
         .action-buttons .btn {
           margin-right: 0;
-          margin-bottom: 0.3rem;
+          margin-bottom: 0.25rem;
           width: 100%;
         }
-        
-        .section-title {
-          font-size: 1.5rem;
-        }
-        
-        .stats-container, .search-filter-section {
-          padding: 20px 15px;
-        }
-      }
-      
-      /* Animation for table rows */
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-      
-      .table tbody tr {
-        animation: fadeIn 0.5s ease forwards;
-      }
-      
-      .table tbody tr:nth-child(odd) {
-        animation-delay: 0.05s;
-      }
-      
-      .table tbody tr:nth-child(even) {
-        animation-delay: 0.1s;
-      }
-      
-      /* Badge styling */
-      .badge {
-        border-radius: 6px;
-        padding: 0.4em 0.6em;
-        font-weight: 500;
       }
     </style>
   </head>
@@ -514,9 +213,19 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
                     </li>
+                    <!--
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    -->
                     <li class="nav-item">
                         <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
                     </li>
+                   <!-- 
+                    <li class="nav-item">
+                        <a class="nav-link" href="input-student.html"><i class="fas fa-id-card me-1"></i> Input student</a>
+                    </li>
+                     -->
                     <li class="nav-item">
                         <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
                     </li>
@@ -526,156 +235,73 @@
     </nav>
 
     <!-- Student List Section -->
-    <section class="py-5">
+    <section class="py-5 bg-light">
       <div class="container">
         <h2 class="section-title text-center">បញ្ជីឈ្មោះសិស្សនៃវិទ្យាល័យកំរៀង</h2>
-        <p class="text-center mb-5 text-muted">
+        <p class="text-center mb-5">
           នេះជាបញ្ជីឈ្មោះសិស្សដែលបានចុះឈ្មោះសម្រាប់ឆ្នាំសិក្សា ២០២៥-២០២៦ អ្នកអាចស្វែងរក ឬតម្រៀបតាមថ្នាក់ដើម្បីរកមើលព័ត៌មានបន្ថែម។
         </p>
 
-        <!-- Statistics Section -->
-        <div class="stats-container">
-          <h4 class="mb-4 text-center text-primary">ស្ថិតិសិស្ស</h4>
-          <div class="row">
-            <div class="col-md-3 mb-3">
-              <div class="stat-card total">
-                <div class="stat-number" id="totalStudents">0</div>
-                <div class="stat-label">សិស្សសរុប</div>
-              </div>
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="input-group mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search by name or ID..."
+                id="searchInput"
+              />
+              <button class="btn btn-primary" type="button" id="searchButton">
+                Search
+              </button>
             </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade7Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ៧</div>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade8Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ៨</div>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade9Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ៩</div>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade10Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ១០</div>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade11Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ១១</div>
-              </div>
-            </div>
-            <div class="col-md-3 mb-3">
-              <div class="stat-card grade">
-                <div class="stat-number" id="grade12Count">0</div>
-                <div class="stat-label">ថ្នាក់ទី ១២</div>
-              </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-group mb-3">
+              <select class="form-select" id="classFilter">
+                <option value="">All Classes</option>
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+              <button
+                class="btn btn-outline-primary"
+                type="button"
+                id="filterButton"
+              >
+                Filter
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Search and Filter Section -->
-        <div class="search-filter-section">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="input-group mb-3">
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="ស្វែងរកតាមឈ្មោះ ឬលេខសម្គាល់..."
-                  id="searchInput"
-                />
-                <button class="btn btn-primary" type="button" id="searchButton">
-                  <i class="fas fa-search me-1"></i>ស្វែងរក
-                </button>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="input-group mb-3">
-                <select class="form-select" id="classFilter">
-                  <option value="">ថ្នាក់ទាំងអស់</option>
-                  <option value="7">ថ្នាក់ទី ៧</option>
-                  <option value="8">ថ្នាក់ទី ៨</option>
-                  <option value="9">ថ្នាក់ទី ៩</option>
-                  <option value="10">ថ្នាក់ទី ១០</option>
-                  <option value="11">ថ្នាក់ទី ១១</option>
-                  <option value="12">ថ្នាក់ទី ១២</option>
-                </select>
-                <button
-                  class="btn btn-outline-primary"
-                  type="button"
-                  id="filterButton"
-                >
-                  <i class="fas fa-filter me-1"></i>តម្រៀប
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Progress Bar for Loading -->
-        <div class="progress-container" id="progressContainer" style="display: none;">
-          <div class="d-flex justify-content-between mb-2">
-            <span>កំពុងទាញយកទិន្នន័យសិស្ស...</span>
-            <span id="progressPercent">0%</span>
-          </div>
-          <div class="progress" style="height: 20px;">
-            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
-                 role="progressbar" style="width: 0%;" 
-                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            </div>
-          </div>
-          <div class="text-center mt-2" id="progressStatus">ទាញយកទិន្នន័យ...</div>
-        </div>
-
-        <!-- Student Table Section -->
-        <div class="section-card p-0">
-          <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
-              <thead>
-                <tr>
-                  <th>រូបភាព</th>
-                  <th>លេខសម្គាល់</th>
-                  <th>ឈ្មោះ</th>
-                  <th>ថ្នាក់</th>
-                  <th>ភេទ</th>
-                  <th>សកម្មភាព</th>
-                </tr>
-              </thead>
-              <tbody id="studentTableBody">
-                <!-- Student data will be populated here -->
-                <tr>
-                  <td colspan="6" class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2 text-muted">កំពុងទាញយកទិន្នន័យ...</p>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination-container">
-          <nav aria-label="Page navigation">
-            <ul class="pagination" id="pagination">
-              <!-- Pagination will be generated here -->
-            </ul>
-          </nav>
-        </div>
-        
-        <div class="pagination-info" id="paginationInfo">
-          <!-- Pagination info will be shown here -->
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Gender</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody">
+              <!-- Student data will be populated here -->
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2">កំពុងទាញយកទិន្នន័យ...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <div class="text-center mt-4">
@@ -690,7 +316,7 @@
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header modal-danger-header">
+          <div class="modal-header bg-danger text-white">
             <h5 class="modal-title" id="deleteModalLabel">
               <i class="fas fa-exclamation-triangle me-2"></i>លុបសិស្ស
             </h5>
@@ -735,53 +361,58 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="update-form-group">
-                    <label for="updateStudentId" class="form-label">លេខសម្គាល់សិស្ស</label>
+                    <label for="updateStudentId" class="form-label">Student ID</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentId" readonly>
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentName" class="form-label">ឈ្មោះ</label>
+                    <label for="updateStudentName" class="form-label">Name</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentName" required>
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentClass" class="form-label">ថ្នាក់</label>
+                    <label for="updateStudentClass" class="form-label">Class</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentClass" required placeholder="ឧទាហរណ៍: Grade 10A, Grade 11B">
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentGender" class="form-label">ភេទ</label>
+                    <label for="updateStudentGender" class="form-label">Gender</label>
                     <select class="form-select update-form-control" id="updateStudentGender" required>
-                      <option value="">ជ្រើសរើសភេទ</option>
-                      <option value="Male">ប្រុស</option>
-                      <option value="Female">ស្រី</option>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
                     </select>
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentDob" class="form-label">ថ្ងៃខែឆ្នាំកំណើត</label>
+                    <label for="updateStudentDob" class="form-label">Date of Birth</label>
                     <input type="date" class="form-control update-form-control" id="updateStudentDob">
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="update-form-group">
-                    <label for="updateStudentAddress" class="form-label">អាសយដ្ឋាន</label>
+                    <label for="updateStudentAddress" class="form-label">Address</label>
                     <textarea class="form-control update-form-control" id="updateStudentAddress" rows="3"></textarea>
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentPhone" class="form-label">លេខទូរស័ព្ទ</label>
+                    <label for="updateStudentPhone" class="form-label">Phone</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentPhone">
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentFather" class="form-label">ឈ្មោះឪពុក</label>
+                    <label for="updateStudentFather" class="form-label">Father's Name</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentFather">
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentMother" class="form-label">ឈ្មោះម្តាយ</label>
+                    <label for="updateStudentMother" class="form-label">Mother's Name</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentMother">
                   </div>
+                  <!-- New Guardian Phone Number Field -->
                   <div class="update-form-group">
-                    <label for="updateStudentStudyYear" class="form-label">ឆ្នាំសិក្សា</label>
+                    <label for="updateStudentGuardianNumber" class="form-label">លេខទូរសព្ទអាណាព្យាបាល (Guardian Phone Number)</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentGuardianNumber">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentStudyYear" class="form-label">Study Year</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentStudyYear">
                   </div>
                   <div class="update-form-group">
-                    <label for="updateStudentPhoto" class="form-label">URL រូបភាព</label>
+                    <label for="updateStudentPhoto" class="form-label">Photo URL</label>
                     <input type="text" class="form-control update-form-control" id="updateStudentPhoto">
                   </div>
                 </div>
@@ -851,163 +482,29 @@
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
       const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
       
-      // Global variables
+      // Global variable to store all students
       let allStudents = [];
       let currentUpdateStudentId = null;
-      let currentDeleteStudentId = null;
-      let currentDeleteStudentName = null;
       
-      // Pagination settings
-      const studentsPerPage = 100;
-      let currentPage = 1;
-      let totalPages = 1;
-      
-      // Function to fetch all students with pagination
-      async function getAllStudents() {
+      // Load students from Supabase
+      async function getStudents() {
         try {
-          // Show progress bar
-          document.getElementById('progressContainer').style.display = 'block';
-          document.getElementById('progressBar').style.width = '0%';
-          document.getElementById('progressPercent').textContent = '0%';
-          document.getElementById('progressStatus').textContent = 'ទាញយកទិន្នន័យ...';
-          
-          let allData = [];
-          let page = 0;
-          const pageSize = 1000; // Supabase max limit
-          let hasMore = true;
-          
-          while (hasMore) {
-            const from = page * pageSize;
-            const to = from + pageSize - 1;
-            
-            const { data, error, count } = await supabase
-              .from('students')
-              .select('*', { count: 'exact' })
-              .order('id', { ascending: true })
-              .range(from, to);
-            
-            if (error) {
-              console.error('Error fetching students:', error);
-              throw error;
-            }
-            
-            if (data && data.length > 0) {
-              allData = [...allData, ...data];
-              
-              // Update progress
-              const progress = Math.min(100, Math.round((allData.length / (count || allData.length + pageSize)) * 100));
-              document.getElementById('progressBar').style.width = `${progress}%`;
-              document.getElementById('progressPercent').textContent = `${progress}%`;
-              document.getElementById('progressStatus').textContent = `ទាញយកបាន ${allData.length} នាក់...`;
-              
-              // If we got less than the page size, we've reached the end
-              if (data.length < pageSize) {
-                hasMore = false;
-              } else {
-                page++;
-              }
-            } else {
-              hasMore = false;
-            }
-          }
-          
-          // Hide progress bar when done
-          document.getElementById('progressContainer').style.display = 'none';
-          
-          console.log(`Fetched ${allData.length} students total`);
-          return allData;
-        } catch (error) {
-          console.error('Error in getAllStudents:', error);
-          document.getElementById('progressContainer').style.display = 'none';
-          return [];
-        }
-      }
-      
-      // Alternative method using multiple requests with estimated total
-      async function getAllStudentsAlternative() {
-        try {
-          // First, get the total count
-          const { count, error: countError } = await supabase
+          const { data, error } = await supabase
             .from('students')
-            .select('*', { count: 'exact', head: true });
-          
-          if (countError) {
-            console.error('Error counting students:', countError);
+            .select('*')
+            .order('id', { ascending: true });
+            
+          if (error) {
+            console.error('Error fetching students:', error);
+            return [];
           }
           
-          const estimatedTotal = count || 2000; // Use actual count or estimate
-          console.log(`Estimated total students: ${estimatedTotal}`);
-          
-          // Show progress bar
-          document.getElementById('progressContainer').style.display = 'block';
-          document.getElementById('progressBar').style.width = '0%';
-          document.getElementById('progressPercent').textContent = '0%';
-          
-          let allData = [];
-          const pageSize = 1000;
-          const totalPages = Math.ceil(estimatedTotal / pageSize);
-          
-          for (let page = 0; page < totalPages; page++) {
-            const from = page * pageSize;
-            const to = from + pageSize - 1;
-            
-            const { data, error } = await supabase
-              .from('students')
-              .select('*')
-              .order('id', { ascending: true })
-              .range(from, to);
-            
-            if (error) {
-              console.error(`Error fetching page ${page}:`, error);
-              continue;
-            }
-            
-            if (data && data.length > 0) {
-              allData = [...allData, ...data];
-              
-              // Update progress
-              const progress = Math.min(100, Math.round(((page + 1) / totalPages) * 100));
-              document.getElementById('progressBar').style.width = `${progress}%`;
-              document.getElementById('progressPercent').textContent = `${progress}%`;
-              document.getElementById('progressStatus').textContent = `ទាញយកបាន ${allData.length} នាក់...`;
-            }
-            
-            // Small delay to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          
-          // Hide progress bar when done
-          document.getElementById('progressContainer').style.display = 'none';
-          
-          console.log(`Fetched ${allData.length} students total`);
-          return allData;
+          allStudents = data || [];
+          return allStudents;
         } catch (error) {
-          console.error('Error in getAllStudentsAlternative:', error);
-          document.getElementById('progressContainer').style.display = 'none';
+          console.error('Error:', error);
           return [];
         }
-      }
-      
-      // Calculate and display statistics
-      function updateStatistics(students) {
-        // Total students
-        document.getElementById('totalStudents').textContent = students.length;
-        
-        // Count students by grade
-        const grade7Count = students.filter(student => student.class && student.class.includes('7')).length;
-        const grade8Count = students.filter(student => student.class && student.class.includes('8')).length;
-        const grade9Count = students.filter(student => student.class && student.class.includes('9')).length;
-        const grade10Count = students.filter(student => student.class && student.class.includes('10')).length;
-        const grade11Count = students.filter(student => student.class && student.class.includes('11')).length;
-        const grade12Count = students.filter(student => student.class && student.class.includes('12')).length;
-        
-        // Update the DOM
-        document.getElementById('grade7Count').textContent = grade7Count;
-        document.getElementById('grade8Count').textContent = grade8Count;
-        document.getElementById('grade9Count').textContent = grade9Count;
-        document.getElementById('grade10Count').textContent = grade10Count;
-        document.getElementById('grade11Count').textContent = grade11Count;
-        document.getElementById('grade12Count').textContent = grade12Count;
       }
       
       // Filter students based on search and class filter
@@ -1020,124 +517,57 @@
         // Apply search filter
         if (searchTerm) {
           filteredStudents = filteredStudents.filter(student => 
-            (student.name && student.name.toLowerCase().includes(searchTerm)) || 
-            (student.id && student.id.toLowerCase().includes(searchTerm))
+            student.name.toLowerCase().includes(searchTerm) || 
+            student.id.toLowerCase().includes(searchTerm)
           );
         }
         
         // Apply class filter
         if (classFilter) {
           filteredStudents = filteredStudents.filter(student => 
-            student.class && student.class.includes(classFilter)
+            student.class.includes(classFilter)
           );
         }
         
         return filteredStudents;
       }
       
-      // Get students for current page
-      function getStudentsForCurrentPage(filteredStudents) {
-        const startIndex = (currentPage - 1) * studentsPerPage;
-        const endIndex = startIndex + studentsPerPage;
-        return filteredStudents.slice(startIndex, endIndex);
-      }
-      
-      // Update pagination
-      function updatePagination(filteredStudents) {
-        totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-        const paginationElement = document.getElementById('pagination');
-        const paginationInfoElement = document.getElementById('paginationInfo');
-        
-        // Update pagination info
-        const startIndex = (currentPage - 1) * studentsPerPage + 1;
-        const endIndex = Math.min(currentPage * studentsPerPage, filteredStudents.length);
-        paginationInfoElement.textContent = `បង្ហាញសិស្ស ${startIndex} ដល់ ${endIndex} ក្នុងចំណោម ${filteredStudents.length} នាក់`;
-        
-        // Clear existing pagination
-        paginationElement.innerHTML = '';
-        
-        // Previous button
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>`;
-        paginationElement.appendChild(prevLi);
-        
-        // Page numbers (show max 5 pages around current page)
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, startPage + 4);
-        
-        for (let i = startPage; i <= endPage; i++) {
-          const pageLi = document.createElement('li');
-          pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
-          pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
-          paginationElement.appendChild(pageLi);
-        }
-        
-        // Next button
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>`;
-        paginationElement.appendChild(nextLi);
-        
-        // Add event listeners to pagination buttons
-        document.querySelectorAll('.page-link').forEach(link => {
-          link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = parseInt(this.getAttribute('data-page'));
-            if (page && page !== currentPage && page >= 1 && page <= totalPages) {
-              currentPage = page;
-              populateStudentTable();
-            }
-          });
-        });
-      }
-      
       // Render student table
       async function populateStudentTable() {
         const tableBody = document.getElementById("studentTableBody");
         
-        // Show loading state only on initial load
-        if (allStudents.length === 0) {
-          tableBody.innerHTML = `
-            <tr>
-              <td colspan="6" class="text-center py-4">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2 text-muted">កំពុងទាញយកទិន្នន័យ...</p>
-              </td>
-            </tr>
-          `;
-          
-          // Load all students from Supabase
-          allStudents = await getAllStudentsAlternative();
-        }
+        // Show loading state
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">កំពុងទាញយកទិន្នន័យ...</p>
+            </td>
+          </tr>
+        `;
         
-        const filteredStudents = filterStudents();
-        const studentsForPage = getStudentsForCurrentPage(filteredStudents);
-        
-        // Update statistics with all students
-        updateStatistics(allStudents);
-        
-        // Update pagination
-        updatePagination(filteredStudents);
+        // Get students from Supabase
+        await getStudents();
+        const students = filterStudents();
         
         // Clear table
         tableBody.innerHTML = "";
 
-        if (studentsForPage.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">មិនមានទិន្នន័យសិស្សត្រូវបានរកឃើញទេ។</td></tr>`;
+        if (students.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No students found.</td></tr>`;
           return;
         }
 
-        studentsForPage.forEach((student) => {
+        students.forEach((student) => {
           const row = document.createElement("tr");
           row.innerHTML = `
                 <td><img src="${student.photo || 'https://via.placeholder.com/50'}" alt="${student.name}" class="student-photo"></td>
-                <td>${student.id || 'N/A'}</td>
-                <td>${student.name || 'N/A'}</td>
-                <td><span class="badge bg-primary">${student.class || 'N/A'}</span></td>
-                <td>${student.gender || 'N/A'}</td>
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.class}</td>
+                <td>${student.gender}</td>
                 <td class="action-buttons">
                     <button class="btn btn-sm btn-info view-student" data-id="${student.id}">
                         <i class="fas fa-eye"></i> View
@@ -1196,10 +626,10 @@
         currentUpdateStudentId = studentId;
         
         // Fill form with current student data
-        document.getElementById('updateStudentId').value = student.id || '';
-        document.getElementById('updateStudentName').value = student.name || '';
-        document.getElementById('updateStudentClass').value = student.class || '';
-        document.getElementById('updateStudentGender').value = student.gender || '';
+        document.getElementById('updateStudentId').value = student.id;
+        document.getElementById('updateStudentName').value = student.name;
+        document.getElementById('updateStudentClass').value = student.class;
+        document.getElementById('updateStudentGender').value = student.gender;
         document.getElementById('updateStudentPhoto').value = student.photo || '';
         document.getElementById('updateStudentAddress').value = student.address || '';
         document.getElementById('updateStudentPhone').value = student.phone || '';
@@ -1207,6 +637,7 @@
         document.getElementById('updateStudentMother').value = student.mother || '';
         document.getElementById('updateStudentStudyYear').value = student.studyYear || '';
         document.getElementById('updateStudentDob').value = student.dob || '';
+        document.getElementById('updateStudentGuardianNumber').value = student.guardain_number || '';
         
         // Show modal
         const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
@@ -1231,7 +662,8 @@
             father: document.getElementById('updateStudentFather').value || null,
             mother: document.getElementById('updateStudentMother').value || null,
             studyYear: document.getElementById('updateStudentStudyYear').value || null,
-            dob: document.getElementById('updateStudentDob').value || null
+            dob: document.getElementById('updateStudentDob').value || null,
+            guardain_number: document.getElementById('updateStudentGuardianNumber').value || null
           };
           
           // Validate required fields
@@ -1289,6 +721,10 @@
           currentUpdateStudentId = null;
         }
       }
+      
+      // Global variables for delete modal
+      let currentDeleteStudentId = null;
+      let currentDeleteStudentName = null;
       
       // Delete student function
       function deleteStudent(studentId, studentName) {
@@ -1363,20 +799,12 @@
       }
       
       // Event listeners for search and filter
-      document.getElementById('searchButton').addEventListener('click', function() {
-        currentPage = 1; // Reset to first page when searching
-        populateStudentTable();
-      });
-      
-      document.getElementById('filterButton').addEventListener('click', function() {
-        currentPage = 1; // Reset to first page when filtering
-        populateStudentTable();
-      });
+      document.getElementById('searchButton').addEventListener('click', populateStudentTable);
+      document.getElementById('filterButton').addEventListener('click', populateStudentTable);
       
       // Search on Enter key press
       document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-          currentPage = 1; // Reset to first page when searching
           populateStudentTable();
         }
       });

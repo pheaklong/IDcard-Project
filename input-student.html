@@ -265,6 +265,14 @@
             align-items: center;
             justify-content: center;
             gap: 15px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: var(--transition);
+        }
+        
+        .message.show {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .success {
@@ -692,20 +700,29 @@
             for (const field of requiredFields) {
                 const value = formData.get(field);
                 if (!value || value.trim() === '') {
-                    errors.push(`${field} is required`);
+                    const fieldNames = {
+                        'studentId': 'អត្តលេខ',
+                        'name': 'ឈ្មោះសិស្ស',
+                        'gender': 'ភេទ',
+                        'dob': 'ថ្ងៃខែឆ្នាំកំណើត',
+                        'class': 'ថ្នាក់',
+                        'address': 'អាសយដ្ឋាន',
+                        'studyYear': 'ឆ្នាំសិក្សា'
+                    };
+                    errors.push(`${fieldNames[field]} ត្រូវការបំពេញ`);
                 }
             }
             
             // Validate student ID format (should be numeric)
             const studentId = formData.get('studentId');
             if (studentId && !/^\d+$/.test(studentId)) {
-                errors.push('Student ID should contain only numbers');
+                errors.push('អត្តលេខត្រូវតែមានតួលេខតែប៉ុណ្ណោះ');
             }
             
             // Validate study year
             const studyYear = parseInt(formData.get('studyYear'));
             if (studyYear && (studyYear < 2020 || studyYear > 2030)) {
-                errors.push('Study year should be between 2020 and 2030');
+                errors.push('ឆ្នាំសិក្សាត្រូវតែមានចន្លោះពី ២០២០ ដល់ ២០៣០');
             }
             
             // Validate phone numbers if provided
@@ -737,10 +754,24 @@
             const addAnother = document.getElementById('addAnother');
             const testConnectionBtn = document.getElementById('testConnectionBtn');
             
-            // Debug: Check if elements exist
-            console.log('testConnectionBtn element:', testConnectionBtn);
-            console.log('closeModal element:', closeModal);
-            console.log('addAnother element:', addAnother);
+            // Function to show message alert
+            function showMessage(type, text) {
+                messageDiv.className = `message ${type}`;
+                messageDiv.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${text}</span>
+                `;
+                messageDiv.style.display = 'flex';
+                messageDiv.classList.add('show');
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    messageDiv.classList.remove('show');
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 300);
+                }, 5000);
+            }
             
             // Function to convert date from mm/dd/yyyy to yyyy/mm/dd
             function convertDateFormat(dateString) {
@@ -809,12 +840,7 @@
             const validationErrors = validateForm(formData);
             if (validationErrors.length > 0) {
                 console.error('Form validation errors:', validationErrors);
-                showAlert(
-                    'error',
-                    'កំហុស!',
-                    `សូមពិនិត្យព័ត៌មាន: ${validationErrors.join(', ')}`,
-                    false
-                );
+                showMessage('error', `សូមពិនិត្យព័ត៌មាន: ${validationErrors.join(', ')}`);
                 return;
             }
             
@@ -958,7 +984,10 @@
                 
                 console.log('Student added successfully:', insertResult.data);
                 
-                // Show success alert
+                // Show success message
+                showMessage('success', `សិស្សត្រូវបានបន្ថែមដោយជោគជ័យ! អត្តលេខ: ${studentData.id}`);
+                
+                // Show success modal
                 showAlert(
                     'success',
                     'ជោគជ័យ!',
@@ -966,7 +995,6 @@
                     true
                 );
                 
-           // ក្នុង catch block នៃ form submission
             } catch (error) {
                 console.error('Error adding student:', error);
                 
@@ -978,9 +1006,8 @@
                     errorMessage = 'កំហុស: អត្តលេខនេះមានរួចហើយនៅក្នុងប្រព័ន្ធ';
                 }
                 
+                showMessage('error', errorMessage);
                 showAlert('error', 'កំហុស!', errorMessage, false);
-            }
-                
             } finally {
                 // Reset button state
                 const submitBtn = document.getElementById('addStudentBtn');
@@ -1070,6 +1097,7 @@
                         const isConnected = await testSupabaseConnection();
                         
                         if (isConnected) {
+                            showMessage('success', 'ការតភ្ជាប់ទៅ Supabase ដំណើរការបានល្អ');
                             showAlert(
                                 'success',
                                 'ជោគជ័យ!',
@@ -1077,6 +1105,7 @@
                                 false
                             );
                         } else {
+                            showMessage('error', 'មិនអាចតភ្ជាប់ទៅ Supabase បានទេ');
                             showAlert(
                                 'error',
                                 'កំហុស!',
@@ -1086,6 +1115,7 @@
                         }
                     } catch (error) {
                         console.error('Connection test error:', error);
+                        showMessage('error', `កំហុសក្នុងការពិនិត្យការតភ្ជាប់: ${error.message}`);
                         showAlert(
                             'error',
                             'កំហុស!',

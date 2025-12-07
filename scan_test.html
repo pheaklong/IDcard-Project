@@ -429,10 +429,15 @@
                         <div class="scan-type-title">ជួយការងារ</div>
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
                     </div>
-                    <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
-                        <div class="scan-type-icon">💇</div>
-                        <div class="scan-type-title">ការៀបចំខ្លូន</div>
-                        <div class="scan-type-desc">សិស្សដែលត្រូវវិន័យទាក់ទងការរៀបចំខ្លួន</div>
+                    <div class="scan-type-card" data-type="key_borrower" onclick="selectScanType('key_borrower')">
+                        <div class="scan-type-icon">🔑</div>
+                        <div class="scan-type-title">អ្នកខ្ចីកូនសោ</div>
+                        <div class="scan-type-desc">សិស្សដែលបានខ្ចីកូនសោពីការិយាល័យ</div>
+                    </div>
+                    <div class="scan-type-card" data-type="equipment_borrower" onclick="selectScanType('equipment_borrower')">
+                        <div class="scan-type-icon">📚</div>
+                        <div class="scan-type-title">អ្នកខ្ចីសម្ភារៈ</div>
+                        <div class="scan-type-desc">សិស្សដែលបានខ្ចីសម្ភារៈពីការិយាល័យ</div>
                     </div>
                 </div>
             </div>
@@ -471,6 +476,10 @@
                         <div class="subtype-card" data-subtype="phone" onclick="selectDisciplineSubtype('phone')">
                             <div class="subtype-icon">📱</div>
                             <div class="subtype-title">លេងទូរស័ព្ទ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="cuthuir2" onclick="selectDisciplineSubtype('cuthuir2')">
+                            <div class="subtype-icon">💇</div>
+                            <div class="subtype-title">កាត់សក់</div>
                         </div>
                         <div class="subtype-card" data-subtype="escape" onclick="selectDisciplineSubtype('escape')">
                             <div class="subtype-icon">🏃</div>
@@ -620,10 +629,15 @@
                 description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
                 table: "helpful_reports"
             },
-            haircut: {
-                title: "សិស្សត្រូវកាត់សក់",
-                description: "ស្កេនសិស្សដែលត្រូវកាត់សក់តាមវិន័យ",
-                table: "haircut_reports"
+            key_borrower: {
+                title: "អ្នកខ្ចីកូនសោ",
+                description: "ស្កេនសិស្សដែលបានខ្ចីកូនសោពីការិយាល័យ",
+                table: "key_borrowing_reports"
+            },
+            equipment_borrower: {
+                title: "អ្នកខ្ចីសម្ភារៈ",
+                description: "ស្កេនសិស្សដែលបានខ្ចីសម្ភារៈពីការិយាល័យ",
+                table: "equipment_borrowing_reports"
             }
         };
 
@@ -636,6 +650,7 @@
             fight: { title: "វ៉ៃគ្នា", icon: "👊" },
             litter: { title: "ចោលសំរាម", icon: "🗑️" },
             phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
+            cuthuir2:{ title: "កាត់សក់", icon: "💇"},
             escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
             other: { title: "ផ្សេងៗ", icon: "📝" }
         };
@@ -1375,7 +1390,13 @@
                 }
 
                 // Test all report tables
-                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'haircut_reports'];
+                const tablesToTest = [
+                    'attendance_reports', 
+                    'discipline_reports', 
+                    'helpful_reports', 
+                    'key_borrowing_reports',  // បានបន្ថែម
+                    'equipment_borrowing_reports'  // បានបន្ថែម
+                ];
                 
                 for (const tableName of tablesToTest) {
                     try {

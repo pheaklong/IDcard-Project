@@ -397,15 +397,79 @@
             padding-right: 30px !important;
         }
 
-        /* Additional styles for discipline description */
-        .discipline-description {
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .btn-return, .btn-note {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-return {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-return:hover:not(:disabled) {
+            background: var(--success-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-return:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-note {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-note:hover {
+            background: #e51775;
+            transform: translateY(-2px);
+        }
+
+        /* Additional styles for borrowing tables */
+        .borrowing-description {
             max-width: 300px;
             white-space: normal;
             word-wrap: break-word;
             line-height: 1.4;
             text-align: left;
         }
-        
+
+        .return-status {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .returned {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .not-returned {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         /* Ensure table columns have proper spacing */
         .data-table th:nth-child(5),
         .data-table td:nth-child(5) {
@@ -527,6 +591,17 @@
             .sortable-header {
                 padding-right: 25px !important;
             }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .btn-return, .btn-note {
+                padding: 6px 10px;
+                font-size: 11px;
+                width: 100%;
+            }
         }
 
         .badge {
@@ -556,6 +631,16 @@
         .badge-haircut {
             background: #d4edda;
             color: #155724;
+        }
+
+        .badge-key {
+            background: #e3d7ff;
+            color: #4a2b8c;
+        }
+
+        .badge-equipment {
+            background: #d1ecf1;
+            color: #0c5460;
         }
 
         /* Loading Animation */
@@ -794,6 +879,16 @@
                             <div class="report-type-icon">💇</div>
                             <div class="report-type-title">សិស្សត្រូវកាត់សក់</div>
                             <div class="report-type-desc">របាយការណ៍សិស្សដែលត្រូវកាត់សក់តាមវិន័យ</div>
+                        </div>
+                        <div class="report-type-card" data-type="key_borrower" onclick="selectReportType('key_borrower')">
+                            <div class="report-type-icon">🔑</div>
+                            <div class="report-type-title">អ្នកខ្ចីកូនសោ</div>
+                            <div class="report-type-desc">របាយការណ៍សិស្សដែលបានខ្ចីកូនសោពីការិយាល័យ</div>
+                        </div>
+                        <div class="report-type-card" data-type="equipment_borrower" onclick="selectReportType('equipment_borrower')">
+                            <div class="report-type-icon">📚</div>
+                            <div class="report-type-title">អ្នកខ្ចីសម្ភារៈ</div>
+                            <div class="report-type-desc">របាយការណ៍សិស្សដែលបានខ្ចីសម្ភារៈពីការិយាល័យ</div>
                         </div>
                         <div class="report-type-card" data-type="summary" onclick="selectReportType('summary')">
                             <div class="report-type-icon">📈</div>
@@ -1161,6 +1256,8 @@
                                     <th class="sortable-header" onclick="sortTable(4)">ប្រភេទបញ្ហា</th>
                                     <th class="sortable-header" onclick="sortTable(5)">ពេលវេលា</th>
                                     <th class="sortable-header" onclick="sortTable(6)">កាលបរិច្ឆេទ</th>
+                                    <th class="sortable-header" onclick="sortTable(7)">ស្ថានភាព</th>
+                                    <th class="sortable-header">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="report-table-body">
@@ -1185,7 +1282,7 @@
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sឈរiLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
         // Initialize Supabase client
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1241,6 +1338,24 @@
                 badge: "badge-haircut",
                 badgeText: "ត្រូវកាត់សក់",
                 problemType: "សក់"
+            },
+            key_borrower: {
+                title: "អ្នកខ្ចីកូនសោ",
+                description: "របាយការណ៍សិស្សដែលបានខ្ចីកូនសោពីការិយាល័យ",
+                table: "key_borrowing_reports",
+                type: "key_borrower",
+                badge: "badge-key",
+                badgeText: "ខ្ចីកូនសោ",
+                problemType: "ការខ្ចីកូនសោ"
+            },
+            equipment_borrower: {
+                title: "អ្នកខ្ចីសម្ភារៈ",
+                description: "របាយការណ៍សិស្សដែលបានខ្ចីសម្ភារៈពីការិយាល័យ",
+                table: "equipment_borrowing_reports",
+                type: "equipment_borrower",
+                badge: "badge-equipment",
+                badgeText: "ខ្ចីសម្ភារៈ",
+                problemType: "ការខ្ចីសម្ភារៈ"
             },
             summary: {
                 title: "របាយការណ៍សង្ខេប",
@@ -1521,6 +1636,157 @@
             sortDisciplineSummaryTable(6); // Column 6 is last discipline date
         }
 
+        // ========== ITEM RETURN FUNCTIONS ==========
+
+        // Function to handle item return
+        async function returnItem(studentId, type, reportId) {
+            const studentName = document.querySelector(`tr[data-id="${reportId}"] td:nth-child(2)`).textContent.trim();
+            const confirmReturn = confirm(`តើអ្នកចង់សម្គាល់ថាសិស្ស ${studentName} បានសងវិញហើយមែនទេ?`);
+            
+            if (confirmReturn) {
+                try {
+                    const tableName = reportTypes[type].table;
+                    const currentTime = new Date().toISOString();
+                    const adminUsername = localStorage.getItem('adminUsername') || 'Unknown';
+                    
+                    console.log(`🔄 Marking item as returned for student ${studentId} in table ${tableName}`);
+                    
+                    // Update in Supabase
+                    const { data, error } = await supabase
+                        .from(tableName)
+                        .update({ 
+                            returned: true,
+                            returned_at: currentTime,
+                            returned_by: adminUsername
+                        })
+                        .eq('id', reportId);
+
+                    if (error) {
+                        console.error('❌ Supabase error:', error);
+                        
+                        // Fallback to localStorage if Supabase fails
+                        const key = `${type}Reports`;
+                        const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                        const updatedReports = reports.map(report => {
+                            if (report.id === reportId) {
+                                return {
+                                    ...report,
+                                    returned: true,
+                                    returned_at: currentTime,
+                                    returned_by: adminUsername
+                                };
+                            }
+                            return report;
+                        });
+                        localStorage.setItem(key, JSON.stringify(updatedReports));
+                        
+                        console.log(`✅ Marked as returned in localStorage`);
+                        alert('✅ បានសម្គាល់ការសងវិញដោយជោគជ័យ (Local)!');
+                    } else {
+                        console.log('✅ Successfully marked as returned in Supabase:', data);
+                        
+                        // Also update in localStorage for consistency
+                        const key = `${type}Reports`;
+                        const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                        const updatedReports = reports.map(report => {
+                            if (report.id === reportId) {
+                                return {
+                                    ...report,
+                                    returned: true,
+                                    returned_at: currentTime,
+                                    returned_by: adminUsername
+                                };
+                            }
+                            return report;
+                        });
+                        localStorage.setItem(key, JSON.stringify(updatedReports));
+                        
+                        alert('✅ បានសម្គាល់ការសងវិញដោយជោគជ័យ!');
+                    }
+                    
+                    // Reload the report
+                    loadReportData();
+                    
+                } catch (error) {
+                    console.error('❌ Error marking item as returned:', error);
+                    alert('❗ កំហុសក្នុងការសម្គាល់ការសងវិញ: ' + error.message);
+                }
+            }
+        }
+
+        // Function to add a note
+        function addNote(reportId) {
+            const currentNote = document.querySelector(`tr[data-id="${reportId}"] .note-content`)?.textContent || '';
+            const note = prompt('សូមបញ្ចូលចំណាំអំពីការខ្ចីនេះ:', currentNote);
+            
+            if (note !== null) {
+                try {
+                    const tableName = reportTypes[currentReportType].table;
+                    const currentTime = new Date().toISOString();
+                    
+                    console.log(`📝 Adding note for report ${reportId} in table ${tableName}`);
+                    
+                    // Update in Supabase
+                    supabase
+                        .from(tableName)
+                        .update({ 
+                            note: note,
+                            note_updated_at: currentTime
+                        })
+                        .eq('id', reportId)
+                        .then(({ error }) => {
+                            if (error) {
+                                console.error('❌ Supabase error:', error);
+                                
+                                // Fallback to localStorage
+                                const key = `${currentReportType}Reports`;
+                                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                                const updatedReports = reports.map(report => {
+                                    if (report.id === reportId) {
+                                        return {
+                                            ...report,
+                                            note: note,
+                                            note_updated_at: currentTime
+                                        };
+                                    }
+                                    return report;
+                                });
+                                localStorage.setItem(key, JSON.stringify(updatedReports));
+                                
+                                console.log(`✅ Note added in localStorage`);
+                                alert('✅ បានបន្ថែមចំណាំដោយជោគជ័យ (Local)!');
+                            } else {
+                                console.log('✅ Successfully added note in Supabase');
+                                
+                                // Also update in localStorage
+                                const key = `${currentReportType}Reports`;
+                                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                                const updatedReports = reports.map(report => {
+                                    if (report.id === reportId) {
+                                        return {
+                                            ...report,
+                                            note: note,
+                                            note_updated_at: currentTime
+                                        };
+                                    }
+                                    return report;
+                                });
+                                localStorage.setItem(key, JSON.stringify(updatedReports));
+                                
+                                alert('✅ បានបន្ថែមចំណាំដោយជោគជ័យ!');
+                            }
+                            
+                            // Reload the report
+                            loadReportData();
+                        });
+                        
+                } catch (error) {
+                    console.error('❌ Error adding note:', error);
+                    alert('❗ កំហុសក្នុងការបន្ថែមចំណាំ: ' + error.message);
+                }
+            }
+        }
+
         // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
 
         // ផ្ទុកទិន្នន័យរបាយការណ៍សង្ខេបសិស្សមិនគោរពវិន័យ
@@ -1750,7 +2016,7 @@
                         <td>${student.class}</td>
                         <td>${student.gender}</td>
                         <td><strong style="color: var(--danger); font-size: 1.1rem;">${student.discipline_count}</strong> ដង</td>
-                        <td class="discipline-description">${student.main_problem}</td>
+                        <td class="borrowing-description">${student.main_problem}</td>
                         <td>${lastDisciplineDate}</td>
                         <td><span class="badge ${statusClass}">${status}</span></td>
                     </tr>
@@ -1878,7 +2144,7 @@
                         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
                         th { background-color: #f5f5f5; font-weight: bold; }
                         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
-                        .discipline-description { max-width: 300px; word-wrap: break-word; }
+                        .borrowing-description { max-width: 300px; word-wrap: break-word; }
                     </style>
                 </head>
                 <body>
@@ -1932,7 +2198,7 @@
                                         <td>${student.class}</td>
                                         <td>${student.gender}</td>
                                         <td><strong>${student.discipline_count} ដង</strong></td>
-                                        <td class="discipline-description">${student.main_problem}</td>
+                                        <td class="borrowing-description">${student.main_problem}</td>
                                         <td>${lastDisciplineDate}</td>
                                         <td>${status}</td>
                                     </tr>
@@ -2608,8 +2874,27 @@
                     problemTypeText = reportTypes[currentReportType].problemType;
                 }
                 
+                // កំណត់ស្ថានភាពសងវិញ (សម្រាប់តារាងខ្ចីប៉ុណ្ណោះ)
+                let returnStatus = '';
+                let returnStatusClass = '';
+                let showActions = false;
+                
+                if (currentReportType === 'key_borrower' || currentReportType === 'equipment_borrower') {
+                    showActions = true;
+                    if (report.returned) {
+                        returnStatus = '✅ បានសងហើយ';
+                        returnStatusClass = 'returned';
+                    } else {
+                        returnStatus = '⏳ មិនទាន់សង';
+                        returnStatusClass = 'not-returned';
+                    }
+                }
+                
+                // កំណត់ចំណាំ
+                const noteContent = report.note || '';
+                
                 html += `
-                    <tr>
+                    <tr data-id="${report.id || index}">
                         <td>${index + 1}</td>
                         <td>
                             <div><strong>${report.name}</strong></div>
@@ -2617,11 +2902,28 @@
                         </td>
                         <td>${report.class}</td>
                         <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                        <td class="discipline-description">
+                        <td class="borrowing-description">
                             <div>${problemTypeText}</div>
+                            ${noteContent ? `<div style="font-size: 0.8rem; color: var(--warning); margin-top: 4px;">📝 ${noteContent}</div>` : ''}
                         </td>
                         <td>${report.scan_time || report.late_time || 'N/A'}</td>
                         <td>${displayDate}</td>
+                        <td>
+                            ${showActions ? `<span class="return-status ${returnStatusClass}">${returnStatus}</span>` : '<span class="badge ' + reportTypes[currentReportType].badge + '">' + reportTypes[currentReportType].badgeText + '</span>'}
+                        </td>
+                        <td>
+                            ${showActions ? `
+                                <div class="action-buttons">
+                                    <button class="btn-return" onclick="returnItem('${report.student_id}', '${currentReportType}', '${report.id || index}')" 
+                                            ${report.returned ? 'disabled' : ''}>
+                                        ${report.returned ? '✅ បានសងហើយ' : '🔄 សងវិញ'}
+                                    </button>
+                                    <button class="btn-note" onclick="addNote('${report.id || index}')">
+                                        📝 កំណត់ចំណាំ
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </td>
                     </tr>
                 `;
             });
@@ -2694,16 +2996,35 @@
                         problemTypeText = reportTypes[currentReportType].problemType;
                     }
                     
-                    return {
+                    let returnStatus = '';
+                    if (currentReportType === 'key_borrower' || currentReportType === 'equipment_borrower') {
+                        returnStatus = report.returned ? 'បានសងហើយ' : 'មិនទាន់សង';
+                    }
+                    
+                    const note = report.note || '';
+                    
+                    const data = {
                         'ល.រ': index + 1,
                         'ឈ្មោះសិស្ស': report.name,
                         'អត្តលេខ': report.student_id,
                         'ថ្នាក់': report.class,
                         'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
                         'ប្រភេទបញ្ហា': problemTypeText,
+                        'ចំណាំ': note,
                         'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
                         'កាលបរិច្ឆេទ': displayDate
                     };
+                    
+                    if (currentReportType === 'key_borrower' || currentReportType === 'equipment_borrower') {
+                        data['ស្ថានភាពសងវិញ'] = returnStatus;
+                        if (report.returned && report.returned_at) {
+                            const returnedDate = new Date(report.returned_at).toLocaleDateString('km-KH');
+                            data['កាលបរិច្ឆេទសងវិញ'] = returnedDate;
+                            data['សងដោយ'] = report.returned_by || 'មិនមានទិន្នន័យ';
+                        }
+                    }
+                    
+                    return data;
                 });
                 
                 const ws = XLSX.utils.json_to_sheet(excelData);
@@ -2715,6 +3036,8 @@
                     case 'discipline': sheetName = 'សិស្សមិនគោរពវិន័យ'; break;
                     case 'helpful': sheetName = 'សិស្សជួយការងារ'; break;
                     case 'haircut': sheetName = 'សិស្សត្រូវកាត់សក់'; break;
+                    case 'key_borrower': sheetName = 'អ្នកខ្ចីកូនសោ'; break;
+                    case 'equipment_borrower': sheetName = 'អ្នកខ្ចីសម្ភារៈ'; break;
                     default: sheetName = 'ទិន្នន័យសិស្ស';
                 }
                 
@@ -2771,7 +3094,9 @@
                         th { background-color: #f5f5f5; font-weight: bold; }
                         .summary { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
                         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
-                        .discipline-description { max-width: 300px; word-wrap: break-word; }
+                        .borrowing-description { max-width: 300px; word-wrap: break-word; }
+                        .returned { color: green; font-weight: bold; }
+                        .not-returned { color: red; font-weight: bold; }
                     </style>
                 </head>
                 <body>
@@ -2791,6 +3116,7 @@
                                 <th>ប្រភេទបញ្ហា</th>
                                 <th>ពេលវេលា</th>
                                 <th>កាលបរិច្ឆេទ</th>
+                                ${currentReportType === 'key_borrower' || currentReportType === 'equipment_borrower' ? '<th>ស្ថានភាពសងវិញ</th>' : ''}
                             </tr>
                         </thead>
                         <tbody>
@@ -2809,15 +3135,29 @@
                                     problemTypeText = reportTypes[currentReportType].problemType;
                                 }
                                 
+                                const note = report.note || '';
+                                const noteHtml = note ? `<br><small style="color: #666;">📝 ${note}</small>` : '';
+                                
+                                let returnStatus = '';
+                                if (currentReportType === 'key_borrower' || currentReportType === 'equipment_borrower') {
+                                    if (report.returned) {
+                                        const returnedDate = report.returned_at ? new Date(report.returned_at).toLocaleDateString('km-KH') : '';
+                                        returnStatus = `<td class="returned">✅ បានសងហើយ<br><small>${returnedDate}</small></td>`;
+                                    } else {
+                                        returnStatus = '<td class="not-returned">⏳ មិនទាន់សង</td>';
+                                    }
+                                }
+                                
                                 return `
                                     <tr>
                                         <td>${index + 1}</td>
                                         <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
                                         <td>${report.class}</td>
                                         <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                                        <td class="discipline-description">${problemTypeText}</td>
+                                        <td class="borrowing-description">${problemTypeText}${noteHtml}</td>
                                         <td>${report.scan_time || report.late_time || 'N/A'}</td>
                                         <td>${displayDate}</td>
+                                        ${returnStatus}
                                     </tr>
                                 `;
                             }).join('')}

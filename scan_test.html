@@ -411,6 +411,9 @@
         </div>
         
         <div class="content">
+            <!-- Connection Status Warning -->
+            <div id="connection-warning" style="display: none;"></div>
+            
             <div class="card">
                 <h2>📋 ជ្រើសរើសប្រភេទសិស្ស</h2>
                 <div class="scan-type-grid">
@@ -571,9 +574,9 @@
     </div>
 
     <script>
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        // Supabase Configuration - UPDATE THESE WITH YOUR OWN CREDENTIALS
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co'; // Replace with your Supabase URL
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I'; // Replace with your anon key
         
         // Initialize Supabase
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -601,6 +604,7 @@
         const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
         const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
         const otherDescription = document.getElementById('otherDescription');
+        const connectionWarningDiv = document.getElementById('connection-warning');
 
         // Global Variables
         let stream = null;
@@ -611,6 +615,8 @@
         let scanAnimationFrame = null;
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
+        let isOnline = true;
+        let connectionTestResults = {};
 
         // Scan Types Configuration
         const scanTypes = {
@@ -658,9 +664,20 @@
         // Initialize App
         async function initApp() {
             console.log('🚀 Starting app initialization...');
+            
+            // Test connection first
+            connectionTestResults = await testAllTables();
+            
+            // Check if students table exists
+            if (!connectionTestResults.students || !connectionTestResults.students.exists) {
+                showConnectionWarning();
+            }
+            
             await fetchStudents();
             await updateAllStats();
-            testSupabaseConnection();
+            
+            // Set up online/offline detection
+            setupConnectionMonitoring();
         }
 
         // Select Scan Type
@@ -937,6 +954,12 @@
                 
                 console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
                 
+                // First check if table exists
+                if (connectionTestResults[tableName] && !connectionTestResults[tableName].exists) {
+                    console.log(`Table ${tableName} doesn't exist, checking localStorage instead`);
+                    return checkStudentScanTimeLimitLocal(studentId);
+                }
+                
                 const { data, error } = await supabase
                     .from(tableName)
                     .select('timestamp')
@@ -968,8 +991,32 @@
 
             } catch (error) {
                 console.error('Error checking student scan time limit:', error);
+                return checkStudentScanTimeLimitLocal(studentId);
+            }
+        }
+
+        // Check time limit from localStorage
+        function checkStudentScanTimeLimitLocal(studentId) {
+            const key = `${selectedScanType}Reports`;
+            const reports = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            // Find latest scan for this student
+            const studentScans = reports.filter(report => report.student_id === studentId);
+            if (studentScans.length === 0) {
                 return { withinLimit: false, remainingTime: 0 };
             }
+            
+            // Sort by timestamp (newest first)
+            studentScans.sort((a, b) => b.timestamp - a.timestamp);
+            const lastScanTime = studentScans[0].timestamp;
+            const currentTime = new Date().getTime();
+            const timeDiff = currentTime - lastScanTime;
+            const remainingTime = TIME_LIMIT_MS - timeDiff;
+            
+            return {
+                withinLimit: timeDiff < TIME_LIMIT_MS,
+                remainingTime: remainingTime > 0 ? remainingTime : 0
+            };
         }
 
         // Restart Scanning
@@ -983,7 +1030,7 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Record Student - Updated to include discipline subtype and custom description
+        // Record Student - Main function to save student record
         async function recordStudent(student) {
             const now = new Date();
             const record = {
@@ -1001,7 +1048,6 @@
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
                 
-                // For "other" subtype, use custom description
                 if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
                     record.discipline_description = otherDescription.value.trim();
                 } else {
@@ -1010,9 +1056,18 @@
             }
 
             try {
-                console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
+                console.log(`💾 Attempting to save to: ${scanTypes[selectedScanType].table}`);
                 
                 const tableName = scanTypes[selectedScanType].table;
+                
+                // Check if table exists before trying to save
+                if (connectionTestResults[tableName] && !connectionTestResults[tableName].exists) {
+                    console.log(`Table ${tableName} doesn't exist, using fallback`);
+                    const result = await tryAlternativeTable(record);
+                    displayRecordSuccess(student, record, result);
+                    return;
+                }
+                
                 const { data, error } = await supabase
                     .from(tableName)
                     .insert([record])
@@ -1021,61 +1076,46 @@
                 if (error) {
                     console.error('❌ Supabase error:', error);
                     
-                    if (error.message.includes('row-level security policy')) {
-                        showError('កំហុសសុវត្ថិភាព៖ មិនមានសិទ្ធិកត់ត្រាទិន្នន័យក្នុងតារាងនេះ');
-                        await tryAlternativeTable(record);
+                    if (error.code === '42501' || error.message.includes('policy')) {
+                        console.log('🔒 Row Level Security policy violation, trying alternative...');
+                        const result = await tryAlternativeTable(record);
+                        displayRecordSuccess(student, record, result);
+                        
+                    } else if (error.code === '42P01') {
+                        // Table doesn't exist
+                        console.error('❌ Table does not exist:', tableName);
+                        showError(`
+                            ❌ តារាង "${tableName}" មិនមាននៅក្នុងប្រព័ន្ធ<br>
+                            <small>សូមទាក់ទងអ្នកគ្រប់គ្រងប្រព័ន្ធ</small>
+                        `);
+                        
+                        // Still save to localStorage as backup
+                        saveToLocalStorage(record);
+                        displayLocalBackupSuccess(student, record);
+                        
                     } else {
+                        // Other database errors
                         throw error;
                     }
                 } else {
                     console.log('✅ Successfully saved to Supabase:', data);
-
-                    // Save to localStorage as backup
-                    saveToLocalStorage(record);
+                    saveToLocalStorage(record); // Backup to localStorage
+                    displayRecordSuccess(student, record, {
+                        success: true,
+                        message: 'ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ',
+                        data: data
+                    });
                     
-                    // Prepare success message
-                    let successMessage = `
-                        ✅ កត់ត្រាបានជោគ!<br>
-                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
-                        <strong>ថ្នាក់:</strong> ${student.class}<br>
-                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                    `;
-                    
-                    // Add discipline subtype info if applicable
-                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
-                    }
-                    
-                    successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
-                    successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>`;
-                    
-                    showSuccess(successMessage);
                     await updateAllStats();
                 }
 
             } catch (error) {
-                console.error('❌ Error saving to Supabase:', error);
+                console.error('❌ Error in recordStudent:', error);
                 
-                // Fallback to localStorage
+                // Ultimate fallback
                 saveToLocalStorage(record);
+                displayLocalBackupSuccess(student, record);
                 
-                let successMessage = `
-                    ✅ កត់ត្រាបានជោគ! (Local)<br>
-                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                    <strong>ឈ្មោះ:</strong> ${student.name}<br>
-                    <strong>ថ្នាក់:</strong> ${student.class}<br>
-                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                `;
-                
-                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
-                }
-                
-                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
-                successMessage += `<small>កំហុស: ${error.message}</small>`;
-                
-                showSuccess(successMessage);
                 await updateAllStats();
             }
 
@@ -1085,35 +1125,120 @@
         // Try alternative table if RLS policy fails
         async function tryAlternativeTable(record) {
             try {
+                console.log(`🔄 Trying alternative table for ${record.student_id}`);
+                
+                // Try student_reports table first
+                let alternativeTable = 'student_reports';
+                
+                // Check if student_reports exists
+                if (connectionTestResults[alternativeTable] && !connectionTestResults[alternativeTable].exists) {
+                    alternativeTable = 'all_student_reports';
+                }
+                
+                // Check if all_student_reports exists
+                if (connectionTestResults[alternativeTable] && !connectionTestResults[alternativeTable].exists) {
+                    console.log('No alternative tables available, using localStorage only');
+                    saveToLocalStorage(record);
+                    return {
+                        success: false,
+                        message: 'ទិន្នន័យត្រូវបានរក្សាទុកក្នុងឧបករណ៍តែប៉ុណ្ណោះ',
+                        data: record
+                    };
+                }
+                
+                // Add metadata about the original intended table
+                record.original_table = scanTypes[selectedScanType].table;
+                record.recorded_at = new Date().toISOString();
+                
                 const { data, error } = await supabase
-                    .from('student_reports')
+                    .from(alternativeTable)
                     .insert([record])
                     .select();
 
-                if (error) throw error;
-                
-                console.log('✅ Successfully saved to alternative table:', data);
-                
-                let successMessage = `
-                    ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
-                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                    <strong>ឈ្មោះ:</strong> ${record.name}<br>
-                    <strong>ថ្នាក់:</strong> ${record.class}<br>
-                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-                `;
-                
-                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                if (error) {
+                    console.error('❌ Alternative table also failed:', error);
+                    
+                    // Try localStorage as final fallback
+                    const fallbackRecord = {
+                        ...record,
+                        fallback_save: true,
+                        saved_at: new Date().getTime()
+                    };
+                    
+                    saveToLocalStorage(fallbackRecord);
+                    
+                    return {
+                        success: false,
+                        message: 'ទិន្នន័យត្រូវបានរក្សាទុកក្នុងឧបករណ៍តែប៉ុណ្ណោះ',
+                        data: fallbackRecord
+                    };
                 }
                 
-                successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;
+                console.log('✅ Successfully saved to alternative table:', data);
+                return {
+                    success: true,
+                    message: 'ទិន្នន័យត្រូវបានរក្សាទុងក្នុងតារាងជំនួស',
+                    data: data
+                };
                 
-                showSuccess(successMessage);
-                await updateAllStats();
             } catch (altError) {
-                console.error('❌ Error saving to alternative table:', altError);
-                throw altError;
+                console.error('❌ Error in alternative table handler:', altError);
+                
+                // Ultimate fallback to localStorage
+                const fallbackRecord = {
+                    ...record,
+                    fallback_save: true,
+                    saved_at: new Date().getTime()
+                };
+                
+                saveToLocalStorage(fallbackRecord);
+                
+                return {
+                    success: false,
+                    message: 'ទិន្នន័យត្រូវបានរក្សាទុកក្នុងឧបករណ៍ (កំហុសធ្ងន់)',
+                    data: fallbackRecord
+                };
             }
+        }
+
+        // Display success message for record
+        function displayRecordSuccess(student, record, saveResult) {
+            let successMessage = `
+                ✅ កត់ត្រាបានជោគ!<br>
+                <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                <strong>ថ្នាក់:</strong> ${student.class}<br>
+                <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                ${selectedScanType === 'discipline' && selectedDisciplineSubtype ? 
+                `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>` : ''}
+                <strong>ស្ថានភាព:</strong> ${saveResult.message}<br>
+            `;
+            
+            if (!saveResult.success) {
+                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកក្នុងឧបករណ៍តែប៉ុណ្ណោះ</p>`;
+            }
+            
+            showSuccess(successMessage);
+            
+            // Update scanned count
+            updateScannedCount();
+        }
+
+        // Display local backup success
+        function displayLocalBackupSuccess(student, record) {
+            let successMessage = `
+                ✅ កត់ត្រាបានជោគ! (Local Backup)<br>
+                <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                <strong>ថ្នាក់:</strong> ${student.class}<br>
+                <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                ${selectedScanType === 'discipline' && selectedDisciplineSubtype ? 
+                `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>` : ''}
+                <p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>
+            `;
+            
+            showSuccess(successMessage);
+            updateScannedCount();
         }
 
         // Save to localStorage
@@ -1123,7 +1248,8 @@
             const localRecord = {
                 ...record,
                 date: new Date().toDateString(),
-                timestamp: new Date().getTime()
+                timestamp: new Date().getTime(),
+                saved_locally: true
             };
             existing.push(localRecord);
             localStorage.setItem(key, JSON.stringify(existing));
@@ -1134,6 +1260,13 @@
         async function fetchStudents() {
             try {
                 console.log('Fetching students...');
+                
+                // Check if students table exists
+                if (connectionTestResults.students && !connectionTestResults.students.exists) {
+                    console.warn('Students table does not exist, using localStorage fallback');
+                    loadStudentsFromLocalStorage();
+                    return;
+                }
                 
                 let allStudents = [];
                 let page = 0;
@@ -1168,10 +1301,27 @@
                 totalStudentsElement.textContent = students.length;
                 console.log(`Fetched ${students.length} students`);
                 
+                // Save to localStorage as backup
+                localStorage.setItem('students_backup', JSON.stringify(students));
+                
             } catch (error) {
                 console.error('Error fetching students:', error);
+                loadStudentsFromLocalStorage();
+            }
+        }
+
+        // Load students from localStorage
+        function loadStudentsFromLocalStorage() {
+            const backup = localStorage.getItem('students_backup');
+            if (backup) {
+                students = JSON.parse(backup);
+                totalStudentsElement.textContent = students.length;
+                console.log(`Loaded ${students.length} students from localStorage backup`);
+                showWarning('⚠️ ទាញយកទិន្នន័យសិស្សពីការទុកជាមួយឧបករណ៍');
+            } else {
                 students = [];
-                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន');
+                totalStudentsElement.textContent = '0';
+                showError('⚠️ មិនមានទិន្នន័យសិស្ស');
             }
         }
 
@@ -1190,6 +1340,17 @@
 
                 for (const type in scanTypes) {
                     const tableName = scanTypes[type].table;
+                    
+                    // Check if table exists
+                    if (connectionTestResults[tableName] && !connectionTestResults[tableName].exists) {
+                        // Use localStorage fallback
+                        const key = `${type}Reports`;
+                        const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                        const todayScans = reports.filter(report => report.date === new Date().toDateString());
+                        totalScans += todayScans.length;
+                        continue;
+                    }
+                    
                     try {
                         const { data, error } = await supabase
                             .from(tableName)
@@ -1202,6 +1363,11 @@
                         }
                     } catch (tableError) {
                         console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
+                        // Fallback to localStorage
+                        const key = `${type}Reports`;
+                        const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                        const todayScans = reports.filter(report => report.date === new Date().toDateString());
+                        totalScans += todayScans.length;
                     }
                 }
 
@@ -1210,7 +1376,7 @@
                 
             } catch (error) {
                 console.error('Error updating scan count:', error);
-                // Fallback to localStorage
+                // Fallback to localStorage only
                 let totalScans = 0;
                 for (const type in scanTypes) {
                     const key = `${type}Reports`;
@@ -1231,6 +1397,21 @@
                 const today = new Date().toISOString().split('T')[0];
                 const tableName = scanTypes[selectedScanType].table;
                 
+                // Check if table exists
+                if (connectionTestResults[tableName] && !connectionTestResults[tableName].exists) {
+                    // Use localStorage fallback
+                    const key = `${selectedScanType}Reports`;
+                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                    const todayScans = reports.filter(report => report.date === new Date().toDateString());
+                    selectedTypeCountElement.textContent = todayScans.length;
+                    let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                    }
+                    selectedTypeLabelElement.textContent = label;
+                    return;
+                }
+                
                 console.log(`📊 Updating stats for ${selectedScanType} from table ${tableName}`);
                 
                 const { data, error } = await supabase
@@ -1248,6 +1429,11 @@
                     console.log(`📈 ${selectedScanType} scans today: ${data.length}`);
                 } else {
                     console.error('Error fetching selected type stats:', error);
+                    // Fallback to localStorage
+                    const key = `${selectedScanType}Reports`;
+                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                    const todayScans = reports.filter(report => report.date === new Date().toDateString());
+                    selectedTypeCountElement.textContent = todayScans.length;
                 }
             } catch (error) {
                 console.error('Error updating selected type stats:', error);
@@ -1324,7 +1510,7 @@
             studentList.innerHTML = '';
             
             if (students.length === 0) {
-                studentList.innerHTML = '<div>មិនមានទិន្នន័យសិស្ស</div>';
+                studentList.innerHTML = '<div class="message message-warning">មិនមានទិន្នន័យសិស្ស</div>';
                 return;
             }
             
@@ -1334,11 +1520,14 @@
                 studentItem.style.padding = '10px';
                 studentItem.style.borderBottom = '1px solid #eee';
                 studentItem.style.cursor = 'pointer';
+                studentItem.style.transition = 'background 0.3s';
+                studentItem.onmouseover = () => studentItem.style.background = '#f8f9fa';
+                studentItem.onmouseout = () => studentItem.style.background = 'white';
                 studentItem.onclick = () => selectStudent(student);
                 
                 studentItem.innerHTML = `
                     <strong>${student.name}</strong><br>
-                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</small>
+                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class} | ភេទ: ${student.gender || 'មិនមាន'}</small>
                 `;
                 
                 studentList.appendChild(studentItem);
@@ -1372,52 +1561,159 @@
             }
         }
 
-        // Test Supabase Connection and Tables
-        async function testSupabaseConnection() {
-            try {
-                console.log('🔗 Testing Supabase connection and tables...');
-                
-                // Test connection to students table
-                const { data: studentsData, error: studentsError } = await supabase
-                    .from('students')
-                    .select('*')
-                    .limit(1);
-
-                if (studentsError) {
-                    console.warn('❌ Students table connection failed:', studentsError);
-                } else {
-                    console.log('✅ Students table connection successful');
+        // Test all possible table connections
+        async function testAllTables() {
+            const tables = [
+                'students',
+                'attendance_reports',
+                'discipline_reports', 
+                'helpful_reports',
+                'key_borrowing_reports',
+                'equipment_borrowing_reports',
+                'student_reports',
+                'all_student_reports'
+            ];
+            
+            const results = {};
+            
+            for (const table of tables) {
+                try {
+                    const { data, error } = await supabase
+                        .from(table)
+                        .select('*')
+                        .limit(1);
+                    
+                    results[table] = {
+                        exists: !error,
+                        error: error ? error.message : null,
+                        count: data ? data.length : 0
+                    };
+                    
+                    console.log(`${table}: ${error ? '❌' : '✅'} ${error ? error.message : 'Connected'}`);
+                } catch (e) {
+                    results[table] = {
+                        exists: false,
+                        error: e.message,
+                        count: 0
+                    };
+                    console.log(`${table}: ❌ ${e.message}`);
                 }
+            }
+            
+            return results;
+        }
 
-                // Test all report tables
-                const tablesToTest = [
-                    'attendance_reports', 
-                    'discipline_reports', 
-                    'helpful_reports', 
-                    'key_borrowing_reports',  // បានបន្ថែម
-                    'equipment_borrowing_reports'  // បានបន្ថែម
-                ];
+        // Show connection warning
+        function showConnectionWarning() {
+            connectionWarningDiv.innerHTML = `
+                <div class="message message-warning">
+                    ⚠️ <strong>ការភ្ជាប់ប្រព័ន្ធមានបញ្ហា</strong><br>
+                    ប្រព័ន្ធនេះកំពុងប្រើទិន្នន័យពីការទុកជាមួយឧបករណ៍តែប៉ុណ្ណោះ។ 
+                    ទិន្នន័យថ្មីនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍រហូតទាល់តែការភ្ជាប់ត្រូវបានស្ដារ។
+                </div>
+            `;
+            connectionWarningDiv.style.display = 'block';
+        }
+
+        // Hide connection warning
+        function hideConnectionWarning() {
+            connectionWarningDiv.style.display = 'none';
+        }
+
+        // Setup connection monitoring
+        function setupConnectionMonitoring() {
+            // Check online/offline status
+            isOnline = navigator.onLine;
+            
+            window.addEventListener('online', async () => {
+                isOnline = true;
+                console.log('🌐 Connection restored');
+                showSuccess('✅ ការភ្ជាប់ប្រព័ន្ធត្រូវបានស្ដារ');
                 
-                for (const tableName of tablesToTest) {
+                // Retry connection test
+                connectionTestResults = await testAllTables();
+                
+                // Hide warning if students table exists
+                if (connectionTestResults.students && connectionTestResults.students.exists) {
+                    hideConnectionWarning();
+                }
+                
+                // Sync local data to server if needed
+                await syncLocalData();
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                console.log('📴 Connection lost');
+                showWarning('⚠️ បាត់ការភ្ជាប់អ៊ីនធឺណិត។ ទិន្នន័យត្រូវរក្សាទុកក្នុងឧបករណ៍');
+            });
+            
+            // Initial check
+            if (!isOnline) {
+                showWarning('⚠️ គ្មានការភ្ជាប់អ៊ីនធឺណិត។ ទិន្នន័យត្រូវរក្សាទុកក្នុងឧបករណ៍');
+            }
+        }
+
+        // Sync local data to server
+        async function syncLocalData() {
+            if (!isOnline) return;
+            
+            console.log('🔄 Attempting to sync local data to server...');
+            
+            // Sync each scan type
+            for (const type in scanTypes) {
+                const key = `${type}Reports`;
+                const localReports = JSON.parse(localStorage.getItem(key) || '[]');
+                
+                // Filter reports that need to be synced (those with saved_locally flag)
+                const reportsToSync = localReports.filter(report => report.saved_locally);
+                
+                if (reportsToSync.length > 0) {
+                    console.log(`Found ${reportsToSync.length} ${type} reports to sync`);
+                    
                     try {
+                        const tableName = scanTypes[type].table;
+                        
+                        // Prepare data for sync
+                        const syncData = reportsToSync.map(report => ({
+                            student_id: report.student_id,
+                            name: report.name,
+                            class: report.class,
+                            gender: report.gender,
+                            scan_time: report.scan_time,
+                            date: report.date,
+                            timestamp: new Date(report.timestamp).toISOString(),
+                            scan_type: report.scan_type,
+                            discipline_subtype: report.discipline_subtype,
+                            discipline_description: report.discipline_description
+                        }));
+                        
                         const { data, error } = await supabase
                             .from(tableName)
-                            .select('*')
-                            .limit(1);
-
+                            .insert(syncData);
+                        
                         if (error) {
-                            console.warn(`❌ Table ${tableName} connection failed:`, error);
+                            console.error(`Error syncing ${type} reports:`, error);
                         } else {
-                            console.log(`✅ Table ${tableName} connection successful`);
+                            console.log(`Successfully synced ${reportsToSync.length} ${type} reports`);
+                            
+                            // Update local storage to remove saved_locally flag
+                            localReports.forEach(report => {
+                                if (report.saved_locally) {
+                                    report.saved_locally = false;
+                                    report.synced_at = new Date().toISOString();
+                                }
+                            });
+                            
+                            localStorage.setItem(key, JSON.stringify(localReports));
                         }
-                    } catch (tableError) {
-                        console.warn(`❌ Table ${tableName} test failed:`, tableError);
+                    } catch (error) {
+                        console.error(`Error in sync for ${type}:`, error);
                     }
                 }
-
-            } catch (error) {
-                console.warn('Supabase connection test failed:', error);
             }
+            
+            console.log('✅ Sync attempt completed');
         }
 
         // Utility Functions

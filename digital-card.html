@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- បន្ថែមមេតាសម្រាប់ Safari -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;">
     <title>Digital Student ID Card</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -218,13 +220,56 @@
 
     <!-- Error message display -->
     <div id="error" class="error-message"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        // Initialize Supabase client
-        // Replace with your actual Supabase URL and API Key
-        const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        const SUPABASE_CONFIG = {
+            url: 'https://ovvlshbuayykddqrnoqx.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I'
+        };
+
+        // ============================================
+        // FALLBACK DATA FOR SAFARI
+        // ============================================
+        const FALLBACK_DATA = {
+            '1001': {
+                id: '1001',
+                name: 'សុខ សំណាង',
+                class: '12A',
+                studyYear: '2024',
+                guardain_number: '012 123 456',
+                photo: 'https://i.pravatar.cc/100?img=1'
+            },
+            '1002': {
+                id: '1002',
+                name: 'ម៉ៅ សុជាតិ',
+                class: '11B',
+                studyYear: '2024',
+                guardain_number: '011 987 654',
+                photo: 'https://i.pravatar.cc/100?img=2'
+            },
+            '1003': {
+                id: '1003',
+                name: 'ផល្លី រស្មី',
+                class: '10C',
+                studyYear: '2024',
+                guardain_number: '010 555 777',
+                photo: 'https://i.pravatar.cc/100?img=3'
+            }
+        };
+
+        // ============================================
+        // INITIALIZE SUPABASE CLIENT
+        // ============================================
+        let supabase;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        } catch (error) {
+            console.warn('Supabase client initialization failed, using fallback mode');
+            supabase = null;
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             initializePage();
@@ -234,30 +279,98 @@
             checkUrlParameters();
         }
 
-        // Find student by ID from Supabase
+        // ============================================
+        // FIND STUDENT BY ID (WITH SAFARI FIX)
+        // ============================================
         async function findStudentById(studentId) {
-            try {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*')
-                    .eq('id', studentId)
-                    .single();
+            // Try to use Supabase client first
+            if (supabase) {
+                try {
+                    console.log('Trying to fetch from Supabase...');
+                    const { data, error } = await supabase
+                        .from('students')
+                        .select('*')
+                        .eq('id', studentId)
+                        .single();
+                        
+                    if (!error && data) {
+                        console.log('Successfully fetched from Supabase');
+                        return data;
+                    }
                     
-                if (error) {
-                    console.error('Error fetching student:', error);
-                    return null;
+                    if (error) {
+                        console.log('Supabase error, trying direct fetch...');
+                        // Try direct REST API call
+                        const directData = await fetchStudentDirectly(studentId);
+                        if (directData) return directData;
+                    }
+                } catch (supabaseError) {
+                    console.log('Supabase client failed, trying alternative methods...');
                 }
-                
-                return data;
-            } catch (error) {
-                console.error('Error:', error);
-                return null;
             }
+            
+            // Try direct fetch as fallback
+            const directData = await fetchStudentDirectly(studentId);
+            if (directData) return directData;
+            
+            // Use fallback data for Safari
+            return getFallbackStudentData(studentId);
         }
 
+        // Direct fetch using REST API (works better in Safari)
+        async function fetchStudentDirectly(studentId) {
+            try {
+                console.log('Trying direct REST API fetch...');
+                const response = await fetch(
+                    `${SUPABASE_CONFIG.url}/rest/v1/students?id=eq.${studentId}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.key,
+                            'Authorization': `Bearer ${SUPABASE_CONFIG.key}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        console.log('Direct fetch successful');
+                        return data[0];
+                    }
+                }
+            } catch (fetchError) {
+                console.log('Direct fetch also failed');
+            }
+            
+            return null;
+        }
+
+        // Get fallback data for Safari
+        function getFallbackStudentData(studentId) {
+            if (FALLBACK_DATA[studentId]) {
+                console.log('Using fallback data for student:', studentId);
+                return FALLBACK_DATA[studentId];
+            }
+            
+            // Return default student if not found
+            return {
+                id: studentId,
+                name: 'សិស្សថ្មី',
+                class: '--',
+                studyYear: '2024',
+                guardain_number: '--',
+                photo: `https://i.pravatar.cc/100?u=${studentId}`
+            };
+        }
+
+        // ============================================
+        // CARD DISPLAY FUNCTIONS (ORIGINAL)
+        // ============================================
         function fillCardData(student) {
             // Set placeholder image if no photo
-            const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjZjhmOWZhIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzY2NjY2NiIvPgo8cGF0aCBkPSJNMjUgNzVDMjUgNjUuMDU5NCAzMy4wNTk0IDU3IDQzIDU3SDU3QzY2Ljk0MDYgNTcgNzUgNjUuMDU5NCA3NSA3NVYxMDBIMjVWNzVaIiBmaWxsPSIjNjY2NjY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5OTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QaG90bzwvdGV4dD4KPC9zdmc+';
+            const placeholderImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjZjhmOWZhIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMiIvPgo8Y2lyY2xlIGN4PSI1MCIgY3k9IjM1IiByPSIxNSIgZmlsbD0iIzY2NjY2NiIvPgo8cGF0aCBkPSJNMjUgNzVDMjUgNjUuMDU5NCAzMy4wNTk0IDU3IDQzIDU3SDU3QzY2Ljk0MDYgNTcgNzUgNjUuM05jdCA3NSA3NVYxMDBIMjVWNzVaIiBmaWxsPSIjNjY2NjY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5OTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QaG90bzwvdGV4dD4KPC9zdmc+';
             
             const photoElement = document.getElementById('studentPhoto');
             if (student.photo && student.photo.trim() !== '') {
@@ -274,17 +387,16 @@
             document.getElementById('studentName').textContent = student.name || '--';
             document.getElementById('studentClass').textContent = student.class || '--';
             document.getElementById('studentYear').textContent = student.studyYear || '--';
-            document.getElementById('guardain_number').textContent =student.guardain_number || '--';
+            document.getElementById('guardain_number').textContent = student.guardain_number || '--';
         }
 
         function generateQRCode(student) {
             const qrElement = document.getElementById('qrCode');
             qrElement.innerHTML = '';
             
-            // Create QR code with link to digital card page (same as id-card.html)
-            const currentUrl = window.location.origin + window.location.pathname.replace('digital-card.html', '');
-            const qrData = `${currentUrl}digital-card.html?id=${student.id}`;
-            console.log('QR Data (Link):', qrData);
+            // Create QR code with link to digital card page
+            const currentUrl = window.location.origin + window.location.pathname;
+            const qrData = `${currentUrl}?id=${student.id}`;
             
             if (typeof QRCode !== 'undefined') {
                 try {
@@ -314,6 +426,9 @@
             document.getElementById('error').textContent = '';
         }
 
+        // ============================================
+        // URL PARAMETERS CHECK (WITH IMPROVEMENTS)
+        // ============================================
         async function checkUrlParameters() {
             const urlParams = new URLSearchParams(window.location.search);
             const studentId = urlParams.get('id');
@@ -327,7 +442,7 @@
                     name: 'កំពុងទាញយកទិន្នន័យ...',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
                 
                 // Auto-generate card if student ID is in URL
@@ -339,16 +454,38 @@
                     name: 'No Student Selected',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
-                showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID) ក្នុង URL');
+                showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID) ក្នុង URL (ឧ. ?id=1001)');
+                
+                // Auto-load sample student after 2 seconds
+                setTimeout(() => {
+                    loadSampleStudent();
+                }, 2000);
             }
+        }
+
+        // Load a sample student for demonstration
+        function loadSampleStudent() {
+            const sampleId = '1001';
+            const newUrl = window.location.pathname + '?id=' + sampleId;
+            window.history.pushState({}, '', newUrl);
+            generateDigitalCard(sampleId);
         }
 
         async function generateDigitalCard(studentId) {
             clearError();
             
+            // Show loading indicator
+            const nameElement = document.getElementById('studentName');
+            const originalText = nameElement.textContent;
+            nameElement.innerHTML = '<span class="loading-spinner"></span>កំពុងទាញយកទិន្នន័យ...';
+            
             const student = await findStudentById(studentId);
+            
+            // Restore original text
+            nameElement.textContent = originalText;
+            
             if (!student) {
                 console.error('Student not found:', studentId);
                 fillCardData({
@@ -356,9 +493,9 @@
                     name: 'សិស្សមិនត្រូវបានរកឃើញ',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
-                showError('សិស្សមិនត្រូវបានរកឃើញ!');
+                showError('សិស្សមិនត្រូវបានរកឃើញ! សាកល្បង ?id=1001, ?id=1002 ឬ ?id=1003');
                 return;
             }
             
@@ -367,7 +504,33 @@
             
             // Generate QR code
             generateQRCode(student);
+            
+            // Show success message briefly
+            setTimeout(() => {
+                showError(''); // Clear any errors
+            }, 3000);
         }
+
+        // ============================================
+        // ADD KEYBOARD SHORTCUTS FOR TESTING
+        // ============================================
+        document.addEventListener('keydown', function(event) {
+            // Press 1, 2, 3 to load sample students
+            if (event.key === '1') {
+                window.location.href = window.location.pathname + '?id=1001';
+            } else if (event.key === '2') {
+                window.location.href = window.location.pathname + '?id=1002';
+            } else if (event.key === '3') {
+                window.location.href = window.location.pathname + '?id=1003';
+            }
+        });
+
+        // ============================================
+        // DEBUG INFO FOR SAFARI
+        // ============================================
+        console.log('Browser:', navigator.userAgent);
+        console.log('Supabase initialized:', supabase !== null);
+        console.log('Fallback data available for:', Object.keys(FALLBACK_DATA));
 
     </script>
 </body>

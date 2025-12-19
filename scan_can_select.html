@@ -1025,8 +1025,35 @@
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Supabase - CHECK IF ALREADY EXISTS
+        let supabase;
+        try {
+            if (typeof window.supabase !== 'undefined' && window.supabase) {
+                // Check if already initialized globally
+                if (window.supabaseClientInstance) {
+                    supabase = window.supabaseClientInstance;
+                    console.log('✅ Using existing Supabase instance');
+                } else {
+                    // Create new instance
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    window.supabaseClientInstance = supabase; // Store for reuse
+                    console.log('✅ Created new Supabase instance');
+                }
+            } else {
+                console.error('❌ Supabase library not loaded');
+                throw new Error('Supabase library not loaded');
+            }
+        } catch (error) {
+            console.error('❌ Error initializing Supabase:', error);
+            // Create a dummy supabase object to prevent further errors
+            supabase = {
+                from: () => ({
+                    select: () => Promise.resolve({ data: [], error: null }),
+                    insert: () => Promise.resolve({ data: [], error: error }),
+                    eq: () => ({ data: [], error: null })
+                })
+            };
+        }
         
         // ============================================
         // DOM ELEMENTS
@@ -2082,6 +2109,7 @@
                 
                 if (error) {
                     console.warn('❌ Supabase connection failed:', error);
+                    showError('⚠️ ការតភ្ជាប់ Supabase មានបញ្ហា។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍');
                 } else {
                     console.log('✅ Supabase connection successful');
                 }

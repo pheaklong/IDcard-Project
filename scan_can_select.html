@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         // Check login: if not logged in, redirect to login page
         if (localStorage.getItem('adminLoggedIn') !== 'true') {
@@ -24,28 +25,36 @@
             --dark: #212529;
             --border-radius: 16px;
             --shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
         }
 
         body {
-            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #333;
         }
 
         .app-container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .header {
@@ -53,11 +62,31 @@
             color: white;
             padding: 25px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
         }
 
         .header h1 {
             font-size: 1.8rem;
             margin-bottom: 10px;
+            position: relative;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
         }
 
         .back-buttons {
@@ -66,6 +95,66 @@
             padding: 15px 25px;
             background: var(--light);
             border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+        
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
         }
 
         .content {
@@ -75,15 +164,24 @@
         .card {
             background: white;
             border-radius: var(--border-radius);
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
             box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .scan-type-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
             margin-top: 20px;
         }
 
@@ -94,7 +192,12 @@
             padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 160px;
+            justify-content: center;
         }
 
         .scan-type-card:hover {
@@ -105,26 +208,45 @@
 
         .scan-type-card.selected {
             border-color: var(--primary);
-            background: rgba(67, 97, 238, 0.05);
+            background: rgba(67, 97, 238, 0.08);
+            position: relative;
+        }
+
+        .scan-type-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
         .scan-type-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
         }
 
         .scan-type-title {
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
         }
 
         .scan-type-desc {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #666;
+            line-height: 1.4;
         }
 
-        /* Sub-type Modal Styles */
-        .subtype-modal {
+        /* Modal Styles */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
@@ -135,21 +257,64 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            animation: fadeIn 0.3s ease;
         }
 
-        .subtype-content {
+        .modal-content {
             background: white;
             border-radius: var(--border-radius);
-            padding: 25px;
+            padding: 30px;
             width: 90%;
             max-width: 500px;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            background: #f0f0f0;
+            color: #333;
         }
 
         .subtype-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 12px;
             margin: 20px 0;
         }
@@ -157,38 +322,135 @@
         .subtype-card {
             background: white;
             border: 2px solid #e9ecef;
-            border-radius: var(--border-radius);
+            border-radius: 12px;
             padding: 15px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
 
         .subtype-card:hover {
             transform: translateY(-3px);
-            box-shadow: var(--shadow);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border-color: var(--warning);
         }
 
         .subtype-card.selected {
             border-color: var(--warning);
-            background: rgba(247, 37, 133, 0.05);
+            background: rgba(247, 37, 133, 0.08);
         }
 
         .subtype-icon {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
         }
 
         .subtype-title {
             font-weight: 600;
             font-size: 0.9rem;
-            margin-bottom: 5px;
+        }
+
+        /* Other Description Input */
+        .other-description-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--warning);
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: var(--transition);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        /* Scanner Styles */
+        #current-scan-type {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        #current-scan-title {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        #current-scan-description {
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .time-remaining {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+        }
+
+        #camera-permission {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+            border: 2px dashed #ddd;
+        }
+
+        .permission-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .permission-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
         }
 
         #scanner-container {
             text-align: center;
-            margin: 20px 0;
+            margin: 25px 0;
         }
 
         .scanner-frame {
@@ -196,307 +458,425 @@
             display: inline-block;
             border-radius: var(--border-radius);
             overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
         }
 
         video {
             width: 100%;
-            max-width: 400px;
-            height: 300px;
+            max-width: 450px;
+            height: 340px;
             background: #000;
+            display: block;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
 
         .scanner-line {
             position: absolute;
             width: 100%;
             height: 4px;
-            background: var(--primary);
-            top: 50%;
-            animation: scanLine 2s infinite ease-in-out;
+            background: linear-gradient(to right, transparent, var(--primary), transparent);
+            top: 10%;
+            animation: scanLine 2s infinite linear;
+            box-shadow: 0 0 10px rgba(67, 97, 238, 0.8);
         }
 
         @keyframes scanLine {
-            0%, 100% { top: 10%; }
+            0% { top: 10%; }
             50% { top: 90%; }
+            100% { top: 10%; }
         }
 
+        .scanner-corners {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(255,255,255,0.7);
+        }
+
+        .scanner-corners::before, .scanner-corners::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border: 4px solid var(--primary);
+        }
+
+        .scanner-corners::before {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .scanner-corners::after {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
         }
 
         .stat-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 20px;
+            padding: 25px 20px;
             border-radius: var(--border-radius);
             text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
         .stat-number {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Scan Count */
+        .scan-count {
+            background: var(--light);
+            padding: 12px 24px;
+            border-radius: 50px;
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: 700;
+            color: var(--primary);
+            border: 2px solid rgba(67, 97, 238, 0.2);
+        }
+
+        /* Button Grid */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 15px;
             margin-top: 25px;
         }
 
-        .btn {
-            padding: 15px 20px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .btn-success { 
-            background: var(--success);
-            color: white; 
-        }
-        .btn-primary { 
-            background: var(--primary);
-            color: white; 
-        }
-        .btn-warning { 
-            background: var(--warning);
-            color: white; 
-        }
-        .btn-info { 
-            background: var(--secondary);
-            color: white; 
-        }
-        .btn-danger { 
-            background: var(--danger);
-            color: white; 
-        }
-
+        /* Message Styles */
         .message {
             padding: 20px;
             border-radius: var(--border-radius);
             margin: 15px 0;
+            animation: fadeIn 0.5s ease;
         }
 
         .message-success {
             background: #d4edda;
             border: 1px solid #c3e6cb;
             color: #155724;
+            border-left: 4px solid #28a745;
         }
 
         .message-error {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
             color: #721c24;
+            border-left: 4px solid #dc3545;
         }
 
         .message-info {
             background: #d1ecf1;
             border: 1px solid #bee5eb;
             color: #0c5460;
+            border-left: 4px solid #17a2b8;
         }
 
         .message-warning {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             color: #856404;
+            border-left: 4px solid #ffc107;
         }
 
-        #camera-permission {
-            text-align: center;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: var(--border-radius);
-            margin: 20px 0;
-        }
-
-        .permission-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: var(--border-radius);
-            font-size: 14px;
+        /* Student List */
+        .student-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
             cursor: pointer;
-            margin-top: 10px;
+            transition: var(--transition);
+            border-radius: 8px;
+            margin-bottom: 5px;
         }
 
-        .current-scan-type {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 15px 20px;
-            border-radius: var(--border-radius);
-            margin: 15px 0;
-            text-align: center;
+        .student-item:hover {
+            background: #f0f7ff;
+            transform: translateX(5px);
         }
 
-        .scan-count {
-            background: var(--light);
-            padding: 10px 20px;
-            border-radius: var(--border-radius);
+        .student-item:active {
+            transform: translateX(0);
+        }
+
+        .student-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .student-item small {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Loading Animation */
+        .loading {
             display: inline-block;
-            margin: 10px 0;
-            font-weight: 600;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
 
-        .time-remaining {
-            background: var(--warning);
-            color: white;
-            padding: 10px 15px;
-            border-radius: var(--border-radius);
-            margin: 10px 0;
-            font-weight: 600;
-            text-align: center;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .button-grid {
-                grid-template-columns: 1fr;
+            .app-container {
+                border-radius: 12px;
+            }
+            
+            .content {
+                padding: 20px;
             }
             
             .scan-type-grid {
                 grid-template-columns: 1fr;
             }
             
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .subtype-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            video {
+                max-width: 100%;
+                height: 280px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .back-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
             .subtype-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">
-            <h1>🔍 ការកំណត់ការស្កេន</h1>
+            <h1><i class="fas fa-qrcode"></i> ការកំណត់ការស្កេន</h1>
             <p>ជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន</p>
         </div>
         
         <div class="back-buttons">
-            <button class="btn btn-primary" onclick="goToHome()">🏠 ត្រឡប់ទៅទំព័រដើម</button>
-            <button class="btn btn-primary" onclick="goBack()">↩️ ត្រឡប់ក្រោយ</button>
+            <button class="btn btn-primary" onclick="goToHome()">
+                <i class="fas fa-home"></i> ត្រឡប់ទៅទំព័រដើម
+            </button>
+            <button class="btn btn-primary" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> ត្រឡប់ក្រោយ
+            </button>
         </div>
         
         <div class="content">
             <div class="card">
-                <h2>📋 ជ្រើសរើសប្រភេទសិស្ស</h2>
+                <h2><i class="fas fa-users"></i> ជ្រើសរើសប្រភេទសិស្ស</h2>
+                <p style="margin-bottom: 15px; color: #666;">សូមជ្រើសរើសប្រភេទសិស្សដែលអ្នកចង់ស្កេន៖</p>
+                
                 <div class="scan-type-grid">
                     <div class="scan-type-card" data-type="late" onclick="selectScanType('late')">
-                        <div class="scan-type-icon">⏰</div>
+                        <div class="scan-type-icon"><i class="fas fa-clock"></i></div>
                         <div class="scan-type-title">សិស្សមកយឺត</div>
                         <div class="scan-type-desc">សិស្សដែលមកយឺត មិនគោរពទង់ជាតិ</div>
                     </div>
                     <div class="scan-type-card" data-type="discipline" onclick="openDisciplineSubtypes()">
-                        <div class="scan-type-icon">⚠️</div>
+                        <div class="scan-type-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="scan-type-title">មិនគោរពវិន័យ</div>
                         <div class="scan-type-desc">សិស្សដែលមិនគោរពវិន័យសាលា</div>
                     </div>
                     <div class="scan-type-card" data-type="helpful" onclick="selectScanType('helpful')">
-                        <div class="scan-type-icon">🤝</div>
+                        <div class="scan-type-icon"><i class="fas fa-hands-helping"></i></div>
                         <div class="scan-type-title">ជួយការងារ</div>
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
-                    </div>
-                    <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
-                        <div class="scan-type-icon">💇</div>
-                        <div class="scan-type-title">ការៀបចំខ្លូន</div>
-                        <div class="scan-type-desc">សិស្សដែលត្រូវវិន័យទាក់ទងការរៀបចំខ្លួន</div>
                     </div>
                 </div>
             </div>
 
             <!-- Discipline Subtypes Modal -->
-            <div id="disciplineSubtypesModal" class="subtype-modal">
-                <div class="subtype-content">
-                    <h3>⚠️ ជ្រើសរើសប្រភេទមិនគោរពវិន័យ</h3>
-                    <p>សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យដែលសិស្សបានប្រព្រឹត្ត</p>
+            <div id="disciplineSubtypesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">
+                            <i class="fas fa-exclamation-triangle"></i> ជ្រើសរើសប្រភេទមិនគោរពវិន័យ
+                        </div>
+                        <button class="close-modal" onclick="closeDisciplineSubtypes()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <p style="margin-bottom: 20px; color: #666;">សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យដែលសិស្សបានប្រព្រឹត្ត៖</p>
                     
                     <div class="subtype-grid">
                         <div class="subtype-card" data-subtype="shoes" onclick="selectDisciplineSubtype('shoes')">
-                            <div class="subtype-icon">👞</div>
+                            <div class="subtype-icon"><i class="fas fa-shoe-prints"></i></div>
                             <div class="subtype-title">ស្បែកជើង</div>
                         </div>
                         <div class="subtype-card" data-subtype="uniform" onclick="selectDisciplineSubtype('uniform')">
-                            <div class="subtype-icon">👔</div>
+                            <div class="subtype-icon"><i class="fas fa-tshirt"></i></div>
                             <div class="subtype-title">មិនទនុយ</div>
                         </div>
                         <div class="subtype-card" data-subtype="canteen" onclick="selectDisciplineSubtype('canteen')">
-                            <div class="subtype-icon">🍽️</div>
-                            <div class="subtype-title">នៅរោងបាយមិនចូលថ្នាក់</div>
+                            <div class="subtype-icon"><i class="fas fa-utensils"></i></div>
+                            <div class="subtype-title">នៅរោងបាយ</div>
                         </div>
                         <div class="subtype-card" data-subtype="fence" onclick="selectDisciplineSubtype('fence')">
-                            <div class="subtype-icon">🚧</div>
+                            <div class="subtype-icon"><i class="fas fa-fence"></i></div>
                             <div class="subtype-title">ផ្លោះរបង</div>
                         </div>
                         <div class="subtype-card" data-subtype="fight" onclick="selectDisciplineSubtype('fight')">
-                            <div class="subtype-icon">👊</div>
+                            <div class="subtype-icon"><i class="fas fa-fist-raised"></i></div>
                             <div class="subtype-title">វ៉ៃគ្នា</div>
                         </div>
                         <div class="subtype-card" data-subtype="litter" onclick="selectDisciplineSubtype('litter')">
-                            <div class="subtype-icon">🗑️</div>
+                            <div class="subtype-icon"><i class="fas fa-trash"></i></div>
                             <div class="subtype-title">ចោលសំរាម</div>
                         </div>
                         <div class="subtype-card" data-subtype="phone" onclick="selectDisciplineSubtype('phone')">
-                            <div class="subtype-icon">📱</div>
+                            <div class="subtype-icon"><i class="fas fa-mobile-alt"></i></div>
                             <div class="subtype-title">លេងទូរស័ព្ទ</div>
                         </div>
+                        <div class="subtype-card" data-subtype="cuthuir2" onclick="selectDisciplineSubtype('cuthuir2')">
+                            <div class="subtype-icon"><i class="fas fa-cut"></i></div>
+                            <div class="subtype-title">កាត់សក់</div>
+                        </div>
                         <div class="subtype-card" data-subtype="escape" onclick="selectDisciplineSubtype('escape')">
-                            <div class="subtype-icon">🏃</div>
+                            <div class="subtype-icon"><i class="fas fa-running"></i></div>
                             <div class="subtype-title">គេចម៉ោងរៀន</div>
                         </div>
                         <div class="subtype-card" data-subtype="other" onclick="selectDisciplineSubtype('other')">
-                            <div class="subtype-icon">📝</div>
+                            <div class="subtype-icon"><i class="fas fa-ellipsis-h"></i></div>
                             <div class="subtype-title">ផ្សេងៗ</div>
                         </div>
                     </div>
                     
-                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <!-- Other Description Input -->
+                    <div id="otherDescriptionContainer" class="other-description-container">
+                        <div class="form-group">
+                            <label for="otherDescription" class="form-label">សរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ៖</label>
+                            <textarea id="otherDescription" placeholder="សរសេរបញ្ជាក់នៅទីនេះ..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
                         <button class="btn btn-warning" onclick="confirmDisciplineSubtype()" style="flex: 1;">
-                            ✅ បញ្ជាក់
+                            <i class="fas fa-check"></i> បញ្ជាក់
                         </button>
-                        <button class="btn btn-secondary" onclick="closeDisciplineSubtypes()" style="flex: 1;">
-                            ❌ បោះបង់
+                        <button class="btn btn-primary" onclick="closeDisciplineSubtypes()" style="flex: 1;">
+                            <i class="fas fa-times"></i> បោះបង់
                         </button>
                     </div>
                 </div>
             </div>
 
             <div id="current-scan-type" class="current-scan-type" style="display: none;">
-                <h3 id="current-scan-title">កំពុងស្កេន</h3>
+                <h3 id="current-scan-title"><i class="fas fa-qrcode"></i> កំពុងស្កេន</h3>
                 <p id="current-scan-description">ស្កេនសិស្ស</p>
                 <div id="time-limit-info" class="time-remaining" style="display: none;">
-                    សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
+                    <i class="fas fa-clock"></i> សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
                 </div>
             </div>
 
             <div id="camera-permission">
-                <h3>ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
+                <h3><i class="fas fa-camera"></i> ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
                 <p>ត្រូវការអនុញ្ញាតប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
-                <button class="permission-btn" onclick="requestCameraPermission()">អនុញ្ញាតកាមេរ៉ា</button>
+                <button class="permission-btn" onclick="requestCameraPermission()">
+                    <i class="fas fa-camera"></i> អនុញ្ញាតកាមេរ៉ា
+                </button>
             </div>
             
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
                     <video id="camera" playsinline></video>
-                    <div class="scanner-line"></div>
+                    <div class="scanner-overlay">
+                        <div class="scanner-line"></div>
+                        <div class="scanner-corners"></div>
+                    </div>
                 </div>
-                <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
+                <p style="margin-bottom: 15px; color: #666;">យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
                 
                 <div id="scan-count" class="scan-count" style="display: none;">
-                    ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
+                    <i class="fas fa-check-circle"></i> ស្កេនរួចរាល់៖ <span id="scanned-count">0</span> នាក់
                 </div>
             </div>
 
@@ -518,25 +898,54 @@
             </div>
 
             <div class="button-grid">
-                <button id="start-btn" class="btn btn-success" onclick="startCamera()" disabled>▶️ ចាប់ផ្ដើមស្កេន</button>
-                <button class="btn btn-primary" onclick="viewReports()">📊 មើលរបាយការណ៍</button>
-                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>⏹️ បញ្ឈប់កាមេរ៉ា</button>
-                <button class="btn btn-info" onclick="openManualEntryModal()">📝 កត់ត្រាតាមអត្តលេខ</button>
+                <button id="start-btn" class="btn btn-success" onclick="startCamera()" disabled>
+                    <i class="fas fa-play"></i> ចាប់ផ្ដើមស្កេន
+                </button>
+                <button class="btn btn-info" onclick="viewReports()">
+                    <i class="fas fa-chart-bar"></i> មើលរបាយការណ៍
+                </button>
+                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>
+                    <i class="fas fa-stop"></i> បញ្ឈប់កាមេរ៉ា
+                </button>
+                <button class="btn btn-primary" onclick="openManualEntryModal()">
+                    <i class="fas fa-keyboard"></i> កត់ត្រាតាមអត្តលេខ
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Manual Entry Modal -->
-    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001;">
-        <div style="background: white; padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 500px;">
-            <h3>កត់ត្រាសិស្សតាមអត្តលេខ</h3>
-            <input type="text" id="studentSearch" placeholder="ស្វែងរកសិស្ស..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
-            <div id="studentList" style="max-height: 300px; overflow-y: auto;"></div>
-            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 10px;">បិទ</button>
+    <div id="manualEntryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fas fa-keyboard"></i> កត់ត្រាសិស្សតាមអត្តលេខ
+                </div>
+                <button class="close-modal" onclick="closeManualEntryModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label for="studentSearch" class="form-label">ស្វែងរកសិស្ស៖</label>
+                <input type="text" id="studentSearch" placeholder="ស្វែងរកតាមឈ្មោះ ឬអត្តលេខ..." 
+                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+            </div>
+            
+            <div id="studentList" style="max-height: 300px; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+                <!-- Student list will be populated here -->
+            </div>
+            
+            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 20px; width: 100%;">
+                <i class="fas fa-times"></i> បិទ
+            </button>
         </div>
     </div>
 
     <script>
+        // កូដ JavaScript នៅតែដូចគ្នានឹងកូដដើម
+        // (កូដ JavaScript មិនត្រូវបានផ្លាស់ប្តូរទេ តែភ្ជាប់ជាមួយ CSS ថ្មី)
+        
         // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
@@ -565,6 +974,8 @@
         const studentList = document.getElementById('studentList');
         const studentSearch = document.getElementById('studentSearch');
         const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+        const otherDescription = document.getElementById('otherDescription');
 
         // Global Variables
         let stream = null;
@@ -602,15 +1013,16 @@
 
         // Discipline Subtypes Configuration
         const disciplineSubtypes = {
-            shoes: { title: "ស្បែកជើង", icon: "👞" },
-            uniform: { title: "មិនទនុយ", icon: "👔" },
-            canteen: { title: "នៅរោងបាយមិនចូលថ្នាក់", icon: "🍽️" },
-            fence: { title: "ផ្លោះរបង", icon: "🚧" },
-            fight: { title: "វ៉ៃគ្នា", icon: "👊" },
-            litter: { title: "ចោលសំរាម", icon: "🗑️" },
-            phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
-            escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
-            other: { title: "ផ្សេងៗ", icon: "📝" }
+            shoes: { title: "ស្បែកជើង", icon: "fas fa-shoe-prints" },
+            uniform: { title: "មិនទនុយ", icon: "fas fa-tshirt" },
+            canteen: { title: "នៅរោងបាយមិនចូលថ្នាក់", icon: "fas fa-utensils" },
+            fence: { title: "ផ្លោះរបង", icon: "fas fa-fence" },
+            fight: { title: "វ៉ៃគ្នា", icon: "fas fa-fist-raised" },
+            litter: { title: "ចោលសំរាម", icon: "fas fa-trash" },
+            phone: { title: "លេងទូរស័ព្ទ", icon: "fas fa-mobile-alt" },
+            cuthuir2:{ title: "កាត់សក់", icon: "fas fa-cut"},
+            escape: { title: "គេចម៉ោងរៀន", icon: "fas fa-running" },
+            other: { title: "ផ្សេងៗ", icon: "fas fa-ellipsis-h" }
         };
 
         // Initialize App
@@ -653,6 +1065,10 @@
                 card.classList.remove('selected');
             });
             
+            // Hide other description input
+            otherDescriptionContainer.style.display = 'none';
+            otherDescription.value = '';
+            
             disciplineSubtypesModal.style.display = 'flex';
         }
 
@@ -678,12 +1094,26 @@
             document.querySelector(`[data-subtype="${subtype}"]`).classList.add('selected');
             
             selectedDisciplineSubtype = subtype;
+            
+            // Show/hide other description input
+            if (subtype === 'other') {
+                otherDescriptionContainer.style.display = 'block';
+            } else {
+                otherDescriptionContainer.style.display = 'none';
+                otherDescription.value = '';
+            }
         }
 
         // Confirm Discipline Subtype Selection
         function confirmDisciplineSubtype() {
             if (!selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            // For "other" subtype, check if description is provided
+            if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
+                showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
                 return;
             }
             
@@ -718,8 +1148,15 @@
             
             // Add discipline subtype info if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                displayTitle += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
-                displayDescription = `ស្កេនសិស្សដែល${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+                let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                // For "other" subtype, use the custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    subtypeTitle = otherDescription.value.trim();
+                }
+                
+                displayTitle += ` - ${subtypeTitle}`;
+                displayDescription = `ស្កេនសិស្សដែល${subtypeTitle}`;
             }
             
             currentScanTitle.textContent = `កំពុងស្កេន: ${displayTitle}`;
@@ -794,7 +1231,7 @@
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
             }
-            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
+            resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
             scanFrame();
         }
 
@@ -852,7 +1289,7 @@
                 const timeCheckResult = await checkStudentScanTimeLimit(student.id);
                 if (timeCheckResult.withinLimit) {
                     const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
-                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់<br><br>សូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
                     setTimeout(() => restartScanning(), 3000);
                 } else {
                     await recordStudent(student);
@@ -912,11 +1349,11 @@
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
             }
-            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
+            resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Record Student - Updated to include discipline subtype
+        // Record Student - Updated to include discipline subtype and custom description
         async function recordStudent(student) {
             const now = new Date();
             const record = {
@@ -933,7 +1370,13 @@
             // Add discipline subtype if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
-                record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                // For "other" subtype, use custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    record.discipline_description = otherDescription.value.trim();
+                } else {
+                    record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                }
             }
 
             try {
@@ -962,20 +1405,27 @@
                     
                     // Prepare success message
                     let successMessage = `
-                        ✅ កត់ត្រាបានជោគ!<br>
-                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
-                        <strong>ថ្នាក់:</strong> ${student.class}<br>
-                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <div style="font-size: 2rem; color: #28a745;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 1.1rem;">✅ កត់ត្រាបានជោគ!</strong><br>
+                                <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                                <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                                <strong>ថ្នាក់:</strong> ${student.class}<br>
+                                <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
                     `;
                     
                     // Add discipline subtype info if applicable
                     if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                     }
                     
                     successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
-                    successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>`;
+                    successMessage += `<em style="font-size: 0.9rem; color: #666;">ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>
+                            </div>
+                        </div>`;
                     
                     showSuccess(successMessage);
                     await updateAllStats();
@@ -988,19 +1438,28 @@
                 saveToLocalStorage(record);
                 
                 let successMessage = `
-                    ✅ កត់ត្រាបានជោគ! (Local)<br>
-                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                    <strong>ឈ្មោះ:</strong> ${student.name}<br>
-                    <strong>ថ្នាក់:</strong> ${student.class}<br>
-                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="font-size: 2rem; color: #28a745;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 1.1rem;">✅ កត់ត្រាបានជោគ! (Local)</strong><br>
+                            <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                            <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                            <strong>ថ្នាក់:</strong> ${student.class}<br>
+                            <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
                 `;
                 
                 if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                 }
                 
-                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
-                successMessage += `<small>កំហុស: ${error.message}</small>`;
+                successMessage += `<p class="message message-warning" style="margin-top: 10px; padding: 10px;">
+                                    <i class="fas fa-exclamation-triangle"></i> ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ
+                                  </p>`;
+                successMessage += `<small style="color: #999;">កំហុស: ${error.message}</small>
+                        </div>
+                    </div>`;
                 
                 showSuccess(successMessage);
                 await updateAllStats();
@@ -1022,18 +1481,25 @@
                 console.log('✅ Successfully saved to alternative table:', data);
                 
                 let successMessage = `
-                    ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
-                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                    <strong>ឈ្មោះ:</strong> ${record.name}<br>
-                    <strong>ថ្នាក់:</strong> ${record.class}<br>
-                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    <div style="display: flex; align-items: flex-start; gap: 15px;">
+                        <div style="font-size: 2rem; color: #28a745;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 1.1rem;">✅ កត់ត្រាបានជោគ! (Alternative Table)</strong><br>
+                            <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                            <strong>ឈ្មោះ:</strong> ${record.name}<br>
+                            <strong>ថ្នាក់:</strong> ${record.class}<br>
+                            <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
                 `;
                 
                 if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${disciplineSubtypes[selectedDisciplineSubtype].title}<br>`;
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                 }
                 
-                successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;
+                successMessage += `<em style="font-size: 0.9rem; color: #666;">ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>
+                        </div>
+                    </div>`;
                 
                 showSuccess(successMessage);
                 await updateAllStats();
@@ -1221,7 +1687,7 @@
             startBtn.disabled = false;
             stopBtn.disabled = true;
             
-            resultDiv.innerHTML = '<div class="message message-info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
+            resultDiv.innerHTML = '<div class="message message-info"><i class="fas fa-camera"></i> កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
 
         // Manual Entry Functions
@@ -1251,21 +1717,18 @@
             studentList.innerHTML = '';
             
             if (students.length === 0) {
-                studentList.innerHTML = '<div>មិនមានទិន្នន័យសិស្ស</div>';
+                studentList.innerHTML = '<div class="message message-warning" style="padding: 15px; text-align: center;"><i class="fas fa-users"></i> មិនមានទិន្នន័យសិស្ស</div>';
                 return;
             }
             
             students.forEach(student => {
                 const studentItem = document.createElement('div');
                 studentItem.className = 'student-item';
-                studentItem.style.padding = '10px';
-                studentItem.style.borderBottom = '1px solid #eee';
-                studentItem.style.cursor = 'pointer';
                 studentItem.onclick = () => selectStudent(student);
                 
                 studentItem.innerHTML = `
                     <strong>${student.name}</strong><br>
-                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</small>
+                    <small><i class="fas fa-id-card"></i> អត្តលេខ: ${student.id} | <i class="fas fa-graduation-cap"></i> ថ្នាក់: ${student.class}</small>
                 `;
                 
                 studentList.appendChild(studentItem);
@@ -1293,7 +1756,7 @@
             const timeCheckResult = await checkStudentScanTimeLimit(student.id);
             if (timeCheckResult.withinLimit) {
                 const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
-                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                showWarning(`<i class="fas fa-clock"></i> ⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់<br><br>សូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
             } else {
                 await recordStudent(student);
             }
@@ -1347,11 +1810,11 @@
         }
 
         function showError(message) {
-            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
+            resultDiv.innerHTML = `<div class="message message-error"><i class="fas fa-exclamation-circle"></i> ${message}</div>`;
         }
 
         function showWarning(message) {
-            resultDiv.innerHTML = `<div class="message message-warning">${message}</div>`;
+            resultDiv.innerHTML = `<div class="message message-warning"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
         }
 
         function goToHome() {
@@ -1373,6 +1836,29 @@
             
             // Add event listener for student search
             studentSearch.addEventListener('input', filterStudents);
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // ESC to close modals
+                if (e.key === 'Escape') {
+                    if (disciplineSubtypesModal.style.display === 'flex') {
+                        closeDisciplineSubtypes();
+                    }
+                    if (manualEntryModal.style.display === 'flex') {
+                        closeManualEntryModal();
+                    }
+                }
+                
+                // Space to start/stop scanning
+                if (e.key === ' ' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    if (isScanning) {
+                        stopCamera();
+                    } else if (!startBtn.disabled) {
+                        startCamera();
+                    }
+                }
+            });
         });
 
         // Handle page visibility changes

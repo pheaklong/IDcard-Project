@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
+    <!-- Add favicon to prevent 404 error -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📱</text></svg>">
     <!-- Mobile meta tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1027,32 +1029,35 @@
         
         // Initialize Supabase - CHECK IF ALREADY EXISTS
         let supabase;
-        try {
-            if (typeof window.supabase !== 'undefined' && window.supabase) {
-                // Check if already initialized globally
-                if (window.supabaseClientInstance) {
-                    supabase = window.supabaseClientInstance;
-                    console.log('✅ Using existing Supabase instance');
-                } else {
-                    // Create new instance
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    window.supabaseClientInstance = supabase; // Store for reuse
-                    console.log('✅ Created new Supabase instance');
+
+        // Check if already initialized in global scope
+        if (typeof window.supabaseClientInstance !== 'undefined') {
+            supabase = window.supabaseClientInstance;
+            console.log('✅ Using existing Supabase instance');
+        } else {
+            try {
+                // Check if Supabase library is loaded
+                if (typeof window.supabase === 'undefined') {
+                    console.error('❌ Supabase library not loaded');
+                    throw new Error('Supabase library not loaded');
                 }
-            } else {
-                console.error('❌ Supabase library not loaded');
-                throw new Error('Supabase library not loaded');
+                
+                // Create new instance
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                window.supabaseClientInstance = supabase; // Store for reuse
+                console.log('✅ Created new Supabase instance');
+            } catch (error) {
+                console.error('❌ Error initializing Supabase:', error);
+                // Create a dummy supabase object to prevent further errors
+                supabase = {
+                    from: () => ({
+                        select: () => Promise.resolve({ data: [], error: null }),
+                        insert: () => Promise.resolve({ data: [], error: error }),
+                        eq: () => ({ data: [], error: null })
+                    })
+                };
+                window.supabaseClientInstance = supabase;
             }
-        } catch (error) {
-            console.error('❌ Error initializing Supabase:', error);
-            // Create a dummy supabase object to prevent further errors
-            supabase = {
-                from: () => ({
-                    select: () => Promise.resolve({ data: [], error: null }),
-                    insert: () => Promise.resolve({ data: [], error: error }),
-                    eq: () => ({ data: [], error: null })
-                })
-            };
         }
         
         // ============================================
@@ -1094,6 +1099,7 @@
         let scanAnimationFrame = null;
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
+        let appInitialized = false;
         
         // Device detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1147,6 +1153,11 @@
          * Initialize the application
          */
         async function initApp() {
+            if (appInitialized) {
+                console.log('⚠️ App already initialized');
+                return;
+            }
+            
             console.log('🚀 Starting app initialization...');
             console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
             console.log('Platform:', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Other');
@@ -1174,6 +1185,9 @@
             
             // Check login status
             checkLoginStatus();
+            
+            appInitialized = true;
+            console.log('✅ App initialization complete');
         }
         
         /**
@@ -1256,7 +1270,7 @@
         }
         
         // ============================================
-        // SCAN TYPE SELECTION FUNCTIONS
+        // SCAN TYPES SELECTION FUNCTIONS
         // ============================================
         
         /**

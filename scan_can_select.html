@@ -23,6 +23,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', 'Arial', 'Khmer OS', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
@@ -42,10 +43,16 @@
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             padding: 20px;
             color: #333;
             -webkit-tap-highlight-color: transparent;
             -webkit-text-size-adjust: 100%;
+            touch-action: manipulation;
+        }
+
+        html {
+            height: -webkit-fill-available;
         }
 
         /* App Container */
@@ -57,6 +64,7 @@
             box-shadow: var(--shadow);
             overflow: hidden;
             animation: fadeIn 0.5s ease;
+            min-height: 80vh;
         }
 
         @keyframes fadeIn {
@@ -68,7 +76,7 @@
         .header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 25px;
+            padding: 25px 20px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -86,23 +94,25 @@
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
             position: relative;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            line-height: 1.3;
         }
 
         .header p {
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.9;
             position: relative;
+            line-height: 1.4;
         }
 
         /* Back Buttons */
         .back-buttons {
             display: flex;
             gap: 10px;
-            padding: 15px 25px;
+            padding: 12px 20px;
             background: var(--light);
             border-bottom: 1px solid #e9ecef;
             flex-wrap: wrap;
@@ -110,28 +120,29 @@
 
         /* Buttons */
         .btn {
-            padding: 12px 20px;
+            padding: 14px 20px;
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
             transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            min-height: 44px;
+            min-height: 50px;
             text-decoration: none;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            user-select: none;
+            touch-action: manipulation;
         }
 
         .btn:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
 
         .btn:disabled {
@@ -145,7 +156,7 @@
             background: var(--primary);
             color: white; 
         }
-        .btn-primary:hover {
+        .btn-primary:active {
             background: var(--primary-dark);
         }
 
@@ -171,34 +182,35 @@
 
         /* Content Area */
         .content {
-            padding: 25px;
+            padding: 20px;
         }
 
         /* Cards */
         .card {
             background: white;
             border-radius: var(--border-radius);
-            padding: 25px;
-            margin-bottom: 25px;
+            padding: 20px;
+            margin-bottom: 20px;
             box-shadow: var(--shadow);
             border-left: 4px solid var(--primary);
         }
 
         .card h2 {
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
+            line-height: 1.3;
         }
 
         /* Scan Type Grid */
         .scan-type-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .scan-type-card {
@@ -212,14 +224,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 160px;
+            min-height: 140px;
             justify-content: center;
             user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .scan-type-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
+        .scan-type-card:active {
+            transform: scale(0.98);
             border-color: var(--primary);
         }
 
@@ -246,20 +259,21 @@
         }
 
         .scan-type-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
+            font-size: 2.2rem;
+            margin-bottom: 12px;
             color: var(--primary);
         }
 
         .scan-type-title {
             font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 1.1rem;
+            margin-bottom: 6px;
+            font-size: 1rem;
             color: #333;
+            line-height: 1.3;
         }
 
         .scan-type-desc {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #666;
             line-height: 1.4;
         }
@@ -272,28 +286,30 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             justify-content: center;
             align-items: center;
             z-index: 1000;
             animation: fadeIn 0.3s ease;
-            padding: 20px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
             background: white;
             border-radius: var(--border-radius);
-            padding: 30px;
-            width: 90%;
+            padding: 25px;
+            width: 100%;
             max-width: 500px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             animation: slideUp 0.3s ease;
+            -webkit-overflow-scrolling: touch;
         }
 
         @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
+            from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
 
@@ -301,15 +317,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .modal-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: var(--primary);
             display: flex;
             align-items: center;
             gap: 10px;
+            line-height: 1.3;
         }
 
         .close-modal {
@@ -318,16 +335,17 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: #666;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .close-modal:hover {
+        .close-modal:active {
             background: #f0f0f0;
             color: #333;
         }
@@ -335,9 +353,9 @@
         /* Subtype Grid */
         .subtype-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin: 20px 0;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
 
         .subtype-card {
@@ -349,11 +367,12 @@
             cursor: pointer;
             transition: var(--transition);
             user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .subtype-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        .subtype-card:active {
+            transform: scale(0.95);
             border-color: var(--warning);
         }
 
@@ -363,21 +382,22 @@
         }
 
         .subtype-icon {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
             color: var(--warning);
         }
 
         .subtype-title {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #333;
+            line-height: 1.3;
         }
 
         /* Form Styles */
         .other-description-container {
-            margin-top: 20px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 15px;
             background: #f8f9fa;
             border-radius: var(--border-radius);
             border-left: 4px solid var(--warning);
@@ -393,18 +413,22 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #555;
+            font-size: 0.95rem;
         }
 
         textarea, input[type="text"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-family: inherit;
             resize: vertical;
             min-height: 100px;
             transition: var(--transition);
-            font-size: 14px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         textarea:focus, input[type="text"]:focus {
@@ -417,44 +441,47 @@
         #current-scan-type {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 20px;
+            padding: 18px;
             border-radius: var(--border-radius);
-            margin: 20px 0;
+            margin: 15px 0;
             text-align: center;
             animation: fadeIn 0.5s ease;
         }
 
         #current-scan-title {
-            font-size: 1.3rem;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            line-height: 1.3;
         }
 
         #current-scan-description {
             opacity: 0.9;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
         .time-remaining {
             background: rgba(255,255,255,0.2);
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 50px;
             display: inline-block;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             backdrop-filter: blur(5px);
         }
 
         /* Camera Permission */
         #camera-permission {
             text-align: center;
-            padding: 30px;
+            padding: 25px 20px;
             background: #f8f9fa;
             border-radius: var(--border-radius);
-            margin: 20px 0;
+            margin: 15px 0;
             border: 2px dashed #ddd;
         }
 
@@ -462,7 +489,7 @@
             background: var(--primary);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 16px 28px;
             border-radius: var(--border-radius);
             font-size: 16px;
             cursor: pointer;
@@ -471,17 +498,20 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
+            min-height: 54px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .permission-btn:hover {
+        .permission-btn:active {
             background: var(--primary-dark);
-            transform: translateY(-2px);
+            transform: scale(0.98);
         }
 
         /* Scanner Container */
         #scanner-container {
             text-align: center;
-            margin: 25px 0;
+            margin: 20px 0;
         }
 
         .scanner-frame {
@@ -490,14 +520,15 @@
             border-radius: var(--border-radius);
             overflow: hidden;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: #000;
+            width: 100%;
+            max-width: 350px;
         }
 
         video {
             width: 100%;
-            max-width: 450px;
-            height: 340px;
+            height: 300px;
             background: #000;
             display: block;
             object-fit: cover;
@@ -537,21 +568,21 @@
         .scanner-corners::before, .scanner-corners::after {
             content: '';
             position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 4px solid var(--primary);
+            width: 30px;
+            height: 30px;
+            border: 3px solid var(--primary);
         }
 
         .scanner-corners::before {
-            top: 20px;
-            left: 20px;
+            top: 15px;
+            left: 15px;
             border-right: none;
             border-bottom: none;
         }
 
         .scanner-corners::after {
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             border-left: none;
             border-top: none;
         }
@@ -559,63 +590,66 @@
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin: 25px 0;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
 
         .stat-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 25px 20px;
+            padding: 20px 15px;
             border-radius: var(--border-radius);
             text-align: center;
             transition: var(--transition);
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        .stat-card:active {
+            transform: scale(0.98);
         }
 
         .stat-number {
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             opacity: 0.9;
+            line-height: 1.3;
         }
 
         /* Scan Count */
         .scan-count {
             background: var(--light);
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 50px;
             display: inline-block;
             margin: 10px 0;
             font-weight: 700;
             color: var(--primary);
             border: 2px solid rgba(67, 97, 238, 0.2);
+            font-size: 0.95rem;
         }
 
         /* Button Grid */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
         }
 
         /* Message Styles */
         .message {
-            padding: 20px;
+            padding: 18px;
             border-radius: var(--border-radius);
-            margin: 15px 0;
+            margin: 12px 0;
             animation: fadeIn 0.5s ease;
+            font-size: 0.95rem;
+            line-height: 1.4;
         }
 
         .message-success {
@@ -648,32 +682,32 @@
 
         /* Student List */
         .student-item {
-            padding: 15px;
+            padding: 14px;
             border-bottom: 1px solid #eee;
             cursor: pointer;
             transition: var(--transition);
             border-radius: 8px;
-            margin-bottom: 5px;
-        }
-
-        .student-item:hover {
-            background: #f0f7ff;
-            transform: translateX(5px);
+            margin-bottom: 4px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .student-item:active {
-            transform: translateX(0);
+            background: #f0f7ff;
+            transform: scale(0.98);
         }
 
         .student-item strong {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             color: #333;
+            font-size: 1rem;
         }
 
         .student-item small {
             color: #666;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            line-height: 1.3;
         }
 
         /* Loading Animation */
@@ -693,24 +727,32 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .app-container {
                 border-radius: 12px;
+                min-height: 85vh;
             }
             
             .content {
-                padding: 20px;
+                padding: 15px;
             }
             
             .scan-type-grid {
                 grid-template-columns: 1fr;
+                gap: 12px;
             }
             
             .button-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
             
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
             }
             
             .subtype-grid {
@@ -723,57 +765,115 @@
             }
             
             .header {
-                padding: 20px;
+                padding: 20px 15px;
             }
             
             .header h1 {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
+            }
+            
+            .btn {
+                padding: 16px 20px;
+                font-size: 16px;
+                min-height: 54px;
+            }
+            
+            .modal-content {
+                padding: 20px 15px;
+                max-height: 90vh;
+            }
+            
+            .stat-number {
+                font-size: 1.6rem;
+            }
+            
+            .scan-type-icon {
+                font-size: 2rem;
+            }
+            
+            .scan-type-card {
+                min-height: 130px;
+                padding: 18px;
             }
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 10px;
+                padding: 8px;
             }
             
             .back-buttons {
                 flex-direction: column;
+                gap: 8px;
+                padding: 10px 15px;
             }
             
             .btn {
                 width: 100%;
+                min-height: 56px;
             }
             
             .subtype-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
             }
             
             .modal-content {
-                padding: 20px;
+                padding: 18px 12px;
             }
             
             .stat-number {
-                font-size: 1.8rem;
+                font-size: 1.5rem;
             }
             
             .scan-type-icon {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .stat-card {
+                padding: 15px 10px;
+            }
+            
+            .scanner-frame {
+                max-width: 100%;
+                height: 250px;
+            }
+            
+            video {
+                height: 250px;
+            }
+            
+            .card {
+                padding: 18px 15px;
             }
         }
 
         /* iOS Safe Areas */
         @supports (padding: max(0px)) {
             body {
-                padding-left: max(10px, env(safe-area-inset-left));
-                padding-right: max(10px, env(safe-area-inset-right));
-                padding-top: max(10px, env(safe-area-inset-top));
-                padding-bottom: max(10px, env(safe-area-inset-bottom));
+                padding-left: max(8px, env(safe-area-inset-left));
+                padding-right: max(8px, env(safe-area-inset-right));
+                padding-top: max(8px, env(safe-area-inset-top));
+                padding-bottom: max(8px, env(safe-area-inset-bottom));
+            }
+            
+            .header {
+                padding-top: max(25px, env(safe-area-inset-top));
+            }
+            
+            .content {
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
             }
         }
 
         /* Scrollbar Styling */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
@@ -798,6 +898,16 @@
             
             .btn:active, .scan-type-card:active, .subtype-card:active, .student-item:active {
                 opacity: 0.7;
+                transform: scale(0.98);
+            }
+            
+            /* Increase tap target sizes */
+            .btn, .scan-type-card, .subtype-card, .student-item {
+                min-height: 44px;
+            }
+            
+            input, textarea, select, button {
+                font-size: 16px !important;
             }
         }
 
@@ -805,6 +915,18 @@
         @media print {
             .no-print {
                 display: none !important;
+            }
+        }
+        
+        /* Prevent blue highlight on tap for iOS */
+        input, textarea, button, select, a {
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+        
+        /* Fix for iOS form zoom */
+        @media screen and (max-width: 767px) {
+            input, textarea, select {
+                font-size: 16px !important;
             }
         }
     </style>
@@ -1005,14 +1127,14 @@
             <div class="form-group">
                 <label for="studentSearch" class="form-label">ស្វែងរកសិស្ស៖</label>
                 <input type="text" id="studentSearch" placeholder="ស្វែងរកតាមឈ្មោះ ឬអត្តលេខ..." 
-                       style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                       style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
             </div>
             
-            <div id="studentList" style="max-height: 300px; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; padding: 10px;">
+            <div id="studentList" style="max-height: 300px; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; padding: 10px; -webkit-overflow-scrolling: touch;">
                 <!-- Student list will be populated here -->
             </div>
             
-            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 20px; width: 100%;">
+            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 20px; width: 100%; padding: 16px;">
                 <i class="fas fa-times"></i> បិទ
             </button>
         </div>
@@ -1105,6 +1227,8 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
+        const isChrome = /Chrome/i.test(navigator.userAgent);
+        const isSafari = /Safari/i.test(navigator.userAgent) && !/Chrome/i.test(navigator.userAgent);
         
         // ============================================
         // SCAN TYPES CONFIGURATION
@@ -1161,7 +1285,11 @@
             console.log('🚀 Starting app initialization...');
             console.log('Device:', isMobile ? 'Mobile' : 'Desktop');
             console.log('Platform:', isIOS ? 'iOS' : isAndroid ? 'Android' : 'Other');
+            console.log('Browser:', isChrome ? 'Chrome' : isSafari ? 'Safari' : 'Other');
             console.log('User Agent:', navigator.userAgent);
+            
+            // Set up viewport for mobile
+            setupViewport();
             
             // Test camera capabilities
             await testCameraCapabilities();
@@ -1191,6 +1319,26 @@
         }
         
         /**
+         * Set up viewport for mobile devices
+         */
+        function setupViewport() {
+            if (isMobile) {
+                // Force proper viewport on mobile
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                }
+                
+                // Fix for iOS 100vh issue
+                document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+                
+                window.addEventListener('resize', () => {
+                    document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+                });
+            }
+        }
+        
+        /**
          * Test camera capabilities
          */
         async function testCameraCapabilities() {
@@ -1198,7 +1346,19 @@
             
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 console.error('getUserMedia not supported');
-                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើទូរស័ព្ទ');
+                let errorMsg = 'Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ ';
+                
+                if (isMobile) {
+                    if (isIOS) {
+                        errorMsg += 'សូមប្រើ Safari ឬ Chrome លើ iOS';
+                    } else if (isAndroid) {
+                        errorMsg += 'សូមប្រើ Chrome លើ Android';
+                    }
+                } else {
+                    errorMsg += 'សូមប្រើ Chrome ឬ Edge';
+                }
+                
+                showError(errorMsg);
                 return false;
             }
             
@@ -1213,25 +1373,42 @@
             
             // Make buttons larger for touch
             document.querySelectorAll('.btn').forEach(btn => {
-                btn.style.minHeight = '50px';
+                btn.style.minHeight = '54px';
                 btn.style.fontSize = '16px';
+                btn.style.padding = '16px 20px';
             });
             
             // Adjust scanner size
             if (video) {
                 video.style.maxWidth = '100%';
-                video.style.maxHeight = '60vh';
+                video.style.height = '280px';
             }
             
-            // Update camera permission text
+            // Update camera permission text for mobile
             const cameraPermissionText = document.querySelector('#camera-permission p');
-            if (cameraPermissionText) {
+            if (cameraPermissionText && isMobile) {
+                let platformHint = '';
+                if (isIOS) {
+                    platformHint = 'សម្រាប់ iOS: សូមអនុញ្ញាតកាមេរ៉ានៅពេលមានការស្នើសុំ';
+                } else if (isAndroid) {
+                    platformHint = 'សម្រាប់ Android: សូមអនុញ្ញាតកាមេរ៉ាក្នុងការកំណត់';
+                }
+                
                 cameraPermissionText.innerHTML = `
                     ត្រូវការអនុញ្ញាតប្រើកាមេរ៉ាដើម្បីស្កេន QR Code<br>
-                    <small style="color: #666; font-size: 0.9rem;">
-                        សម្រាប់ទូរស័ព្ទ៖ សូមអនុញ្ញាតកាមេរ៉ានៅពេលមានការស្នើសុំ
+                    <small style="color: #666; font-size: 0.85rem;">
+                        ${platformHint}
                     </small>
                 `;
+            }
+            
+            // Fix for Safari 100vh issue
+            if (isIOS) {
+                document.body.style.minHeight = window.innerHeight + 'px';
+                
+                window.addEventListener('resize', () => {
+                    document.body.style.minHeight = window.innerHeight + 'px';
+                });
             }
         }
         
@@ -1253,10 +1430,19 @@
             
             // Page unload
             window.addEventListener('beforeunload', handlePageUnload);
+            window.addEventListener('pagehide', handlePageUnload);
             
             // Touch events for mobile
             if (isMobile) {
                 setupTouchEvents();
+            }
+            
+            // Resize events for mobile
+            window.addEventListener('resize', handleResize);
+            
+            // Fix for iOS keyboard issues
+            if (isIOS) {
+                setupIOSKeyboardFix();
             }
         }
         
@@ -1298,6 +1484,11 @@
             
             // Update statistics
             updateSelectedTypeStats();
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
         /**
@@ -1320,6 +1511,13 @@
             // Prevent background scrolling on mobile
             if (isMobile) {
                 document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
+            }
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(50);
             }
         }
         
@@ -1341,6 +1539,7 @@
             // Restore scrolling
             if (isMobile) {
                 document.body.style.overflow = 'auto';
+                document.body.style.position = 'static';
             }
         }
         
@@ -1363,10 +1562,15 @@
                 // Focus on textarea
                 setTimeout(() => {
                     otherDescription.focus();
-                }, 100);
+                }, 300);
             } else {
                 otherDescriptionContainer.style.display = 'none';
                 otherDescription.value = '';
+            }
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(30);
             }
         }
         
@@ -1407,6 +1611,11 @@
             updateSelectedTypeStats();
             
             console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype}`);
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(100);
+            }
         }
         
         /**
@@ -1451,7 +1660,7 @@
                     return;
                 }
                 
-                // Camera constraints
+                // Camera constraints - optimized for mobile
                 const constraints = {
                     video: {
                         facingMode: "environment",
@@ -1466,16 +1675,32 @@
                     constraints.video = {
                         facingMode: { exact: "environment" },
                         width: { min: 640, ideal: 1280, max: 1920 },
-                        height: { min: 480, ideal: 720, max: 1080 }
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        frameRate: { ideal: 30, max: 60 }
                     };
                 }
                 
+                // Android-specific constraints
+                if (isAndroid) {
+                    constraints.video = {
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    };
+                }
+                
+                console.log('Camera constraints:', constraints);
+                
                 // Request camera access
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('Camera access granted');
                 
                 // Update UI
                 cameraPermissionDiv.style.display = 'none';
                 showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
+                
+                // Enable start button
+                startBtn.disabled = false;
                 
             } catch (error) {
                 console.error('Camera error:', error);
@@ -1490,16 +1715,26 @@
         function handleCameraError(error) {
             let errorMessage = 'មិនអាចបើកកាមេរ៉ាបាន។ ';
             
-            if (error.name === 'NotAllowedError') {
+            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
                 errorMessage += 'សូមអនុញ្ញាតកាមេរ៉ាក្នុងការកំណត់ browser';
-            } else if (error.name === 'NotFoundError') {
+                
+                if (isMobile) {
+                    if (isIOS) {
+                        errorMessage += '<br>សម្រាប់ iOS: សូមទៅកាន់ Settings > Safari > Camera';
+                    } else if (isAndroid) {
+                        errorMessage += '<br>សម្រាប់ Android: សូមទៅកាន់ Settings > Apps > Chrome > Permissions > Camera';
+                    }
+                }
+            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
                 errorMessage += 'មិនមានកាមេរ៉ាទេ';
             } else if (error.name === 'NotSupportedError') {
                 errorMessage += 'Browser មិនគាំទ្រកាមេរ៉ាទេ';
-            } else if (error.name === 'NotReadableError') {
+            } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
                 errorMessage += 'កាមេរ៉ាកំពុងប្រើដោយកម្មវិធីផ្សេង';
-            } else if (error.name === 'OverconstrainedError') {
+            } else if (error.name === 'OverconstrainedError' || error.name === 'ConstraintNotSatisfiedError') {
                 errorMessage += 'កាមេរ៉ាមិនអាចបំពេញតម្រូវការទេ';
+            } else if (error.name === 'SecurityError') {
+                errorMessage += 'កំហុសសុវត្ថិភាព៖ ទំព័រនេះមិនមានសុវត្ថិភាព (HTTPS)';
             } else {
                 errorMessage += 'សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា';
             }
@@ -1510,7 +1745,7 @@
             resultDiv.innerHTML += `
                 <div class="message message-info" style="margin-top: 10px;">
                     <p>ឬអ្នកអាចកត់ត្រាសិស្សតាមអត្តលេខ៖</p>
-                    <button class="btn btn-primary" onclick="openManualEntryModal()" style="margin-top: 10px;">
+                    <button class="btn btn-primary" onclick="openManualEntryModal()" style="margin-top: 10px; min-height: 50px;">
                         <i class="fas fa-keyboard"></i> កត់ត្រាតាមអត្តលេខ
                     </button>
                 </div>
@@ -1542,6 +1777,8 @@
             video.srcObject = stream;
             video.setAttribute('playsinline', 'true');
             video.setAttribute('webkit-playsinline', 'true');
+            video.setAttribute('muted', 'true');
+            video.setAttribute('autoplay', 'true');
             
             // Update UI
             scannerContainer.style.display = 'block';
@@ -1551,6 +1788,7 @@
             
             // Start video playback
             video.play().then(() => {
+                console.log('Video playback started');
                 startQRScanning();
             }).catch(err => {
                 console.error('Video play error:', err);
@@ -1563,15 +1801,38 @@
          * @param {Error} err - The error object
          */
         function handleVideoPlayError(err) {
+            console.error('Video playback failed:', err);
             showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
             
-            // Try alternative approach for iOS
+            // Try alternative approach
+            video.muted = true;
+            video.playsInline = true;
+            
             if (isIOS) {
-                video.muted = true;
+                // iOS specific fix
+                video.setAttribute('autoplay', '');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('webkit-playsinline', '');
+                video.setAttribute('muted', '');
+                
+                // Force play on iOS
+                setTimeout(() => {
+                    video.play().then(() => {
+                        console.log('iOS video playback started after retry');
+                        startQRScanning();
+                    }).catch(err2 => {
+                        console.error('iOS video playback retry failed:', err2);
+                        showError('មិនអាចបើកកាមេរ៉ាលើ iOS: ' + err2.message);
+                    });
+                }, 100);
+            } else {
+                // Android and other browsers
                 video.play().then(() => {
+                    console.log('Video playback started after retry');
                     startQRScanning();
                 }).catch(err2 => {
-                    showError('មិនអាចបើកកាមេរ៉ាលើ iOS: ' + err2.message);
+                    console.error('Video playback retry failed:', err2);
+                    showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err2.message);
                 });
             }
         }
@@ -1600,13 +1861,13 @@
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 
-                // Set canvas size (smaller on mobile for performance)
+                // Set canvas size (optimized for mobile performance)
                 if (isMobile) {
                     canvas.width = 320;
                     canvas.height = 240;
                 } else {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+                    canvas.width = Math.min(video.videoWidth, 640);
+                    canvas.height = Math.min(video.videoHeight, 480);
                 }
                 
                 // Draw video frame to canvas
@@ -1626,11 +1887,11 @@
             
             // Continue scanning
             if (isScanning) {
-                // Adjust frame rate for mobile
+                // Adjust frame rate for mobile performance
                 if (isMobile) {
                     setTimeout(() => {
                         scanAnimationFrame = requestAnimationFrame(scanFrame);
-                    }, 100);
+                    }, 150); // Slower on mobile to save battery
                 } else {
                     scanAnimationFrame = requestAnimationFrame(scanFrame);
                 }
@@ -1648,6 +1909,11 @@
             isScanning = false;
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
+            }
+            
+            // Vibrate on mobile
+            if (isMobile && navigator.vibrate) {
+                navigator.vibrate(200);
             }
             
             // Extract student ID
@@ -1739,7 +2005,7 @@
             if (isMobile) {
                 setTimeout(() => {
                     scanAnimationFrame = requestAnimationFrame(scanFrame);
-                }, 100);
+                }, 150);
             } else {
                 scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
@@ -1755,9 +2021,14 @@
             }
             
             if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
                 stream = null;
             }
+            
+            // Clear video source
+            video.srcObject = null;
             
             // Update UI
             scannerContainer.style.display = 'none';
@@ -1877,7 +2148,7 @@
             
             // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
-                navigator.vibrate(200);
+                navigator.vibrate([100, 50, 100]);
             }
             
             showSuccess(successMessage);
@@ -2162,12 +2433,14 @@
             // Prevent background scrolling on mobile
             if (isMobile) {
                 document.body.style.overflow = 'hidden';
+                document.body.style.position = 'fixed';
+                document.body.style.width = '100%';
             }
             
             // Focus on search input
             setTimeout(() => {
                 studentSearch.focus();
-            }, 100);
+            }, 300);
         }
         
         /**
@@ -2180,6 +2453,7 @@
             // Restore scrolling
             if (isMobile) {
                 document.body.style.overflow = 'auto';
+                document.body.style.position = 'static';
             }
         }
         
@@ -2340,12 +2614,13 @@
         function handleOrientationChange() {
             console.log('Orientation changed');
             
-            // Restart camera if it was running
-            if (isScanning && stream) {
+            // Fix for iOS orientation change
+            if (isIOS) {
                 setTimeout(() => {
-                    if (video.srcObject) {
+                    if (video.srcObject && isScanning) {
+                        video.style.height = '280px';
                         video.play().catch(err => {
-                            console.error('Error restarting video:', err);
+                            console.error('Error restarting video after orientation:', err);
                         });
                     }
                 }, 300);
@@ -2362,24 +2637,75 @@
         }
         
         /**
+         * Handle resize events
+         */
+        function handleResize() {
+            if (isMobile) {
+                // Update camera container size
+                if (video) {
+                    video.style.height = '280px';
+                }
+                
+                // Fix for Safari 100vh issue
+                if (isIOS) {
+                    document.body.style.minHeight = window.innerHeight + 'px';
+                }
+            }
+        }
+        
+        /**
          * Set up touch events
          */
         function setupTouchEvents() {
             // Prevent zoom on double tap
-            document.addEventListener('touchstart', function(event) {
-                if (event.touches.length > 1) {
-                    event.preventDefault();
-                }
-            }, { passive: false });
-            
             let lastTouchEnd = 0;
             document.addEventListener('touchend', function(event) {
-                const now = (new Date()).getTime();
+                const now = Date.now();
                 if (now - lastTouchEnd <= 300) {
                     event.preventDefault();
                 }
                 lastTouchEnd = now;
-            }, false);
+            }, { passive: false });
+            
+            // Prevent context menu on long press
+            document.addEventListener('contextmenu', function(event) {
+                if (isMobile) {
+                    event.preventDefault();
+                }
+            });
+            
+            // Improve touch scrolling
+            document.addEventListener('touchmove', function(event) {
+                if (event.scale !== 1) {
+                    event.preventDefault();
+                }
+            }, { passive: false });
+        }
+        
+        /**
+         * Set up iOS keyboard fixes
+         */
+        function setupIOSKeyboardFix() {
+            // Fix for iOS keyboard pushing content up
+            document.addEventListener('focusin', function() {
+                if (isIOS) {
+                    setTimeout(() => {
+                        window.scrollTo(0, 0);
+                    }, 300);
+                }
+            });
+            
+            // Fix for iOS viewport when keyboard is shown
+            window.addEventListener('resize', function() {
+                if (isIOS) {
+                    const activeElement = document.activeElement;
+                    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                        setTimeout(() => {
+                            activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
+                }
+            });
         }
         
         // ============================================
@@ -2389,8 +2715,29 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing app...');
-            initApp();
+            
+            // Fix for iOS page load
+            if (isIOS) {
+                // Force layout calculation
+                setTimeout(() => {
+                    initApp();
+                }, 100);
+            } else {
+                initApp();
+            }
         });
+        
+        // Fix for iOS back/forward cache
+        if (isIOS) {
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    console.log('Page restored from bfcache, reinitializing...');
+                    setTimeout(() => {
+                        initApp();
+                    }, 100);
+                }
+            });
+        }
         
         // Make functions available globally
         window.selectScanType = selectScanType;

@@ -574,12 +574,77 @@
     </div>
 
     <script>
-        // Supabase Configuration - UPDATE THESE WITH YOUR OWN CREDENTIALS
-        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co'; // Replace with your Supabase URL
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDc2NDE4OCwiZXhwIjoyMDc2MzQwMTg4fQ.2OilHZE0gLYhGeSvORSjNkGKfjysyzOnw8wV3iu1D20'; // Replace with your anon key
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDc2NDE4OCwiZXhwIjoyMDc2MzQwMTg4fQ.2OilHZE0gLYhGeSvORSjNkGKfjysyzOnw8wV3iu1D20';
         
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ============================================
+        // FIXED: SUPABASE INITIALIZATION
+        // ============================================
+        
+        // Create a variable to hold the Supabase instance
+        let supabaseInstance;
+        
+        // Function to initialize Supabase safely
+        function initializeSupabase() {
+            // Check if Supabase library is loaded
+            if (typeof window.supabase === 'undefined') {
+                console.error('❌ Supabase library not loaded');
+                return null;
+            }
+            
+            // Check if we already have an instance
+            if (window.globalSupabaseClient) {
+                console.log('✅ Using existing Supabase instance');
+                return window.globalSupabaseClient;
+            }
+            
+            try {
+                console.log('🆕 Creating new Supabase client');
+                // Create the Supabase client
+                supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Store it globally to prevent re-initialization
+                window.globalSupabaseClient = supabaseInstance;
+                
+                console.log('✅ Supabase client created successfully');
+                return supabaseInstance;
+            } catch (error) {
+                console.error('❌ Error creating Supabase client:', error);
+                return null;
+            }
+        }
+        
+        // Initialize Supabase when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📦 Initializing Supabase...');
+            
+            // Wait for Supabase library to load if needed
+            if (typeof window.supabase === 'undefined') {
+                console.log('⏳ Waiting for Supabase library to load...');
+                
+                // Check every 100ms for 5 seconds
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds
+                
+                const waitForSupabase = setInterval(() => {
+                    attempts++;
+                    
+                    if (typeof window.supabase !== 'undefined') {
+                        clearInterval(waitForSupabase);
+                        console.log('✅ Supabase library loaded');
+                        initApp(); // Initialize the app
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(waitForSupabase);
+                        console.error('❌ Supabase library failed to load');
+                        showError('មិនអាចផ្ទុក Supabase library បាន។ សូមផ្ទុកទំព័រឡើងវិញ');
+                    }
+                }, 100);
+            } else {
+                // Library already loaded, initialize immediately
+                initApp();
+            }
+        });
 
         // DOM Elements
         const video = document.getElementById('camera');
@@ -617,6 +682,7 @@
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
         let isOnline = true;
         let connectionTestResults = {};
+        let supabase = null; // This will hold our Supabase client instance
 
         // Scan Types Configuration
         const scanTypes = {
@@ -656,14 +722,29 @@
             fight: { title: "វ៉ៃគ្នា", icon: "👊" },
             litter: { title: "ចោលសំរាម", icon: "🗑️" },
             phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
-            cuthuir2:{ title: "កាត់សក់", icon: "💇"},
+            cuthuir2: { title: "កាត់សក់", icon: "💇" },
             escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
             other: { title: "ផ្សេងៗ", icon: "📝" }
         };
 
+        // ============================================
+        // FIXED: MAIN INITIALIZATION FUNCTION
+        // ============================================
+        
         // Initialize App
         async function initApp() {
             console.log('🚀 Starting app initialization...');
+            
+            // Initialize Supabase first
+            supabase = initializeSupabase();
+            
+            if (!supabase) {
+                console.error('❌ Failed to initialize Supabase');
+                showError('មិនអាចតភ្ជាប់ទៅប្រព័ន្ធទិន្នន័យបាន។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍');
+                loadStudentsFromLocalStorage();
+                updateAllStats();
+                return;
+            }
             
             // Test connection first
             connectionTestResults = await testAllTables();
@@ -678,6 +759,8 @@
             
             // Set up online/offline detection
             setupConnectionMonitoring();
+            
+            console.log('✅ App initialization complete');
         }
 
         // Select Scan Type
@@ -936,7 +1019,7 @@
                 const timeCheckResult = await checkStudentScanTimeLimit(student.id);
                 if (timeCheckResult.withinLimit) {
                     const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
-                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់<br><br>សូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
                     setTimeout(() => restartScanning(), 3000);
                 } else {
                     await recordStudent(student);
@@ -1555,7 +1638,7 @@
             const timeCheckResult = await checkStudentScanTimeLimit(student.id);
             if (timeCheckResult.withinLimit) {
                 const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
-                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់<br><br>សូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
             } else {
                 await recordStudent(student);
             }
@@ -1741,13 +1824,19 @@
             window.location.href = 'list.html';
         }
 
-        // Initialize when page loads
+        // ============================================
+        // FIXED: Initialize student search event listener
+        // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing app...');
-            initApp();
+            console.log('📋 Setting up student search...');
             
-            // Add event listener for student search
-            studentSearch.addEventListener('input', filterStudents);
+            // Add event listener for student search if element exists
+            if (studentSearch) {
+                studentSearch.addEventListener('input', filterStudents);
+                console.log('✅ Student search initialized');
+            } else {
+                console.warn('⚠️ Student search element not found');
+            }
         });
 
         // Handle page visibility changes

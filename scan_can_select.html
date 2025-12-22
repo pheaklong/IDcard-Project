@@ -1140,7 +1140,7 @@
         </div>
     </div>
 
-     <script>
+    <script>
         // ============================================
         // APPLICATION CONFIGURATION
         // ============================================
@@ -1150,7 +1150,7 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
         // ============================================
-        // SUPABASE INITIALIZATION (COMPLETELY FIXED)
+        // SUPABASE INITIALIZATION
         // ============================================
         
         // ត្រួតពិនិត្យថា Supabase library ត្រូវបានផ្ទុករួចឬនៅ
@@ -1188,9 +1188,9 @@
         // ============================================
         
         function initializeApp() {
-            console.log('🚀 Initializing application...');
+            console.log('🚀 Initializing application for 3000 students...');
             
-            // បង្កើត Supabase client (ម្តងតែមួយ)
+            // បង្កើត Supabase client
             let supabaseClient;
             
             // ពិនិត្យមើលថាតើមាន Supabase client រួចហើយឬនៅ
@@ -1267,7 +1267,13 @@
                     limit: (count) => {
                         console.log(`Fallback: limit ${count}`);
                         return Promise.resolve({ data: [], error: null });
-                    }
+                    },
+                    range: (start, end) => ({
+                        select: (columns = '*') => {
+                            console.log(`Fallback: range ${start} to ${end}`);
+                            return Promise.resolve({ data: [], error: null });
+                        }
+                    })
                 })
             };
         }
@@ -1379,8 +1385,10 @@
                     return;
                 }
                 
-                console.log('🚀 Starting app initialization...');
-                console.log('Supabase available:', !!supabase);
+                console.log('🚀 Starting app initialization for 3000 students...');
+                
+                // Clean up old cache
+                cleanupOldCache();
                 
                 // Set up viewport for mobile
                 setupViewport();
@@ -1388,7 +1396,10 @@
                 // Test camera capabilities
                 await testCameraCapabilities();
                 
-                // Fetch students data
+                // Show loading message
+                showInfo('កំពុងទាញយកទិន្នន័យសិស្ស 3000 នាក់...');
+                
+                // Fetch students data (with pagination)
                 await fetchStudents();
                 
                 // Update statistics
@@ -1410,6 +1421,23 @@
                 
                 appInitialized = true;
                 console.log('✅ App initialization complete');
+            }
+            
+            /**
+             * Clean up old cache
+             */
+            function cleanupOldCache() {
+                const cacheTime = localStorage.getItem('cached_students_timestamp');
+                if (cacheTime) {
+                    const cacheAge = new Date().getTime() - parseInt(cacheTime);
+                    const cacheAgeDays = Math.floor(cacheAge / (1000 * 60 * 60 * 24));
+                    
+                    if (cacheAgeDays > 7) { // លុប cache ចាស់ជាង ៧ ថ្ងៃ
+                        localStorage.removeItem('cached_students');
+                        localStorage.removeItem('cached_students_timestamp');
+                        console.log('🧹 Cleaned up old student cache');
+                    }
+                }
             }
             
             /**
@@ -2291,41 +2319,138 @@
             }
             
             // ============================================
-            // DATA FUNCTIONS
+            // DATA FUNCTIONS - OPTIMIZED FOR 3000 STUDENTS
             // ============================================
             
             /**
-             * Fetch students from Supabase
+             * Fetch students from Supabase with pagination
              */
             async function fetchStudents() {
                 try {
-                    console.log('Fetching students...');
+                    console.log('Fetching students (with pagination for 3000 students)...');
                     
                     // Check if Supabase is properly initialized
                     if (!supabase || typeof supabase.from !== 'function') {
                         console.warn('Supabase not properly initialized, using empty student list');
                         students = [];
                         if (totalStudentsElement) totalStudentsElement.textContent = '0';
-                        showWarning('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន (ការតភ្ជាប់មានបញ្ហា)');
                         return;
                     }
                     
-                    const { data, error } = await supabase
-                        .from('students')
-                        .select('*')
-                        .limit(3000); // Limit to 100 students for performance
+                    // First, get total count
+                    showInfo('កំពុងរាប់ចំនួនសិស្សសរុប...');
                     
-                    if (error) {
-                        console.error('Error fetching students:', error);
-                        throw error;
+                    const { count, error: countError } = await supabase
+                        .from('students')
+                        .select('*', { count: 'exact', head: true });
+                    
+                    if (countError) {
+                        console.error('Error counting students:', countError);
+                    } else {
+                        console.log(`📊 Total students in database: ${count}`);
                     }
                     
-                    students = data || [];
-                    if (totalStudentsElement) totalStudentsElement.textContent = students.length;
-                    console.log(`Fetched ${students.length} students`);
+                    // Use pagination to fetch 3000 students
+                    let allStudents = [];
+                    let page = 0;
+                    const pageSize = 1000; // ទាញយក 1000 នាក់ក្នុងមួយដង
+                    let hasMore = true;
+                    
+                    while (hasMore) {
+                        const start = page * pageSize;
+                        const end = start + pageSize - 1;
+                        
+                        console.log(`📥 Fetching page ${page + 1}: students ${start} to ${end}`);
+                        
+                        const { data, error } = await supabase
+                            .from('students')
+                            .select('*')
+                            .range(start, end);
+                        
+                        if (error) {
+                            console.error(`Error fetching students page ${page}:`, error);
+                            break;
+                        }
+                        
+                        if (data && data.length > 0) {
+                            allStudents = [...allStudents, ...data];
+                            console.log(`✅ Fetched page ${page + 1}: ${data.length} students (Total: ${allStudents.length})`);
+                            
+                            // បង្ហាញ progress
+                            if (resultDiv) {
+                                const progress = Math.min(100, Math.round((allStudents.length / 3000) * 100));
+                                resultDiv.innerHTML = `
+                                    <div class="message message-info">
+                                        <i class="fas fa-spinner fa-spin"></i> 
+                                        កំពុងទាញយកទិន្នន័យសិស្ស: ${allStudents.length} នាក់<br>
+                                        <div style="background: #e9ecef; height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden;">
+                                            <div style="background: var(--primary); height: 100%; width: ${progress}%; transition: width 0.3s;"></div>
+                                        </div>
+                                        <small>${progress}% រួចរាល់</small>
+                                    </div>
+                                `;
+                            }
+                            
+                            if (data.length < pageSize) {
+                                hasMore = false;
+                            } else {
+                                page++;
+                                
+                                // ផ្តល់ពេលវេលាសម្រាប់ browser ដើម្បីដំណើរការ
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            }
+                        } else {
+                            hasMore = false;
+                        }
+                        
+                        // Stop if we have 3000 students
+                        if (allStudents.length >= 3000) {
+                            console.log(`🎯 Reached target of 3000 students`);
+                            hasMore = false;
+                        }
+                    }
+                    
+                    students = allStudents;
+                    
+                    if (totalStudentsElement) {
+                        totalStudentsElement.textContent = students.length;
+                    }
+                    
+                    console.log(`✅ Successfully fetched ${students.length} students`);
+                    
+                    // រក្សាទុក students នៅក្នុង localStorage ជាបណ្តោះអាសន្ន
+                    if (students.length > 0) {
+                        localStorage.setItem('cached_students', JSON.stringify(students));
+                        localStorage.setItem('cached_students_timestamp', new Date().getTime());
+                        console.log(`💾 Cached ${students.length} students to localStorage`);
+                    }
+                    
+                    // បង្ហាញស្ថិតិ
+                    showSuccess(`✅ ទាញយកទិន្នន័យសិស្សបានជោគជ័យ: ${students.length} នាក់`);
+                    
+                    // អនុញ្ញាតអោយ search ដំណើរការ
+                    populateStudentList();
                     
                 } catch (error) {
                     console.error('Error fetching students:', error);
+                    
+                    // ព្យាយាមប្រើ cached data
+                    const cachedData = localStorage.getItem('cached_students');
+                    const cachedTime = localStorage.getItem('cached_students_timestamp');
+                    
+                    if (cachedData && cachedTime) {
+                        const cacheAge = new Date().getTime() - parseInt(cachedTime);
+                        const cacheAgeHours = Math.floor(cacheAge / (1000 * 60 * 60));
+                        
+                        if (cacheAgeHours < 24) { // ប្រើ cached data ដែលមិនចាស់ជាង ២៤ ម៉ោង
+                            students = JSON.parse(cachedData);
+                            if (totalStudentsElement) totalStudentsElement.textContent = students.length;
+                            showWarning(`⚠️ ប្រើទិន្នន័យពី cache (${students.length} នាក់, ${cacheAgeHours}ម៉ោងមុន)`);
+                            populateStudentList();
+                            return;
+                        }
+                    }
+                    
                     students = [];
                     if (totalStudentsElement) totalStudentsElement.textContent = '0';
                     showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន។ តភ្ជាប់អ៊ីនធើណិត ឬផ្ទុកទំព័រឡើងវិញ');
@@ -2463,7 +2588,7 @@
             }
             
             // ============================================
-            // MANUAL ENTRY FUNCTIONS
+            // MANUAL ENTRY FUNCTIONS WITH PAGINATION
             // ============================================
             
             /**
@@ -2482,7 +2607,7 @@
                     return;
                 }
                 
-                // Populate student list
+                // Populate student list with pagination
                 populateStudentList();
                 
                 // Show modal
@@ -2516,7 +2641,7 @@
             }
             
             /**
-             * Populate student list
+             * Populate student list with pagination
              */
             function populateStudentList() {
                 if (!studentList) return;
@@ -2528,21 +2653,135 @@
                     return;
                 }
                 
+                // Show student count
+                const countDiv = document.createElement('div');
+                countDiv.className = 'message message-info';
+                countDiv.style.cssText = 'padding: 10px; margin-bottom: 10px; text-align: center;';
+                countDiv.innerHTML = `<i class="fas fa-users"></i> សិស្សសរុប: <strong>${students.length}</strong> នាក់`;
+                studentList.appendChild(countDiv);
+                
                 // Sort students by name
                 const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
                 
-                sortedStudents.forEach(student => {
+                // Use pagination for display (show first 50)
+                const displayLimit = 50;
+                const studentsToDisplay = sortedStudents.slice(0, displayLimit);
+                
+                studentsToDisplay.forEach((student, index) => {
                     const studentItem = document.createElement('div');
                     studentItem.className = 'student-item';
                     studentItem.onclick = () => selectStudent(student);
                     
                     studentItem.innerHTML = `
-                        <strong>${student.name}</strong><br>
+                        <strong>${index + 1}. ${student.name}</strong><br>
                         <small><i class="fas fa-id-card"></i> អត្តលេខ: ${student.id} | <i class="fas fa-graduation-cap"></i> ថ្នាក់: ${student.class}</small>
                     `;
                     
                     studentList.appendChild(studentItem);
                 });
+                
+                // Show "show more" button if there are more students
+                if (sortedStudents.length > displayLimit) {
+                    const showMoreDiv = document.createElement('div');
+                    showMoreDiv.className = 'message message-info';
+                    showMoreDiv.style.cssText = 'padding: 10px; margin-top: 10px; text-align: center;';
+                    showMoreDiv.innerHTML = `
+                        <p>កំពុងបង្ហាញ 50 នាក់ក្នុងចំណោម ${sortedStudents.length} នាក់</p>
+                        <button id="showMoreBtn" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px; margin-top: 5px;">
+                            <i class="fas fa-arrow-down"></i> បង្ហាញទាំងអស់
+                        </button>
+                    `;
+                    studentList.appendChild(showMoreDiv);
+                    
+                    // Add event listener for "show more" button
+                    setTimeout(() => {
+                        const showMoreBtn = document.getElementById('showMoreBtn');
+                        if (showMoreBtn) {
+                            showMoreBtn.onclick = () => showAllStudents(sortedStudents);
+                        }
+                    }, 100);
+                }
+                
+                // Add search hint
+                const searchHint = document.createElement('div');
+                searchHint.className = 'message message-info';
+                searchHint.style.cssText = 'padding: 8px; margin-top: 10px; font-size: 12px;';
+                searchHint.innerHTML = '<i class="fas fa-search"></i> សរសេរនៅលើប្រអប់ស្វែងរកខាងលើដើម្បីស្វែងរកសិស្ស';
+                studentList.appendChild(searchHint);
+            }
+            
+            /**
+             * Show all students
+             */
+            function showAllStudents(allStudents) {
+                if (!studentList) return;
+                
+                // Remove the "show more" button
+                const showMoreDiv = studentList.querySelector('.message-info:last-child');
+                if (showMoreDiv) {
+                    showMoreDiv.remove();
+                }
+                
+                // Show loading indicator
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'message message-info';
+                loadingDiv.style.cssText = 'padding: 15px; text-align: center;';
+                loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> កំពុងផ្ទុកទិន្នន័យទាំងអស់...';
+                studentList.appendChild(loadingDiv);
+                
+                // Use setTimeout to avoid blocking the UI
+                setTimeout(() => {
+                    // Clear existing list (except the count div)
+                    const countDiv = studentList.querySelector('.message-info:first-child');
+                    const existingItems = studentList.querySelectorAll('.student-item');
+                    existingItems.forEach(item => item.remove());
+                    
+                    // Remove loading indicator
+                    if (loadingDiv.parentNode) {
+                        loadingDiv.remove();
+                    }
+                    
+                    // Display all students
+                    allStudents.forEach((student, index) => {
+                        const studentItem = document.createElement('div');
+                        studentItem.className = 'student-item';
+                        studentItem.onclick = () => selectStudent(student);
+                        
+                        studentItem.innerHTML = `
+                            <strong>${index + 1}. ${student.name}</strong><br>
+                            <small><i class="fas fa-id-card"></i> អត្តលេខ: ${student.id} | <i class="fas fa-graduation-cap"></i> ថ្នាក់: ${student.class}</small>
+                        `;
+                        
+                        studentList.appendChild(studentItem);
+                    });
+                    
+                    // Update count
+                    if (countDiv) {
+                        countDiv.innerHTML = `<i class="fas fa-users"></i> កំពុងបង្ហាញទាំងអស់: <strong>${allStudents.length}</strong> នាក់`;
+                    }
+                    
+                    // Add back button to scroll to top
+                    const backToTopDiv = document.createElement('div');
+                    backToTopDiv.className = 'message message-info';
+                    backToTopDiv.style.cssText = 'padding: 10px; margin-top: 10px; text-align: center;';
+                    backToTopDiv.innerHTML = `
+                        <button id="backToTopBtn" class="btn btn-primary" style="padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-arrow-up"></i> ឡើងទៅកំពូល
+                        </button>
+                    `;
+                    studentList.appendChild(backToTopDiv);
+                    
+                    // Add event listener for back to top
+                    setTimeout(() => {
+                        const backToTopBtn = document.getElementById('backToTopBtn');
+                        if (backToTopBtn) {
+                            backToTopBtn.onclick = () => {
+                                studentList.scrollTo({ top: 0, behavior: 'smooth' });
+                            };
+                        }
+                    }, 100);
+                    
+                }, 100);
             }
             
             /**
@@ -2553,14 +2792,25 @@
                 
                 const searchTerm = studentSearch.value.toLowerCase();
                 const studentItems = studentList.getElementsByClassName('student-item');
+                let visibleCount = 0;
                 
                 for (let i = 0; i < studentItems.length; i++) {
                     const studentText = studentItems[i].textContent.toLowerCase();
                     if (studentText.includes(searchTerm)) {
                         studentItems[i].style.display = 'block';
+                        visibleCount++;
                     } else {
                         studentItems[i].style.display = 'none';
                     }
+                }
+                
+                // Update count if needed
+                const countDiv = studentList.querySelector('.message-info:first-child');
+                if (countDiv && searchTerm) {
+                    const totalCount = students.length;
+                    countDiv.innerHTML = `<i class="fas fa-users"></i> រកឃើញ: <strong>${visibleCount}</strong> នាក់ក្នុងចំណោម ${totalCount} នាក់`;
+                } else if (countDiv) {
+                    countDiv.innerHTML = `<i class="fas fa-users"></i> សិស្សសរុប: <strong>${students.length}</strong> នាក់`;
                 }
             }
             
@@ -2608,6 +2858,15 @@
             function showWarning(message) {
                 if (resultDiv) {
                     resultDiv.innerHTML = `<div class="message message-warning"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
+                }
+            }
+            
+            /**
+             * Show info message
+             */
+            function showInfo(message) {
+                if (resultDiv) {
+                    resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-info-circle"></i> ${message}</div>`;
                 }
             }
             

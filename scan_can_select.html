@@ -1165,20 +1165,17 @@
                 }
                 
                 // Create new instance
-                supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                ​​const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                      global: {
+                        headers: {
+                          apikey: SUPABASE_ANON_KEY,
+                          Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                      },
                       auth: {
                         autoRefreshToken: false,
                         persistSession: false,
                         detectSessionInUrl: false
-                      },
-                      global: {
-                        headers: {
-                          'apikey': SUPABASE_ANON_KEY,
-                          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-                        }
-                      },
-                      db: {
-                        schema: 'public'
                       }
                     });
                 window.supabaseClientInstance = supabase; // Store for reuse

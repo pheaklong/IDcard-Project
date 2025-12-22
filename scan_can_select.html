@@ -1166,16 +1166,21 @@
                 
                 // Create new instance
                 supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                          auth: {
-                            autoRefreshToken: false,
-                            persistSession: false
-                          },
-                          global: {
-                            headers: {
-                              apikey: SUPABASE_ANON_KEY // បង្ខំ send key ភ្លាមៗ
-                            }
-                          }
-                        });
+                      auth: {
+                        autoRefreshToken: false,
+                        persistSession: false,
+                        detectSessionInUrl: false
+                      },
+                      global: {
+                        headers: {
+                          'apikey': SUPABASE_ANON_KEY,
+                          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+                        }
+                      },
+                      db: {
+                        schema: 'public'
+                      }
+                    });
                 window.supabaseClientInstance = supabase; // Store for reuse
                 console.log('✅ Created new Supabase instance');
             } catch (error) {

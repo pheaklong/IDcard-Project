@@ -2,24 +2,17 @@
 <html lang="km">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📱</text></svg>">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- JSQR Library -->
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
-    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Arial', 'Khmer OS', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -31,147 +24,52 @@
             --dark: #212529;
             --border-radius: 16px;
             --shadow: 0 8px 24px rgba(0,0,0,0.12);
-            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            min-height: -webkit-fill-available;
             padding: 20px;
-            color: #333;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-text-size-adjust: 100%;
-            touch-action: manipulation;
-        }
-
-        html {
-            height: -webkit-fill-available;
         }
 
         .app-container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            animation: fadeIn 0.5s ease;
-            min-height: 80vh;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         .header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 25px 20px;
+            padding: 25px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255,255,255,0.1);
-            transform: rotate(30deg);
         }
 
         .header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-            position: relative;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            line-height: 1.3;
-        }
-
-        .header p {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            position: relative;
-            line-height: 1.4;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
         }
 
         .back-buttons {
             display: flex;
             gap: 10px;
-            padding: 12px 20px;
+            padding: 15px 25px;
             background: var(--light);
             border-bottom: 1px solid #e9ecef;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 14px 20px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 50px;
-            text-decoration: none;
-            width: 100%;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            user-select: none;
-            touch-action: manipulation;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        .btn-primary { 
-            background: var(--primary);
-            color: white; 
-        }
-        .btn-primary:active {
-            background: var(--primary-dark);
-        }
-
-        .btn-success { 
-            background: var(--success);
-            color: white; 
-        }
-        
-        .btn-warning { 
-            background: var(--warning);
-            color: white; 
-        }
-        
-        .btn-danger { 
-            background: var(--danger);
-            color: white; 
-        }
-        
-        .btn-info { 
-            background: var(--secondary);
-            color: white; 
         }
 
         .content {
-            padding: 20px;
+            padding: 25px;
         }
 
         .card {
@@ -180,24 +78,13 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
-            border-left: 4px solid var(--primary);
-        }
-
-        .card h2 {
-            color: var(--primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.2rem;
-            line-height: 1.3;
         }
 
         .scan-type-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .scan-type-card {
@@ -207,208 +94,117 @@
             padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 140px;
-            justify-content: center;
-            user-select: none;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+            transition: all 0.3s ease;
         }
 
-        .scan-type-card:active {
-            transform: scale(0.98);
+        .scan-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
             border-color: var(--primary);
         }
 
         .scan-type-card.selected {
             border-color: var(--primary);
-            background: rgba(67, 97, 238, 0.08);
-            position: relative;
-        }
-
-        .scan-type-card.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--primary);
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+            background: rgba(67, 97, 238, 0.05);
         }
 
         .scan-type-icon {
-            font-size: 2.2rem;
-            margin-bottom: 12px;
-            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
         }
 
         .scan-type-title {
-            font-weight: 700;
-            margin-bottom: 6px;
-            font-size: 1rem;
-            color: #333;
-            line-height: 1.3;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
         .scan-type-desc {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             color: #666;
-            line-height: 1.4;
         }
 
-        /* Modal Styles */
-        .modal {
+        /* Sub-type Modal Styles */
+        .subtype-modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.5);
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            animation: fadeIn 0.3s ease;
-            padding: 15px;
-            backdrop-filter: blur(5px);
         }
 
-        .modal-content {
+        .subtype-content {
             background: white;
             border-radius: var(--border-radius);
             padding: 25px;
-            width: 100%;
+            width: 90%;
             max-width: 500px;
-            max-height: 85vh;
+            max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease;
-            -webkit-overflow-scrolling: touch;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .subtype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
         }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .modal-title {
-            font-size: 1.2rem;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            line-height: 1.3;
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition);
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .close-modal:active {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        /* Current Scan Type Display */
-        #current-scan-type {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 18px;
+        .subtype-card {
+            background: white;
+            border: 2px solid #e9ecef;
             border-radius: var(--border-radius);
-            margin: 15px 0;
+            padding: 15px;
             text-align: center;
-            animation: fadeIn 0.5s ease;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        #current-scan-title {
-            font-size: 1.1rem;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            line-height: 1.3;
+        .subtype-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--warning);
         }
 
-        #current-scan-description {
-            opacity: 0.9;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            line-height: 1.4;
+        .subtype-card.selected {
+            border-color: var(--warning);
+            background: rgba(247, 37, 133, 0.05);
         }
 
-        .time-remaining {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 12px;
-            border-radius: 50px;
-            display: inline-block;
+        .subtype-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtype-title {
             font-weight: 600;
-            font-size: 0.85rem;
-            backdrop-filter: blur(5px);
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
-        /* Camera Permission */
-        #camera-permission {
-            text-align: center;
-            padding: 25px 20px;
+        /* Other Description Input */
+        .other-description-container {
+            margin-top: 15px;
+            padding: 15px;
             background: #f8f9fa;
             border-radius: var(--border-radius);
-            margin: 15px 0;
-            border: 2px dashed #ddd;
+            display: none;
         }
 
-        .permission-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px 28px;
-            border-radius: var(--border-radius);
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: var(--transition);
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 54px;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
+        .other-description-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
         }
 
-        .permission-btn:active {
-            background: var(--primary-dark);
-            transform: scale(0.98);
-        }
-
-        /* Scanner Container */
         #scanner-container {
             text-align: center;
             margin: 20px 0;
@@ -419,75 +215,29 @@
             display: inline-block;
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            margin-bottom: 15px;
-            background: #000;
-            width: 100%;
-            max-width: 350px;
         }
 
         video {
             width: 100%;
+            max-width: 400px;
             height: 300px;
             background: #000;
-            display: block;
-            object-fit: cover;
-        }
-
-        .scanner-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
         }
 
         .scanner-line {
             position: absolute;
             width: 100%;
             height: 4px;
-            background: linear-gradient(to right, transparent, var(--primary), transparent);
-            top: 10%;
-            animation: scanLine 2s infinite linear;
-            box-shadow: 0 0 10px rgba(67, 97, 238, 0.8);
+            background: var(--primary);
+            top: 50%;
+            animation: scanLine 2s infinite ease-in-out;
         }
 
         @keyframes scanLine {
-            0% { top: 10%; }
+            0%, 100% { top: 10%; }
             50% { top: 90%; }
-            100% { top: 10%; }
         }
 
-        .scanner-corners {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-        }
-
-        .scanner-corners::before, .scanner-corners::after {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border: 3px solid var(--primary);
-        }
-
-        .scanner-corners::before {
-            top: 15px;
-            left: 15px;
-            border-right: none;
-            border-bottom: none;
-        }
-
-        .scanner-corners::after {
-            bottom: 15px;
-            right: 15px;
-            border-left: none;
-            border-top: none;
-        }
-
-        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -498,448 +248,286 @@
         .stat-card {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 20px 15px;
+            padding: 20px;
             border-radius: var(--border-radius);
             text-align: center;
-            transition: var(--transition);
-        }
-
-        .stat-card:active {
-            transform: scale(0.98);
         }
 
         .stat-number {
             font-size: 1.8rem;
             font-weight: bold;
-            margin-bottom: 6px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 5px;
         }
 
-        .stat-label {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            line-height: 1.3;
-        }
-
-        /* Scan Count */
-        .scan-count {
-            background: var(--light);
-            padding: 10px 20px;
-            border-radius: 50px;
-            display: inline-block;
-            margin: 10px 0;
-            font-weight: 700;
-            color: var(--primary);
-            border: 2px solid rgba(67, 97, 238, 0.2);
-            font-size: 0.95rem;
-        }
-
-        /* Button Grid */
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
         }
 
-        /* Message Styles */
-        .message {
-            padding: 18px;
+        .btn {
+            padding: 15px 20px;
+            border: none;
             border-radius: var(--border-radius);
-            margin: 12px 0;
-            animation: fadeIn 0.5s ease;
-            font-size: 0.95rem;
-            line-height: 1.4;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
+        }
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+
+        .message {
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
         }
 
         .message-success {
             background: #d4edda;
             border: 1px solid #c3e6cb;
             color: #155724;
-            border-left: 4px solid #28a745;
         }
 
         .message-error {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
             color: #721c24;
-            border-left: 4px solid #dc3545;
         }
 
         .message-info {
             background: #d1ecf1;
             border: 1px solid #bee5eb;
             color: #0c5460;
-            border-left: 4px solid #17a2b8;
         }
 
         .message-warning {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             color: #856404;
-            border-left: 4px solid #ffc107;
         }
 
-        /* Scanning Status Indicator */
-        .scan-status-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
+        #camera-permission {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        .permission-btn {
             background: var(--primary);
             color: white;
-            padding: 12px 18px;
-            border-radius: 8px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            animation: slideInRight 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 300px;
-            display: none;
-        }
-
-        .scan-status-indicator.scanning {
-            background: var(--primary);
-            display: flex;
-        }
-
-        .scan-status-indicator.processing {
-            background: var(--secondary);
-            display: flex;
-        }
-
-        .scan-status-indicator.success {
-            background: var(--success);
-            display: flex;
-        }
-
-        .scan-status-indicator.error {
-            background: var(--danger);
-            display: flex;
-        }
-
-        .scan-status-indicator.warning {
-            background: var(--warning);
-            display: flex;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        /* QR Detected Animation */
-        .qr-detected-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(76, 201, 240, 0.3);
-            border: 4px solid var(--success);
+            border: none;
+            padding: 12px 25px;
             border-radius: var(--border-radius);
-            animation: detectedPulse 0.5s ease;
-            pointer-events: none;
-            z-index: 2;
-            display: none;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
         }
 
-        @keyframes detectedPulse {
-            0% { transform: scale(0.95); opacity: 0.5; }
-            50% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0; }
+        .current-scan-type {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+            text-align: center;
         }
 
-        /* Loading Animation */
-        .loading {
+        .scan-count {
+            background: var(--light);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+            margin: 10px 0;
+            font-weight: 600;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .time-remaining {
+            background: var(--warning);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .app-container {
-                border-radius: 12px;
-                min-height: 85vh;
-            }
-            
-            .content {
-                padding: 15px;
+            .button-grid {
+                grid-template-columns: 1fr;
             }
             
             .scan-type-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
             }
             
-            .button-grid {
+            .subtype-grid {
                 grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-            
-            video {
-                max-width: 100%;
-                height: 280px;
-            }
-            
-            .header {
-                padding: 20px 15px;
-            }
-            
-            .header h1 {
-                font-size: 1.3rem;
-            }
-            
-            .btn {
-                padding: 16px 20px;
-                font-size: 16px;
-                min-height: 54px;
-            }
-            
-            .modal-content {
-                padding: 20px 15px;
-                max-height: 90vh;
-            }
-            
-            .stat-number {
-                font-size: 1.6rem;
-            }
-            
-            .scan-type-icon {
-                font-size: 2rem;
-            }
-            
-            .scan-type-card {
-                min-height: 130px;
-                padding: 18px;
-            }
-            
-            .scan-status-indicator {
-                top: 10px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 8px;
-            }
-            
-            .back-buttons {
-                flex-direction: column;
-                gap: 8px;
-                padding: 10px 15px;
-            }
-            
-            .btn {
-                width: 100%;
-                min-height: 56px;
-            }
-            
-            .modal-content {
-                padding: 18px 12px;
-            }
-            
-            .stat-number {
-                font-size: 1.5rem;
-            }
-            
-            .scan-type-icon {
-                font-size: 1.8rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-            
-            .stat-card {
-                padding: 15px 10px;
-            }
-            
-            .scanner-frame {
-                max-width: 100%;
-                height: 250px;
-            }
-            
-            video {
-                height: 250px;
-            }
-            
-            .card {
-                padding: 18px 15px;
-            }
-        }
-
-        /* iOS Safe Areas */
-        @supports (padding: max(0px)) {
-            body {
-                padding-left: max(8px, env(safe-area-inset-left));
-                padding-right: max(8px, env(safe-area-inset-right));
-                padding-top: max(8px, env(safe-area-inset-top));
-                padding-bottom: max(8px, env(safe-area-inset-bottom));
-            }
-            
-            .header {
-                padding-top: max(25px, env(safe-area-inset-top));
-            }
-            
-            .content {
-                padding-bottom: max(20px, env(safe-area-inset-bottom));
-            }
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Touch Device Optimizations */
-        @media (hover: none) and (pointer: coarse) {
-            .btn:hover, .scan-type-card:hover {
-                transform: none;
-            }
-            
-            .btn:active, .scan-type-card:active {
-                opacity: 0.7;
-                transform: scale(0.98);
-            }
-            
-            .btn, .scan-type-card {
-                min-height: 44px;
-            }
-            
-            input, textarea, select, button {
-                font-size: 16px !important;
-            }
-        }
-        
-        /* Fix for iOS form zoom */
-        @media screen and (max-width: 767px) {
-            input, textarea, select {
-                font-size: 16px !important;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Scan Status Indicator -->
-    <div id="scan-status" class="scan-status-indicator">
-        <i class="fas fa-sync-alt fa-spin"></i>
-        <span id="scan-status-text">កំពុងស្កេន...</span>
-    </div>
-
-    <!-- QR Detected Overlay -->
-    <div id="qr-detected-overlay" class="qr-detected-overlay"></div>
-
     <div class="app-container">
         <div class="header">
-            <h1><i class="fas fa-qrcode"></i> ការកំណត់ការស្កេន</h1>
+            <h1>🔍 ការកំណត់ការស្កេន</h1>
             <p>ជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន</p>
         </div>
         
         <div class="back-buttons">
-            <button class="btn btn-primary" onclick="goToHome()">
-                <i class="fas fa-home"></i> ត្រឡប់ទៅទំព័រដើម
-            </button>
-            <button class="btn btn-primary" onclick="goBack()">
-                <i class="fas fa-arrow-left"></i> ត្រឡប់ក្រោយ
-            </button>
+            <button class="btn btn-primary" onclick="goToHome()">🏠 ត្រឡប់ទៅទំព័រដើម</button>
+            <button class="btn btn-primary" onclick="goBack()">↩️ ត្រឡប់ក្រោយ</button>
         </div>
         
         <div class="content">
             <div class="card">
-                <h2><i class="fas fa-users"></i> ជ្រើសរើសប្រភេទសិស្ស</h2>
-                <p style="margin-bottom: 15px; color: #666;">សូមជ្រើសរើសប្រភេទសិស្សដែលអ្នកចង់ស្កេន៖</p>
-                
+                <h2>📋 ជ្រើសរើសប្រភេទសិស្ស</h2>
                 <div class="scan-type-grid">
                     <div class="scan-type-card" data-type="late" onclick="selectScanType('late')">
-                        <div class="scan-type-icon"><i class="fas fa-clock"></i></div>
+                        <div class="scan-type-icon">⏰</div>
                         <div class="scan-type-title">សិស្សមកយឺត</div>
                         <div class="scan-type-desc">សិស្សដែលមកយឺត មិនគោរពទង់ជាតិ</div>
                     </div>
-                    <div class="scan-type-card" data-type="discipline" onclick="selectScanType('discipline')">
-                        <div class="scan-type-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="scan-type-card" data-type="discipline" onclick="openDisciplineSubtypes()">
+                        <div class="scan-type-icon">⚠️</div>
                         <div class="scan-type-title">មិនគោរពវិន័យ</div>
                         <div class="scan-type-desc">សិស្សដែលមិនគោរពវិន័យសាលា</div>
                     </div>
                     <div class="scan-type-card" data-type="helpful" onclick="selectScanType('helpful')">
-                        <div class="scan-type-icon"><i class="fas fa-hands-helping"></i></div>
+                        <div class="scan-type-icon">🤝</div>
                         <div class="scan-type-title">ជួយការងារ</div>
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
+                    </div>
+                    <!--delete sen
+                    <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
+                        <div class="scan-type-icon">💇</div>
+                        <div class="scan-type-title">ការៀបចំខ្លូន</div>
+                        <div class="scan-type-desc">សិស្សដែលត្រូវវិន័យទាក់ទងការរៀបចំខ្លួន</div>
+                    </div>
+                    -->
+                </div>
+            </div>
+
+            <!-- Discipline Subtypes Modal -->
+            <div id="disciplineSubtypesModal" class="subtype-modal">
+                <div class="subtype-content">
+                    <h3>⚠️ ជ្រើសរើសប្រភេទមិនគោរពវិន័យ</h3>
+                    <p>សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យដែលសិស្សបានប្រព្រឹត្ត</p>
+                    
+                    <div class="subtype-grid">
+                        <div class="subtype-card" data-subtype="shoes" onclick="selectDisciplineSubtype('shoes')">
+                            <div class="subtype-icon">👞</div>
+                            <div class="subtype-title">ស្បែកជើង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="uniform" onclick="selectDisciplineSubtype('uniform')">
+                            <div class="subtype-icon">👔</div>
+                            <div class="subtype-title">មិនទនុយ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="canteen" onclick="selectDisciplineSubtype('canteen')">
+                            <div class="subtype-icon">🍽️</div>
+                            <div class="subtype-title">នៅរោងបាយមិនចូលថ្នាក់</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fence" onclick="selectDisciplineSubtype('fence')">
+                            <div class="subtype-icon">🚧</div>
+                            <div class="subtype-title">ផ្លោះរបង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fight" onclick="selectDisciplineSubtype('fight')">
+                            <div class="subtype-icon">👊</div>
+                            <div class="subtype-title">វ៉ៃគ្នា</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="litter" onclick="selectDisciplineSubtype('litter')">
+                            <div class="subtype-icon">🗑️</div>
+                            <div class="subtype-title">ចោលសំរាម</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="phone" onclick="selectDisciplineSubtype('phone')">
+                            <div class="subtype-icon">📱</div>
+                            <div class="subtype-title">លេងទូរស័ព្ទ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="cuthuir2" onclick="selectDisciplineSubtype('cuthuir2')">
+                            <div class="subtype-icon">💇</div>
+                            <div class="subtype-title">កាត់សក់</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="escape" onclick="selectDisciplineSubtype('escape')">
+                            <div class="subtype-icon">🏃</div>
+                            <div class="subtype-title">គេចម៉ោងរៀន</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="other" onclick="selectDisciplineSubtype('other')">
+                            <div class="subtype-icon">📝</div>
+                            <div class="subtype-title">ផ្សេងៗ</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Other Description Input -->
+                    <div id="otherDescriptionContainer" class="other-description-container">
+                        <label for="otherDescription">សរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ:</label>
+                        <textarea id="otherDescription" placeholder="សរសេរបញ្ជាក់នៅទីនេះ..."></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-warning" onclick="confirmDisciplineSubtype()" style="flex: 1;">
+                            ✅ បញ្ជាក់
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeDisciplineSubtypes()" style="flex: 1;">
+                            ❌ បោះបង់
+                        </button>
                     </div>
                 </div>
             </div>
 
             <div id="current-scan-type" class="current-scan-type" style="display: none;">
-                <h3 id="current-scan-title"><i class="fas fa-qrcode"></i> កំពុងស្កេន</h3>
+                <h3 id="current-scan-title">កំពុងស្កេន</h3>
                 <p id="current-scan-description">ស្កេនសិស្ស</p>
                 <div id="time-limit-info" class="time-remaining" style="display: none;">
-                    <i class="fas fa-clock"></i> សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
+                    សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
                 </div>
             </div>
 
             <div id="camera-permission">
-                <h3><i class="fas fa-camera"></i> ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
+                <h3>ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
                 <p>ត្រូវការអនុញ្ញាតប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
-                <button class="permission-btn" onclick="requestCameraPermission()">
-                    <i class="fas fa-camera"></i> អនុញ្ញាតកាមេរ៉ា
-                </button>
+                <button class="permission-btn" onclick="requestCameraPermission()">អនុញ្ញាតកាមេរ៉ា</button>
             </div>
             
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
                     <video id="camera" playsinline></video>
-                    <div class="scanner-overlay">
-                        <div class="scanner-line"></div>
-                        <div class="scanner-corners"></div>
-                    </div>
+                    <div class="scanner-line"></div>
                 </div>
-                <p style="margin-bottom: 15px; color: #666;">យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
+                <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
                 
                 <div id="scan-count" class="scan-count" style="display: none;">
-                    <i class="fas fa-check-circle"></i> ស្កេនរួចរាល់៖ <span id="scanned-count">0</span> នាក់
+                    ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
                 </div>
             </div>
 
@@ -961,384 +549,115 @@
             </div>
 
             <div class="button-grid">
-                <button id="start-btn" class="btn btn-success" onclick="startScanning()" disabled>
-                    <i class="fas fa-play"></i> ចាប់ផ្ដើមស្កេន
-                </button>
-                <button class="btn btn-info" onclick="viewReports()">
-                    <i class="fas fa-chart-bar"></i> មើលរបាយការណ៍
-                </button>
-                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>
-                    <i class="fas fa-stop"></i> បញ្ឈប់កាមេរ៉ា
-                </button>
-                <button class="btn btn-primary" onclick="openManualEntryModal()">
-                    <i class="fas fa-keyboard"></i> កត់ត្រាតាមអត្តលេខ
-                </button>
+                <button id="start-btn" class="btn btn-success" onclick="startCamera()" disabled>▶️ ចាប់ផ្ដើមស្កេន</button>
+                <button class="btn btn-primary" onclick="viewReports()">📊 មើលរបាយការណ៍</button>
+                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>⏹️ បញ្ឈប់កាមេរ៉ា</button>
+                <button class="btn btn-info" onclick="openManualEntryModal()">📝 កត់ត្រាតាមអត្តលេខ</button>
             </div>
         </div>
     </div>
 
     <!-- Manual Entry Modal -->
-    <div id="manualEntryModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i class="fas fa-keyboard"></i> កត់ត្រាសិស្សតាមអត្តលេខ
-                </div>
-                <button class="close-modal" onclick="closeManualEntryModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="form-group">
-                <label for="studentSearch" class="form-label">ស្វែងរកសិស្ស៖</label>
-                <input type="text" id="studentSearch" placeholder="ស្វែងរកតាមឈ្មោះ ឬអត្តលេខ..." 
-                       style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;">
-            </div>
-            
-            <div id="studentList" style="max-height: 300px; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; padding: 10px; -webkit-overflow-scrolling: touch;">
-                <!-- Student list will be populated here -->
-            </div>
-            
-            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 20px; width: 100%; padding: 16px;">
-                <i class="fas fa-times"></i> បិទ
-            </button>
+    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001;">
+        <div style="background: white; padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 500px;">
+            <h3>កត់ត្រាសិស្សតាមអត្តលេខ</h3>
+            <input type="text" id="studentSearch" placeholder="ស្វែងរកសិស្ស..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div id="studentList" style="max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 10px;">បិទ</button>
         </div>
     </div>
 
     <script>
-        // ============================================
-        // APPLICATION CONFIGURATION
-        // ============================================
-        
+        // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
-        // ============================================
-        // GLOBAL VARIABLES
-        // ============================================
-        
-        let supabase;
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // DOM Elements
+        const video = document.getElementById('camera');
+        const resultDiv = document.getElementById('result');
+        const scannerContainer = document.getElementById('scanner-container');
+        const cameraPermissionDiv = document.getElementById('camera-permission');
+        const scanCountDiv = document.getElementById('scan-count');
+        const scannedCountSpan = document.getElementById('scanned-count');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const todayScansElement = document.getElementById('today-scans');
+        const totalStudentsElement = document.getElementById('total-students');
+        const selectedTypeCountElement = document.getElementById('selected-type-count');
+        const selectedTypeLabelElement = document.getElementById('selected-type-label');
+        const currentScanTypeDiv = document.getElementById('current-scan-type');
+        const currentScanTitle = document.getElementById('current-scan-title');
+        const currentScanDescription = document.getElementById('current-scan-description');
+        const timeLimitInfo = document.getElementById('time-limit-info');
+        const manualEntryModal = document.getElementById('manualEntryModal');
+        const studentList = document.getElementById('studentList');
+        const studentSearch = document.getElementById('studentSearch');
+        const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+        const otherDescription = document.getElementById('otherDescription');
+
+        // Global Variables
         let stream = null;
         let isScanning = false;
         let selectedScanType = null;
+        let selectedDisciplineSubtype = null;
         let students = [];
         let scanAnimationFrame = null;
-        let canvas, context;
-        let lastScanTime = 0;
-        const SCAN_INTERVAL = 300; // 300ms between scans
-        
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Starting application initialization...');
-            
-            // Initialize DOM elements
-            initializeDOMElements();
-            
-            // Initialize Supabase
-            await initializeSupabase();
-            
-            // Initialize camera test
-            await testCamera();
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Check login
-            checkLogin();
-            
-            console.log('✅ Application initialized');
-        });
-        
-        function initializeDOMElements() {
-            // Create canvas for QR scanning
-            canvas = document.createElement('canvas');
-            context = canvas.getContext('2d');
-            document.body.appendChild(canvas);
-            canvas.style.display = 'none';
-        }
-        
-        async function initializeSupabase() {
-            try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('✅ Supabase initialized');
-                
-                // Test connection
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('count')
-                    .limit(1);
-                    
-                if (error) {
-                    console.warn('⚠️ Supabase connection test failed:', error);
-                } else {
-                    console.log('✅ Supabase connection successful');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error initializing Supabase:', error);
+        const TIME_LIMIT_MINUTES = 10;
+        const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
+
+        // Scan Types Configuration
+        const scanTypes = {
+            late: {
+                title: "សិស្សមកយឺត",
+                description: "ស្កេនសិស្សដែលមកយឺត មិនគោរពទង់ជាតិ",
+                table: "attendance_reports"
+            },
+            discipline: {
+                title: "សិស្សមិនគោរពវិន័យ",
+                description: "ស្កេនសិស្សដែលមិនគោរពវិន័យសាលា",
+                table: "discipline_reports"
+            },
+            helpful: {
+                title: "សិស្សជួយការងារ",
+                description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
+                table: "helpful_reports"
+            },
+            haircut: {
+                title: "សិស្សត្រូវកាត់សក់",
+                description: "ស្កេនសិស្សដែលត្រូវកាត់សក់តាមវិន័យ",
+                table: "haircut_reports"
             }
+        };
+
+        // Discipline Subtypes Configuration
+        const disciplineSubtypes = {
+            shoes: { title: "ស្បែកជើង", icon: "👞" },
+            uniform: { title: "មិនទនុយ", icon: "👔" },
+            canteen: { title: "នៅរោងបាយមិនចូលថ្នាក់", icon: "🍽️" },
+            fence: { title: "ផ្លោះរបង", icon: "🚧" },
+            fight: { title: "វ៉ៃគ្នា", icon: "👊" },
+            litter: { title: "ចោលសំរាម", icon: "🗑️" },
+            phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
+            cuthuir2:{ title: "កាត់សក់", icon: "💇"},
+            escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
+            other: { title: "ផ្សេងៗ", icon: "📝" }
+        };
+
+        // Initialize App
+        async function initApp() {
+            console.log('🚀 Starting app initialization...');
+            await fetchStudents();
+            await updateAllStats();
+            testSupabaseConnection();
         }
-        
-        async function testCamera() {
-            console.log('🔍 Testing camera capabilities...');
-            
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                console.error('❌ Camera API not supported');
-                showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari');
-                return false;
-            }
-            
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                
-                if (videoDevices.length === 0) {
-                    console.warn('⚠️ No camera devices found');
-                    showError('មិនមានកាមេរ៉ាទេ។');
-                    return false;
-                }
-                
-                console.log(`✅ Found ${videoDevices.length} camera device(s)`);
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Error checking camera:', error);
-                return false;
-            }
-        }
-        
-        function setupEventListeners() {
-            console.log('Setting up event listeners...');
-            
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && isScanning) {
-                    stopCamera();
-                }
-            });
-            
-            // Page visibility change
-            document.addEventListener('visibilitychange', function() {
-                if (document.hidden && isScanning) {
-                    console.log('Page hidden, pausing camera');
-                    pauseCamera();
-                } else if (!document.hidden && selectedScanType && stream) {
-                    console.log('Page visible, resuming camera');
-                    resumeCamera();
-                }
-            });
-            
-            // Window resize
-            window.addEventListener('resize', function() {
-                if (isScanning) {
-                    adjustCameraSize();
-                }
-            });
-        }
-        
-        function checkLogin() {
-            if (localStorage.getItem('adminLoggedIn') !== 'true') {
-                window.location.href = 'login.html';
-            }
-        }
-        
-        // ============================================
-        // CAMERA FUNCTIONS
-        // ============================================
-        
-        async function requestCameraPermission() {
-            console.log('📷 Requesting camera permission...');
-            
-            try {
-                // Stop existing stream if any
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                    stream = null;
-                }
-                
-                // Camera constraints
-                const constraints = {
-                    video: {
-                        facingMode: "environment", // Use back camera
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: false
-                };
-                
-                console.log('Camera constraints:', constraints);
-                
-                // Request camera access
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                console.log('✅ Camera access granted');
-                
-                // Setup video element
-                const video = document.getElementById('camera');
-                video.srcObject = stream;
-                video.setAttribute('playsinline', 'true');
-                video.setAttribute('webkit-playsinline', 'true');
-                video.muted = true;
-                
-                // Wait for video to be ready
-                await new Promise((resolve) => {
-                    const onLoaded = () => {
-                        video.removeEventListener('loadedmetadata', onLoaded);
-                        video.removeEventListener('loadeddata', onLoaded);
-                        resolve();
-                    };
-                    
-                    video.addEventListener('loadedmetadata', onLoaded);
-                    video.addEventListener('loadeddata', onLoaded);
-                    
-                    // Timeout fallback
-                    setTimeout(resolve, 1000);
-                });
-                
-                // Start video playback
-                try {
-                    await video.play();
-                    console.log('✅ Video playback started');
-                    
-                    // Update UI
-                    updateCameraUI(true);
-                    showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
-                    
-                    // Auto-start scanning if type is selected
-                    if (selectedScanType) {
-                        setTimeout(() => startScanning(), 500);
-                    }
-                    
-                } catch (playError) {
-                    console.error('❌ Video play error:', playError);
-                    
-                    // Try alternative for iOS
-                    video.setAttribute('autoplay', '');
-                    video.setAttribute('muted', '');
-                    
-                    setTimeout(async () => {
-                        try {
-                            await video.play();
-                            console.log('✅ Video playback started after retry');
-                            if (selectedScanType) {
-                                startScanning();
-                            }
-                        } catch (err) {
-                            console.error('❌ Video playback retry failed:', err);
-                            showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
-                        }
-                    }, 100);
-                }
-                
-            } catch (error) {
-                console.error('❌ Camera error:', error);
-                handleCameraError(error);
-            }
-        }
-        
-        function updateCameraUI(hasPermission) {
-            const cameraPermission = document.getElementById('camera-permission');
-            const scannerContainer = document.getElementById('scanner-container');
-            const startBtn = document.getElementById('start-btn');
-            
-            if (hasPermission) {
-                cameraPermission.style.display = 'none';
-                scannerContainer.style.display = 'block';
-                if (selectedScanType) {
-                    startBtn.disabled = false;
-                }
-            } else {
-                cameraPermission.style.display = 'block';
-                scannerContainer.style.display = 'none';
-                startBtn.disabled = true;
-            }
-        }
-        
-        function handleCameraError(error) {
-            console.error('Camera error details:', error);
-            
-            let errorMessage = 'មិនអាចបើកកាមេរ៉ាបាន។ ';
-            
-            if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                errorMessage += 'សូមអនុញ្ញាតកាមេរ៉ាក្នុងការកំណត់ browser ។';
-            } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
-                errorMessage += 'មិនមានកាមេរ៉ាទេ។';
-            } else if (error.name === 'NotSupportedError') {
-                errorMessage += 'Browser មិនគាំទ្រកាមេរ៉ាទេ។';
-            } else if (error.name === 'OverconstrainedError') {
-                errorMessage += 'មិនអាចប្រើកាមេរ៉ាដែលបានស្នើសុំបាន។';
-            } else {
-                errorMessage += 'សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា។';
-            }
-            
-            showError(errorMessage);
-            
-            // Show manual entry option
-            setTimeout(() => {
-                const resultDiv = document.getElementById('result');
-                if (resultDiv) {
-                    resultDiv.innerHTML += `
-                        <div class="message message-info" style="margin-top: 10px;">
-                            <p>ឬអ្នកអាចកត់ត្រាសិស្សតាមអត្តលេខ៖</p>
-                            <button class="btn btn-primary" onclick="openManualEntryModal()" style="margin-top: 10px;">
-                                <i class="fas fa-keyboard"></i> កត់ត្រាតាមអត្តលេខ
-                            </button>
-                        </div>
-                    `;
-                }
-            }, 1000);
-        }
-        
-        function pauseCamera() {
-            if (stream && isScanning) {
-                const video = document.getElementById('camera');
-                video.pause();
-                isScanning = false;
-                if (scanAnimationFrame) {
-                    cancelAnimationFrame(scanAnimationFrame);
-                }
-                showScanStatus('កាមេរ៉ាត្រូវបានផ្អាក', 'warning');
-            }
-        }
-        
-        function resumeCamera() {
-            if (stream && !isScanning) {
-                const video = document.getElementById('camera');
-                video.play().then(() => {
-                    isScanning = true;
-                    showScanStatus('កំពុងស្កេន QR code...', 'scanning');
-                    scanLoop();
-                }).catch(err => {
-                    console.error('Error resuming camera:', err);
-                });
-            }
-        }
-        
-        function adjustCameraSize() {
-            const video = document.getElementById('camera');
-            const scannerFrame = document.querySelector('.scanner-frame');
-            
-            if (video && scannerFrame) {
-                const containerWidth = scannerFrame.clientWidth;
-                video.style.width = '100%';
-                video.style.height = 'auto';
-                
-                // Force redraw
-                setTimeout(() => {
-                    video.style.height = '300px';
-                }, 100);
-            }
-        }
-        
-        // ============================================
-        // SCAN TYPE SELECTION
-        // ============================================
-        
+
+        // Select Scan Type
         function selectScanType(type) {
-            console.log('Selecting scan type:', type);
+            console.log('Selected scan type:', type);
             
             // Update UI
             document.querySelectorAll('.scan-type-card').forEach(card => {
@@ -1348,190 +667,224 @@
             
             // Set selected type
             selectedScanType = type;
+            selectedDisciplineSubtype = null; // Reset discipline subtype
             
-            // Update display
+            // Update current scan type display
             updateCurrentScanDisplay();
             
-            // Enable start button if camera is ready
-            const startBtn = document.getElementById('start-btn');
-            const stopBtn = document.getElementById('stop-btn');
+            // Enable start button
+            startBtn.disabled = false;
             
-            if (stream) {
-                startBtn.disabled = false;
-                stopBtn.disabled = false;
+            // Update stats
+            updateSelectedTypeStats();
+        }
+
+        // Open Discipline Subtypes Modal
+        function openDisciplineSubtypes() {
+            // Reset any previously selected subtype
+            selectedDisciplineSubtype = null;
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Hide other description input
+            otherDescriptionContainer.style.display = 'none';
+            otherDescription.value = '';
+            
+            disciplineSubtypesModal.style.display = 'flex';
+        }
+
+        // Close Discipline Subtypes Modal
+        function closeDisciplineSubtypes() {
+            disciplineSubtypesModal.style.display = 'none';
+            // Reset main selection if no subtype was chosen
+            if (!selectedDisciplineSubtype) {
+                document.querySelectorAll('.scan-type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                selectedScanType = null;
+                startBtn.disabled = true;
+            }
+        }
+
+        // Select Discipline Subtype
+        function selectDisciplineSubtype(subtype) {
+            // Update UI
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-subtype="${subtype}"]`).classList.add('selected');
+            
+            selectedDisciplineSubtype = subtype;
+            
+            // Show/hide other description input
+            if (subtype === 'other') {
+                otherDescriptionContainer.style.display = 'block';
+            } else {
+                otherDescriptionContainer.style.display = 'none';
+                otherDescription.value = '';
+            }
+        }
+
+        // Confirm Discipline Subtype Selection
+        function confirmDisciplineSubtype() {
+            if (!selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                return;
             }
             
-            // Update statistics
+            // For "other" subtype, check if description is provided
+            if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
+                showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            // Set main scan type to discipline
+            selectedScanType = 'discipline';
+            
+            // Update main UI
+            document.querySelectorAll('.scan-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector('[data-type="discipline"]').classList.add('selected');
+            
+            // Update current scan display
+            updateCurrentScanDisplay();
+            
+            // Enable start button
+            startBtn.disabled = false;
+            
+            // Close modal
+            disciplineSubtypesModal.style.display = 'none';
+            
+            // Update stats
             updateSelectedTypeStats();
             
-            // Vibrate on mobile
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype} - ${disciplineSubtypes[selectedDisciplineSubtype].title}`);
         }
-        
+
+        // Update Current Scan Display
         function updateCurrentScanDisplay() {
-            if (!selectedScanType) return;
+            let displayTitle = scanTypes[selectedScanType].title;
+            let displayDescription = scanTypes[selectedScanType].description;
             
-            const currentScanTypeDiv = document.getElementById('current-scan-type');
-            const currentScanTitle = document.getElementById('current-scan-title');
-            const currentScanDescription = document.getElementById('current-scan-description');
-            
-            if (currentScanTypeDiv && currentScanTitle) {
-                const scanTypeInfo = {
-                    late: { title: "សិស្សមកយឺត", desc: "ស្កេនសិស្សដែលមកយឺត" },
-                    discipline: { title: "សិស្សមិនគោរពវិន័យ", desc: "ស្កេនសិស្សដែលមិនគោរពវិន័យ" },
-                    helpful: { title: "សិស្សជួយការងារ", desc: "ស្កេនសិស្សដែលជួយការងារ" }
-                };
+            // Add discipline subtype info if applicable
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
                 
-                const info = scanTypeInfo[selectedScanType];
-                currentScanTitle.textContent = `កំពុងស្កេន: ${info.title}`;
-                currentScanDescription.textContent = info.desc;
-                currentScanTypeDiv.style.display = 'block';
+                // For "other" subtype, use the custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    subtypeTitle = otherDescription.value.trim();
+                }
+                
+                displayTitle += ` - ${subtypeTitle}`;
+                displayDescription = `ស្កេនសិស្សដែល${subtypeTitle}`;
+            }
+            
+            currentScanTitle.textContent = `កំពុងស្កេន: ${displayTitle}`;
+            currentScanDescription.textContent = displayDescription;
+            currentScanTypeDiv.style.display = 'block';
+            timeLimitInfo.style.display = 'block';
+        }
+
+        // Request Camera Permission
+        async function requestCameraPermission() {
+            console.log('Requesting camera permission...');
+            
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ');
+                    return;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+
+                cameraPermissionDiv.style.display = 'none';
+                showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា');
             }
         }
-        
-        // ============================================
-        // QR SCANNING FUNCTIONS
-        // ============================================
-        
-        function startScanning() {
-            console.log('🔍 Starting QR scanning...');
-            
+
+        // Start Camera
+        function startCamera() {
             if (!selectedScanType) {
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
                 return;
             }
-            
+
+            // For discipline type, check if subtype is selected
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
+                return;
+            }
+
             if (!stream) {
-                showError('❗ សូមអនុញ្ញាតកាមេរ៉ាមុនពេលស្កេន');
+                requestCameraPermission();
                 return;
             }
+
+            video.srcObject = stream;
+            scannerContainer.style.display = 'block';
+            scanCountDiv.style.display = 'block';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
             
-            // Start scanning
-            isScanning = true;
-            lastScanTime = 0;
-            
-            // Update UI
-            document.getElementById('start-btn').disabled = true;
-            document.getElementById('stop-btn').disabled = false;
-            
-            // Show scanning status
-            showScanStatus('កំពុងស្កេន QR code...', 'scanning');
-            
-            // Clear previous results
-            const resultDiv = document.getElementById('result');
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="message message-info" style="animation: pulse 1s infinite;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="loading"></div>
-                            <div>
-                                <strong><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code</strong><br>
-                                <small>សូមដឹងកាមេរ៉ាទៅរក QR code នៅលើកាតសិស្ស</small>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Start scanning loop
-            scanLoop();
+            video.play().then(() => {
+                startQRScanning();
+            }).catch(err => {
+                showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
+            });
         }
-        
-        function scanLoop() {
+
+        // Start QR Scanning
+        function startQRScanning() {
+            isScanning = true;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
+            scanFrame();
+        }
+
+        // Scan Frame Function
+        function scanFrame() {
             if (!isScanning) return;
-            
-            const now = Date.now();
-            
-            // Check if enough time has passed since last scan
-            if (now - lastScanTime < SCAN_INTERVAL) {
-                scanAnimationFrame = requestAnimationFrame(scanLoop);
-                return;
-            }
-            
-            const video = document.getElementById('camera');
-            
-            // Check if video is ready
-            if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-                console.log('Video not ready, waiting...');
-                scanAnimationFrame = requestAnimationFrame(scanLoop);
-                return;
-            }
-            
-            try {
-                // Set canvas size to match video
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                
-                // Draw video frame to canvas
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Get image data for QR scanning
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                
-                // Scan for QR code
-                const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
-                });
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
                 
                 if (code) {
-                    console.log('✅ QR Code detected!');
-                    console.log('QR Data:', code.data);
-                    
-                    // Show visual feedback
-                    showQRDetectedFeedback();
-                    
-                    // Process the QR code
-                    processQRCode(code.data);
-                    
-                    // Update last scan time
-                    lastScanTime = now;
-                    
-                    // Wait before resuming scanning
-                    setTimeout(() => {
-                        if (isScanning) {
-                            scanLoop();
-                        }
-                    }, 1000);
+                    handleScannedQR(code.data);
                     return;
                 }
-                
-            } catch (error) {
-                console.error('Error in scan loop:', error);
             }
-            
-            // Continue scanning
-            scanAnimationFrame = requestAnimationFrame(scanLoop);
-        }
-        
-        function showQRDetectedFeedback() {
-            // Show overlay animation
-            const overlay = document.getElementById('qr-detected-overlay');
-            if (overlay) {
-                overlay.style.display = 'block';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 500);
-            }
-            
-            // Vibrate if supported
-            if (navigator.vibrate) {
-                navigator.vibrate(100);
-            }
-            
-            // Add visual effect to scanner frame
-            const scannerFrame = document.querySelector('.scanner-frame');
-            if (scannerFrame) {
-                scannerFrame.style.boxShadow = '0 0 30px #4cc9f0';
-                setTimeout(() => {
-                    scannerFrame.style.boxShadow = '0 8px 32px rgba(0,0,0,0.2)';
-                }, 300);
+
+            if (isScanning) {
+                scanAnimationFrame = requestAnimationFrame(scanFrame);
             }
         }
-        
-        async function processQRCode(qrData) {
-            console.log('🔍 Processing QR code:', qrData);
+
+        // Handle Scanned QR
+        async function handleScannedQR(qrData) {
+            console.log('QR Scanned:', qrData);
             
             // Stop scanning temporarily
             isScanning = false;
@@ -1539,630 +892,563 @@
                 cancelAnimationFrame(scanAnimationFrame);
             }
             
-            // Show processing status
-            showScanStatus('កំពុងដំណើរការកូដ QR...', 'processing');
+            // Extract student ID
+            let studentId = qrData;
+            if (qrData.includes('?')) {
+                try {
+                    const url = new URL(qrData);
+                    studentId = url.searchParams.get('id') || qrData;
+                } catch (e) {
+                    // Not a URL, use raw data
+                }
+            }
+
+            // Find student
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
-            try {
-                // Extract student ID from QR code
-                const studentId = extractStudentId(qrData);
-                console.log('Extracted student ID:', studentId);
-                
-                if (!studentId) {
-                    throw new Error('មិនអាចទាញយកអត្តលេខសិស្សពី QR code បាន');
+            if (student) {
+                // Check if scanned within time limit (10 minutes)
+                const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+                if (timeCheckResult.withinLimit) {
+                    const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                    setTimeout(() => restartScanning(), 3000);
+                } else {
+                    await recordStudent(student);
                 }
-                
-                // Find student
-                const student = await findStudent(studentId);
-                
-                if (!student) {
-                    throw new Error(`មិនមានសិស្សដែលមានអត្តលេខ: ${studentId}`);
-                }
-                
-                console.log('Student found:', student);
-                
-                // Check if student was already scanned today
-                const alreadyScanned = await checkIfAlreadyScanned(student.id);
-                
-                if (alreadyScanned) {
-                    showScanStatus('សិស្សបានស្កេនរួចរាល់', 'warning');
-                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${selectedScanType}រួចរាល់ហើយ`);
-                    
-                    setTimeout(() => {
-                        hideScanStatus();
-                        restartScanning();
-                    }, 3000);
-                    return;
-                }
-                
-                // Record the scan
-                await recordStudentScan(student);
-                
-            } catch (error) {
-                console.error('❌ Error processing QR code:', error);
-                
-                showScanStatus('មានកំហុស', 'error');
-                showError('កំហុស: ' + error.message);
-                
-                setTimeout(() => {
-                    hideScanStatus();
-                    restartScanning();
-                }, 2000);
+            } else {
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+                setTimeout(() => restartScanning(), 2000);
             }
         }
-        
-        function extractStudentId(qrData) {
-            // Try different patterns to extract student ID
-            
-            // Pattern 1: Direct ID
-            if (qrData.length <= 20 && /^[A-Za-z0-9]+$/.test(qrData)) {
-                return qrData;
-            }
-            
-            // Pattern 2: URL with ID parameter
+
+        // Check if student was scanned within time limit
+        async function checkStudentScanTimeLimit(studentId) {
             try {
-                const url = new URL(qrData);
-                const id = url.searchParams.get('id') || 
-                           url.searchParams.get('student_id') || 
-                           url.searchParams.get('student');
-                if (id) return id;
-            } catch (e) {
-                // Not a valid URL
-            }
-            
-            // Pattern 3: Extract from text patterns
-            const patterns = [
-                /id[=:]([A-Za-z0-9]+)/i,
-                /student[_-]?id[=:]([A-Za-z0-9]+)/i,
-                /([A-Za-z0-9]{6,20})/ // General ID pattern
-            ];
-            
-            for (const pattern of patterns) {
-                const match = qrData.match(pattern);
-                if (match && match[1]) {
-                    return match[1];
-                }
-            }
-            
-            // Pattern 4: Return as-is (might be the ID)
-            return qrData;
-        }
-        
-        async function findStudent(studentId) {
-            try {
-                // First check local cache
-                if (students.length > 0) {
-                    const localStudent = students.find(s => 
-                        s.id === studentId || 
-                        s.student_id === studentId ||
-                        (s.qr_code && s.qr_code.includes(studentId))
-                    );
-                    if (localStudent) return localStudent;
-                }
+                const tableName = scanTypes[selectedScanType].table;
                 
-                // Query Supabase
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*')
-                    .or(`id.eq.${studentId},student_id.eq.${studentId}`)
-                    .limit(1);
-                
-                if (error) throw error;
-                
-                if (data && data.length > 0) {
-                    // Cache the student
-                    students.push(data[0]);
-                    return data[0];
-                }
-                
-                return null;
-                
-            } catch (error) {
-                console.error('Error finding student:', error);
-                return null;
-            }
-        }
-        
-        async function checkIfAlreadyScanned(studentId) {
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                const tableName = getTableName();
+                console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
                 
                 const { data, error } = await supabase
                     .from(tableName)
-                    .select('*')
+                    .select('timestamp')
                     .eq('student_id', studentId)
-                    .eq('date', today)
+                    .order('timestamp', { ascending: false })
                     .limit(1);
-                
-                if (error) throw error;
-                
-                return data && data.length > 0;
-                
+
+                if (error) {
+                    console.error('Error checking scan time:', error);
+                    return { withinLimit: false, remainingTime: 0 };
+                }
+
+                if (!data || data.length === 0) {
+                    console.log('No previous scan found for student');
+                    return { withinLimit: false, remainingTime: 0 };
+                }
+
+                const lastScanTime = new Date(data[0].timestamp).getTime();
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastScanTime;
+                const remainingTime = TIME_LIMIT_MS - timeDiff;
+
+                console.log(`Time since last scan: ${Math.floor(timeDiff/1000/60)} minutes, Remaining: ${Math.ceil(remainingTime/1000/60)} minutes`);
+
+                return {
+                    withinLimit: timeDiff < TIME_LIMIT_MS,
+                    remainingTime: remainingTime > 0 ? remainingTime : 0
+                };
+
             } catch (error) {
-                console.error('Error checking if already scanned:', error);
-                return false;
+                console.error('Error checking student scan time limit:', error);
+                return { withinLimit: false, remainingTime: 0 };
             }
         }
-        
-        function getTableName() {
-            const tables = {
-                late: 'attendance_reports',
-                discipline: 'discipline_reports',
-                helpful: 'helpful_reports'
-            };
-            return tables[selectedScanType];
+
+        // Restart Scanning
+        function restartScanning() {
+            isScanning = true;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
-        
-        async function recordStudentScan(student) {
-            console.log('💾 Recording scan for student:', student.name);
-            
+
+        // Record Student - Updated to include discipline subtype and custom description
+        async function recordStudent(student) {
             const now = new Date();
             const record = {
-                student_id: student.id || student.student_id,
+                student_id: student.id,
                 name: student.name,
-                class: student.class || 'មិនមានទិន្នន័យ',
+                class: student.class,
                 gender: student.gender || 'មិនមានទិន្នន័យ',
                 scan_time: now.toTimeString().split(' ')[0],
                 date: now.toISOString().split('T')[0],
                 timestamp: now.toISOString(),
                 scan_type: selectedScanType
             };
-            
-            try {
-                const tableName = getTableName();
-                console.log(`Saving to table: ${tableName}`);
+
+            // Add discipline subtype if applicable
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                record.discipline_subtype = selectedDisciplineSubtype;
                 
+                // For "other" subtype, use custom description
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    record.discipline_description = otherDescription.value.trim();
+                } else {
+                    record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                }
+            }
+
+            try {
+                console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
+                
+                const tableName = scanTypes[selectedScanType].table;
                 const { data, error } = await supabase
                     .from(tableName)
                     .insert([record])
                     .select();
-                
-                if (error) throw error;
-                
-                // Show success
-                showScanStatus('កត់ត្រាបានជោគ!', 'success');
-                showSuccessMessage(student, record);
-                
-                // Update statistics
-                updateScanCount();
-                
-                // Restart scanning after delay
-                setTimeout(() => {
-                    hideScanStatus();
-                    restartScanning();
-                }, 1500);
-                
+
+                if (error) {
+                    console.error('❌ Supabase error:', error);
+                    
+                    if (error.message.includes('row-level security policy')) {
+                        showError('កំហុសសុវត្ថិភាព៖ មិនមានសិទ្ធិកត់ត្រាទិន្នន័យក្នុងតារាងនេះ');
+                        await tryAlternativeTable(record);
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    console.log('✅ Successfully saved to Supabase:', data);
+
+                    // Save to localStorage as backup
+                    saveToLocalStorage(record);
+                    
+                    // Prepare success message
+                    let successMessage = `
+                        ✅ កត់ត្រាបានជោគ!<br>
+                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                        <strong>ថ្នាក់:</strong> ${student.class}<br>
+                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    `;
+                    
+                    // Add discipline subtype info if applicable
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                    }
+                    
+                    successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
+                    successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>`;
+                    
+                    showSuccess(successMessage);
+                    await updateAllStats();
+                }
+
             } catch (error) {
                 console.error('❌ Error saving to Supabase:', error);
                 
                 // Fallback to localStorage
-                try {
-                    const key = `scans_${selectedScanType}`;
-                    const existing = JSON.parse(localStorage.getItem(key) || '[]');
-                    existing.push({
-                        ...record,
-                        local_save: true,
-                        local_timestamp: Date.now()
-                    });
-                    localStorage.setItem(key, JSON.stringify(existing));
-                    
-                    showScanStatus('កត់ត្រាបានជោគ! (អនិច្ចកម្ម)', 'warning');
-                    showLocalSuccessMessage(student, record);
-                    
-                } catch (localError) {
-                    console.error('Error saving to localStorage:', localError);
-                    showError('មិនអាចរក្សាទុកទិន្នន័យបាន');
+                saveToLocalStorage(record);
+                
+                let successMessage = `
+                    ✅ កត់ត្រាបានជោគ! (Local)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                    <strong>ថ្នាក់:</strong> ${student.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                `;
+                
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                 }
                 
-                setTimeout(() => {
-                    hideScanStatus();
-                    restartScanning();
-                }, 1500);
+                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
+                successMessage += `<small>កំហុស: ${error.message}</small>`;
+                
+                showSuccess(successMessage);
+                await updateAllStats();
+            }
+
+            setTimeout(() => restartScanning(), 2000);
+        }
+
+        // Try alternative table if RLS policy fails
+        async function tryAlternativeTable(record) {
+            try {
+                const { data, error } = await supabase
+                    .from('student_reports')
+                    .insert([record])
+                    .select();
+
+                if (error) throw error;
+                
+                console.log('✅ Successfully saved to alternative table:', data);
+                
+                let successMessage = `
+                    ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${record.name}<br>
+                    <strong>ថ្នាក់:</strong> ${record.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                `;
+                
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                }
+                
+                successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;
+                
+                showSuccess(successMessage);
+                await updateAllStats();
+            } catch (altError) {
+                console.error('❌ Error saving to alternative table:', altError);
+                throw altError;
             }
         }
-        
-        function restartScanning() {
-            console.log('Restarting scanning...');
+
+        // Save to localStorage
+        function saveToLocalStorage(record) {
+            const key = `${selectedScanType}Reports`;
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const localRecord = {
+                ...record,
+                date: new Date().toDateString(),
+                timestamp: new Date().getTime()
+            };
+            existing.push(localRecord);
+            localStorage.setItem(key, JSON.stringify(existing));
+            console.log(`💾 Saved to localStorage with key: ${key}`);
+        }
+
+        // Fetch Students
+        async function fetchStudents() {
+            try {
+                console.log('Fetching students...');
+                
+                let allStudents = [];
+                let page = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await supabase
+                        .from('students')
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0) {
+                        allStudents = allStudents.concat(data);
+                        
+                        if (data.length < pageSize) {
+                            hasMore = false;
+                        } else {
+                            page++;
+                        }
+                    } else {
+                        hasMore = false;
+                    }
+                }
+                
+                students = allStudents;
+                totalStudentsElement.textContent = students.length;
+                console.log(`Fetched ${students.length} students`);
+                
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                students = [];
+                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន');
+            }
+        }
+
+        // Update All Stats
+        async function updateAllStats() {
+            await updateScanCount();
+            await updateSelectedTypeStats();
+            updateScannedCount();
+        }
+
+        // Update Scan Count
+        async function updateScanCount() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                let totalScans = 0;
+
+                for (const type in scanTypes) {
+                    const tableName = scanTypes[type].table;
+                    try {
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*', { count: 'exact' })
+                            .eq('date', today);
+
+                        if (!error && data) {
+                            totalScans += data.length;
+                            console.log(`📊 Table ${tableName}: ${data.length} scans today`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
+                    }
+                }
+
+                todayScansElement.textContent = totalScans;
+                console.log(`📈 Total scans today: ${totalScans}`);
+                
+            } catch (error) {
+                console.error('Error updating scan count:', error);
+                // Fallback to localStorage
+                let totalScans = 0;
+                for (const type in scanTypes) {
+                    const key = `${type}Reports`;
+                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                    const today = new Date().toDateString();
+                    const todayScans = reports.filter(report => report.date === today);
+                    totalScans += todayScans.length;
+                }
+                todayScansElement.textContent = totalScans;
+            }
+        }
+
+        // Update Selected Type Stats
+        async function updateSelectedTypeStats() {
+            if (!selectedScanType) return;
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const tableName = scanTypes[selectedScanType].table;
+                
+                console.log(`📊 Updating stats for ${selectedScanType} from table ${tableName}`);
+                
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .select('*', { count: 'exact' })
+                    .eq('date', today);
+
+                if (!error) {
+                    selectedTypeCountElement.textContent = data.length;
+                    let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                    }
+                    selectedTypeLabelElement.textContent = label;
+                    console.log(`📈 ${selectedScanType} scans today: ${data.length}`);
+                } else {
+                    console.error('Error fetching selected type stats:', error);
+                }
+            } catch (error) {
+                console.error('Error updating selected type stats:', error);
+                // Fallback to localStorage
+                const key = `${selectedScanType}Reports`;
+                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                const today = new Date().toDateString();
+                const todayScans = reports.filter(report => report.date === today);
+                selectedTypeCountElement.textContent = todayScans.length;
+                let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                }
+                selectedTypeLabelElement.textContent = label;
+            }
+        }
+
+        // Update Scanned Count Display
+        function updateScannedCount() {
+            if (!selectedScanType) return;
             
-            if (stream && selectedScanType) {
-                isScanning = true;
-                showScanStatus('កំពុងស្កេន QR code...', 'scanning');
-                
-                // Clear result display
-                const resultDiv = document.getElementById('result');
-                if (resultDiv) {
-                    resultDiv.innerHTML = `
-                        <div class="message message-info" style="animation: pulse 1s infinite;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div class="loading"></div>
-                                <div>
-                                    <strong>កំពុងស្កេនសិស្សបន្ទាប់...</strong>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                scanLoop();
-            }
+            const key = `${selectedScanType}Reports`;
+            const reports = JSON.parse(localStorage.getItem(key) || '[]');
+            const today = new Date().toDateString();
+            const todayScans = reports.filter(report => report.date === today);
+            scannedCountSpan.textContent = todayScans.length;
         }
-        
+
+        // Stop Camera
         function stopCamera() {
-            console.log('🛑 Stopping camera...');
-            
             isScanning = false;
-            
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
-                scanAnimationFrame = null;
             }
             
             if (stream) {
-                stream.getTracks().forEach(track => {
-                    track.stop();
-                });
+                stream.getTracks().forEach(track => track.stop());
                 stream = null;
             }
             
-            const video = document.getElementById('camera');
-            if (video) {
-                video.srcObject = null;
-            }
+            scannerContainer.style.display = 'none';
+            scanCountDiv.style.display = 'none';
+            cameraPermissionDiv.style.display = 'block';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
             
-            // Update UI
-            updateCameraUI(false);
-            document.getElementById('stop-btn').disabled = true;
-            
-            hideScanStatus();
-            showInfo('កាមេរ៉ាត្រូវបានបិទ។ ចុច "អនុញ្ញាតកាមេរ៉ា" ដើម្បីបើកម្តងទៀត');
+            resultDiv.innerHTML = '<div class="message message-info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
         }
-        
-        // ============================================
-        // UI HELPER FUNCTIONS
-        // ============================================
-        
-        function showScanStatus(message, type) {
-            const scanStatus = document.getElementById('scan-status');
-            const scanStatusText = document.getElementById('scan-status-text');
-            
-            if (scanStatus && scanStatusText) {
-                scanStatusText.textContent = message;
-                scanStatus.className = 'scan-status-indicator ' + type;
-                
-                // Update icon
-                const icon = scanStatus.querySelector('i');
-                if (icon) {
-                    switch(type) {
-                        case 'scanning':
-                        case 'processing':
-                            icon.className = 'fas fa-sync-alt fa-spin';
-                            break;
-                        case 'success':
-                            icon.className = 'fas fa-check-circle';
-                            break;
-                        case 'error':
-                            icon.className = 'fas fa-exclamation-circle';
-                            break;
-                        case 'warning':
-                            icon.className = 'fas fa-exclamation-triangle';
-                            break;
-                    }
-                }
-            }
-        }
-        
-        function hideScanStatus() {
-            const scanStatus = document.getElementById('scan-status');
-            if (scanStatus) {
-                scanStatus.style.display = 'none';
-            }
-        }
-        
-        function showSuccessMessage(student, record) {
-            const resultDiv = document.getElementById('result');
-            if (!resultDiv) return;
-            
-            const scanTypeTitles = {
-                late: 'សិស្សមកយឺត',
-                discipline: 'សិស្សមិនគោរពវិន័យ',
-                helpful: 'សិស្សជួយការងារ'
-            };
-            
-            resultDiv.innerHTML = `
-                <div class="message message-success">
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <div style="font-size: 2.5rem; color: #28a745;">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div>
-                            <h3 style="margin: 0 0 10px 0; color: #155724;">✅ កត់ត្រាបានជោគ!</h3>
-                            <p style="margin: 5px 0;"><strong>ប្រភេទ:</strong> ${scanTypeTitles[selectedScanType]}</p>
-                            <p style="margin: 5px 0;"><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                            <p style="margin: 5px 0;"><strong>ថ្នាក់:</strong> ${student.class || 'មិនមានទិន្នន័យ'}</p>
-                            <p style="margin: 5px 0;"><strong>ពេលវេលា:</strong> ${record.scan_time}</p>
-                            <p style="margin: 5px 0;"><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
-                            <p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
-                                ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function showLocalSuccessMessage(student, record) {
-            const resultDiv = document.getElementById('result');
-            if (!resultDiv) return;
-            
-            const scanTypeTitles = {
-                late: 'សិស្សមកយឺត',
-                discipline: 'សិស្សមិនគោរពវិន័យ',
-                helpful: 'សិស្សជួយការងារ'
-            };
-            
-            resultDiv.innerHTML = `
-                <div class="message message-warning">
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <div style="font-size: 2.5rem; color: #ffc107;">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div>
-                            <h3 style="margin: 0 0 10px 0; color: #856404;">⚠️ កត់ត្រាបានជោគ! (អនិច្ចកម្ម)</h3>
-                            <p style="margin: 5px 0;"><strong>ប្រភេទ:</strong> ${scanTypeTitles[selectedScanType]}</p>
-                            <p style="margin: 5px 0;"><strong>ឈ្មោះ:</strong> ${student.name}</p>
-                            <p style="margin: 5px 0;"><strong>ថ្នាក់:</strong> ${student.class || 'មិនមានទិន្នន័យ'}</p>
-                            <p style="margin: 5px 0;"><strong>ពេលវេលា:</strong> ${record.scan_time}</p>
-                            <p style="margin: 5px 0;"><strong>កាលបរិច្ឆេទ:</strong> ${record.date}</p>
-                            <p style="margin: 10px 0 0 0; font-size: 0.9em; color: #666;">
-                                ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function showError(message) {
-            const resultDiv = document.getElementById('result');
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="message message-error">
-                        <i class="fas fa-exclamation-circle"></i> ${message}
-                    </div>
-                `;
-            }
-        }
-        
-        function showWarning(message) {
-            const resultDiv = document.getElementById('result');
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="message message-warning">
-                        <i class="fas fa-exclamation-triangle"></i> ${message}
-                    </div>
-                `;
-            }
-        }
-        
-        function showInfo(message) {
-            const resultDiv = document.getElementById('result');
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="message message-info">
-                        <i class="fas fa-info-circle"></i> ${message}
-                    </div>
-                `;
-            }
-        }
-        
-        function showSuccess(message) {
-            const resultDiv = document.getElementById('result');
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="message message-success">
-                        <i class="fas fa-check-circle"></i> ${message}
-                    </div>
-                `;
-            }
-        }
-        
-        function updateScanCount() {
-            const scanCountElement = document.getElementById('today-scans');
-            if (scanCountElement) {
-                const current = parseInt(scanCountElement.textContent) || 0;
-                scanCountElement.textContent = current + 1;
-            }
-        }
-        
-        function updateSelectedTypeStats() {
-            // This would update statistics for the selected type
-            // Implementation depends on your data structure
-        }
-        
-        // ============================================
-        // MANUAL ENTRY MODAL FUNCTIONS
-        // ============================================
-        
+
+        // Manual Entry Functions
         function openManualEntryModal() {
             if (!selectedScanType) {
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកត់ត្រាតាមអត្តលេខ');
                 return;
             }
             
-            const modal = document.getElementById('manualEntryModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                populateStudentList();
-                
-                // Focus on search input
-                setTimeout(() => {
-                    const searchInput = document.getElementById('studentSearch');
-                    if (searchInput) {
-                        searchInput.focus();
-                    }
-                }, 300);
-            }
-        }
-        
-        function closeManualEntryModal() {
-            const modal = document.getElementById('manualEntryModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-            
-            // Clear search
-            const searchInput = document.getElementById('studentSearch');
-            if (searchInput) {
-                searchInput.value = '';
-            }
-        }
-        
-        async function populateStudentList() {
-            const studentList = document.getElementById('studentList');
-            if (!studentList) return;
-            
-            studentList.innerHTML = '<div class="message message-info">កំពុងទាញយកទិន្នន័យសិស្ស...</div>';
-            
-            try {
-                // Fetch students from Supabase
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*')
-                    .order('name')
-                    .limit(100);
-                
-                if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    studentList.innerHTML = '<div class="message message-warning">មិនមានទិន្នន័យសិស្ស</div>';
-                    return;
-                }
-                
-                // Cache students
-                students = data;
-                
-                // Display students
-                studentList.innerHTML = '';
-                data.forEach(student => {
-                    const studentItem = document.createElement('div');
-                    studentItem.className = 'student-item';
-                    studentItem.innerHTML = `
-                        <strong>${student.name}</strong><br>
-                        <small><i class="fas fa-id-card"></i> អត្តលេខ: ${student.id || student.student_id} | <i class="fas fa-graduation-cap"></i> ថ្នាក់: ${student.class || 'មិនមានទិន្នន័យ'}</small>
-                    `;
-                    studentItem.onclick = () => selectStudent(student);
-                    studentList.appendChild(studentItem);
-                });
-                
-            } catch (error) {
-                console.error('Error fetching students:', error);
-                studentList.innerHTML = '<div class="message message-error">មិនអាចទាញយកទិន្នន័យសិស្សបាន</div>';
-            }
-        }
-        
-        function filterStudents() {
-            const searchInput = document.getElementById('studentSearch');
-            const studentList = document.getElementById('studentList');
-            
-            if (!searchInput || !studentList) return;
-            
-            const searchTerm = searchInput.value.toLowerCase();
-            const studentItems = studentList.getElementsByClassName('student-item');
-            
-            for (let item of studentItems) {
-                const text = item.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            }
-        }
-        
-        async function selectStudent(student) {
-            closeManualEntryModal();
-            
-            // Check if already scanned today
-            const alreadyScanned = await checkIfAlreadyScanned(student.id || student.student_id);
-            
-            if (alreadyScanned) {
-                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${selectedScanType}រួចរាល់ហើយ`);
+            // For discipline type, check if subtype is selected
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
                 return;
             }
             
-            // Record the manual entry
-            await recordStudentScan(student);
+            populateStudentList();
+            manualEntryModal.style.display = 'flex';
         }
-        
-        // ============================================
-        // NAVIGATION FUNCTIONS
-        // ============================================
-        
+
+        function closeManualEntryModal() {
+            manualEntryModal.style.display = 'none';
+            studentSearch.value = '';
+        }
+
+        function populateStudentList() {
+            studentList.innerHTML = '';
+            
+            if (students.length === 0) {
+                studentList.innerHTML = '<div>មិនមានទិន្នន័យសិស្ស</div>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'student-item';
+                studentItem.style.padding = '10px';
+                studentItem.style.borderBottom = '1px solid #eee';
+                studentItem.style.cursor = 'pointer';
+                studentItem.onclick = () => selectStudent(student);
+                
+                studentItem.innerHTML = `
+                    <strong>${student.name}</strong><br>
+                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</small>
+                `;
+                
+                studentList.appendChild(studentItem);
+            });
+        }
+
+        function filterStudents() {
+            const searchTerm = studentSearch.value.toLowerCase();
+            const studentItems = studentList.getElementsByClassName('student-item');
+            
+            for (let i = 0; i < studentItems.length; i++) {
+                const studentText = studentItems[i].textContent.toLowerCase();
+                if (studentText.includes(searchTerm)) {
+                    studentItems[i].style.display = 'block';
+                } else {
+                    studentItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        async function selectStudent(student) {
+            closeManualEntryModal();
+            
+            // Check if scanned within time limit (10 minutes)
+            const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+            if (timeCheckResult.withinLimit) {
+                const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+            } else {
+                await recordStudent(student);
+            }
+        }
+
+        // Test Supabase Connection and Tables
+        async function testSupabaseConnection() {
+            try {
+                console.log('🔗 Testing Supabase connection and tables...');
+                
+                // Test connection to students table
+                const { data: studentsData, error: studentsError } = await supabase
+                    .from('students')
+                    .select('*')
+                    .limit(1);
+
+                if (studentsError) {
+                    console.warn('❌ Students table connection failed:', studentsError);
+                } else {
+                    console.log('✅ Students table connection successful');
+                }
+
+                // Test all report tables
+                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'haircut_reports'];
+                
+                for (const tableName of tablesToTest) {
+                    try {
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*')
+                            .limit(1);
+
+                        if (error) {
+                            console.warn(`❌ Table ${tableName} connection failed:`, error);
+                        } else {
+                            console.log(`✅ Table ${tableName} connection successful`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`❌ Table ${tableName} test failed:`, tableError);
+                    }
+                }
+
+            } catch (error) {
+                console.warn('Supabase connection test failed:', error);
+            }
+        }
+
+        // Utility Functions
+        function showSuccess(message) {
+            resultDiv.innerHTML = `<div class="message message-success">${message}</div>`;
+        }
+
+        function showError(message) {
+            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
+        }
+
+        function showWarning(message) {
+            resultDiv.innerHTML = `<div class="message message-warning">${message}</div>`;
+        }
+
         function goToHome() {
             window.location.href = 'index.html';
         }
-        
+
         function goBack() {
             window.history.back();
         }
-        
+
         function viewReports() {
             window.location.href = 'list.html';
         }
-        
-        // ============================================
-        // DEBUG FUNCTIONS
-        // ============================================
-        
-        function debugCamera() {
-            console.log('=== CAMERA DEBUG ===');
-            console.log('Stream:', stream);
-            console.log('Is Scanning:', isScanning);
-            console.log('Selected Type:', selectedScanType);
-            console.log('Video readyState:', document.getElementById('camera')?.readyState);
-            console.log('Video dimensions:', document.getElementById('camera')?.videoWidth, 'x', document.getElementById('camera')?.videoHeight);
-            console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
-            console.log('====================');
-        }
-        
-        // Add debug button
-        function addDebugButton() {
-            const debugBtn = document.createElement('button');
-            debugBtn.textContent = 'Debug';
-            debugBtn.style.cssText = `
-                position: fixed;
-                bottom: 10px;
-                right: 10px;
-                padding: 8px 12px;
-                background: #ff4444;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                z-index: 9999;
-                cursor: pointer;
-                font-size: 12px;
-            `;
-            debugBtn.onclick = debugCamera;
-            document.body.appendChild(debugBtn);
-        }
-        
-        // Initialize debug button
-        setTimeout(addDebugButton, 2000);
-        
-        // ============================================
-        // GLOBAL FUNCTION EXPORTS
-        // ============================================
-        
-        window.selectScanType = selectScanType;
-        window.requestCameraPermission = requestCameraPermission;
-        window.startScanning = startScanning;
-        window.stopCamera = stopCamera;
-        window.openManualEntryModal = openManualEntryModal;
-        window.closeManualEntryModal = closeManualEntryModal;
-        window.goToHome = goToHome;
-        window.goBack = goBack;
-        window.viewReports = viewReports;
-        
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing app...');
+            initApp();
+            
+            // Add event listener for student search
+            studentSearch.addEventListener('input', filterStudents);
+        });
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && isScanning) {
+                stopCamera();
+            }
+        });
     </script>
 </body>
 </html>
+
+
+

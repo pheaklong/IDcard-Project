@@ -15,7 +15,7 @@
     <!-- JSQR Library -->
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   
     <style>
         /* CSS Reset and Base Styles */
         * {
@@ -1140,14 +1140,15 @@
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // APPLICATION CONFIGURATION
-        // ============================================
+    <script type="module">
+               import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
         
-        // Supabase Configuration
+        /* ================= SUPABASE CONFIG ================= */
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        
+        /* ================= INIT SUPABASE ================= */
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         // Initialize Supabase - CHECK IF ALREADY EXISTS
         let supabase;
@@ -1185,29 +1186,29 @@
         // ============================================
         // DOM ELEMENTS
         // ============================================
-        
-        const video = document.getElementById('camera');
-        const resultDiv = document.getElementById('result');
-        const scannerContainer = document.getElementById('scanner-container');
-        const cameraPermissionDiv = document.getElementById('camera-permission');
-        const scanCountDiv = document.getElementById('scan-count');
-        const scannedCountSpan = document.getElementById('scanned-count');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const todayScansElement = document.getElementById('today-scans');
-        const totalStudentsElement = document.getElementById('total-students');
-        const selectedTypeCountElement = document.getElementById('selected-type-count');
-        const selectedTypeLabelElement = document.getElementById('selected-type-label');
-        const currentScanTypeDiv = document.getElementById('current-scan-type');
-        const currentScanTitle = document.getElementById('current-scan-title');
-        const currentScanDescription = document.getElementById('current-scan-description');
-        const timeLimitInfo = document.getElementById('time-limit-info');
-        const manualEntryModal = document.getElementById('manualEntryModal');
-        const studentList = document.getElementById('studentList');
-        const studentSearch = document.getElementById('studentSearch');
-        const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
-        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
-        const otherDescription = document.getElementById('otherDescription');
+                  
+            const video = document.getElementById('camera');
+            const resultDiv = document.getElementById('result');
+            const scannerContainer = document.getElementById('scanner-container');
+            const cameraPermissionDiv = document.getElementById('camera-permission');
+            const scanCountDiv = document.getElementById('scan-count');
+            const scannedCountSpan = document.getElementById('scanned-count');
+            const startBtn = document.getElementById('start-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const todayScansElement = document.getElementById('today-scans');
+            const totalStudentsElement = document.getElementById('total-students');
+            const selectedTypeCountElement = document.getElementById('selected-type-count');
+            const selectedTypeLabelElement = document.getElementById('selected-type-label');
+            const currentScanTypeDiv = document.getElementById('current-scan-type');
+            const currentScanTitle = document.getElementById('current-scan-title');
+            const currentScanDescription = document.getElementById('current-scan-description');
+            const timeLimitInfo = document.getElementById('time-limit-info');
+            const manualEntryModal = document.getElementById('manualEntryModal');
+            const studentList = document.getElementById('studentList');
+            const studentSearch = document.getElementById('studentSearch');
+            const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+            const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+            const otherDescription = document.getElementById('otherDescription');
         
         // ============================================
         // GLOBAL VARIABLES

@@ -1165,7 +1165,7 @@
                 }
                 
                 // Create new instance
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 window.supabaseClientInstance = supabase; // Store for reuse
                 console.log('✅ Created new Supabase instance');
             } catch (error) {

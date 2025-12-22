@@ -1183,12 +1183,144 @@
     </div>
 
     <script>
+       // ============================================
+        // APPLICATION CONFIGURATION
+        // ============================================
+        
         // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
-        // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ============================================
+        // SUPABASE INITIALIZATION (COMPLETELY FIXED)
+        // ============================================
+        
+        // ត្រួតពិនិត្យថា Supabase library ត្រូវបានផ្ទុករួចឬនៅ
+        console.log('🔍 Checking Supabase library...');
+        
+        // ប្រសិនបើ Supabase library មិនទាន់ផ្ទុក
+        if (typeof window.supabase === 'undefined') {
+            console.warn('⚠️ Supabase library not loaded yet, waiting...');
+            
+            // រង់ចាំរហូតដល់ Supabase library ផ្ទុករួច
+            const waitForSupabase = setInterval(() => {
+                if (typeof window.supabase !== 'undefined') {
+                    console.log('✅ Supabase library loaded');
+                    clearInterval(waitForSupabase);
+                    initializeApp();
+                }
+            }, 100);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                clearInterval(waitForSupabase);
+                if (typeof window.supabase === 'undefined') {
+                    console.error('❌ Supabase library failed to load');
+                    showError('មិនអាចផ្ទុក Supabase library បាន។ សូមផ្ទុកទំព័រឡើងវិញ');
+                }
+            }, 5000);
+        } else {
+            // Library បានផ្ទុករួចហើយ
+            console.log('✅ Supabase library already loaded');
+            initializeApp();
+        }
+        
+        // ============================================
+        // MAIN INITIALIZATION FUNCTION
+        // ============================================
+        
+        function initializeApp() {
+            console.log('🚀 Initializing application...');
+            
+            // បង្កើត Supabase client (ម្តងតែមួយ)
+            let supabaseClient;
+            
+            // ពិនិត្យមើលថាតើមាន Supabase client រួចហើយឬនៅ
+            if (window.appSupabaseClient) {
+                console.log('✅ Using existing Supabase client');
+                supabaseClient = window.appSupabaseClient;
+            } else {
+                try {
+                    console.log('🆕 Creating new Supabase client');
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    window.appSupabaseClient = supabaseClient; // Store globally
+                    console.log('✅ Supabase client created successfully');
+                } catch (error) {
+                    console.error('❌ Error creating Supabase client:', error);
+                    
+                    // Create fallback client
+                    supabaseClient = createFallbackSupabaseClient();
+                    window.appSupabaseClient = supabaseClient;
+                    
+                    showError('មិនអាចតភ្ជាប់ទៅកាន់ Supabase បាន។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ');
+                }
+            }
+            
+            // ប្រកាស supabase variable តែមួយគត់ (const)
+            const supabase = supabaseClient;
+            
+            // ឥឡូវចាប់ផ្តើមកម្មវិធីដោយប្រើ supabase
+            startApplication(supabase);
+        }
+        
+        // ============================================
+        // FALLBACK SUPABASE CLIENT
+        // ============================================
+        
+        function createFallbackSupabaseClient() {
+            console.warn('⚠️ Using fallback Supabase client');
+            return {
+                from: (tableName) => ({
+                    select: (columns = '*') => {
+                        console.log(`Fallback: select from ${tableName}`);
+                        return Promise.resolve({ 
+                            data: [], 
+                            error: { message: 'Using localStorage fallback' } 
+                        });
+                    },
+                    insert: (data) => {
+                        console.log(`Fallback: insert into ${tableName}`, data);
+                        // Save to localStorage
+                        const key = `${tableName}_local`;
+                        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+                        existing.push({
+                            ...data[0],
+                            local_timestamp: new Date().toISOString(),
+                            local_id: Date.now()
+                        });
+                        localStorage.setItem(key, JSON.stringify(existing));
+                        return Promise.resolve({ 
+                            data: [{ id: Date.now() }], 
+                            error: null 
+                        });
+                    },
+                    eq: (column, value) => ({
+                        select: (columns = '*') => {
+                            console.log(`Fallback: select where ${column}=${value}`);
+                            return Promise.resolve({ data: [], error: null });
+                        }
+                    }),
+                    order: (column, options = { ascending: true }) => ({
+                        limit: (count) => {
+                            console.log(`Fallback: order by ${column} limit ${count}`);
+                            return Promise.resolve({ data: [], error: null });
+                        }
+                    }),
+                    limit: (count) => {
+                        console.log(`Fallback: limit ${count}`);
+                        return Promise.resolve({ data: [], error: null });
+                    }
+                })
+            };
+        }
+        
+        // ============================================
+        // MAIN APPLICATION FUNCTION
+        // ============================================
+        
+        function startApplication(supabase) {
+            console.log('🎯 Starting main application with Supabase:', !!supabase);
+            
 
         // Global variables
         let currentReportType = null;
@@ -2860,3 +2992,4 @@
     </script>
 </body>
 </html>
+

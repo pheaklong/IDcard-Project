@@ -1149,20 +1149,7 @@
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MDc2NDE4OCwiZXhwIjoyMDc2MzQwMTg4fQ.2OilHZE0gLYhGeSvORSjNkGKfjysyzOnw8wV3iu1D20';
         
-        // Initialize Supabase - CHECK IF ALREADY EXISTS
-        let supabase;
-
-        // Check if already initialized in global scope
-        if (typeof window.supabaseClientInstance !== 'undefined') {
-            supabase = window.supabaseClientInstance;
-            console.log('✅ Using existing Supabase instance');
-        } else {
-            try {
-                // Check if Supabase library is loaded
-                if (typeof window.supabase === 'undefined') {
-                    console.error('❌ Supabase library not loaded');
-                    throw new Error('Supabase library not loaded');
-                }
+        
                 
                 // Create new instance
                                // Supabase Client - វិធីត្រឹមត្រូវបំផុតសម្រាប់ frontend (force send key រាល់ request)

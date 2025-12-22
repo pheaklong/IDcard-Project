@@ -15,7 +15,15 @@
     <!-- JSQR Library -->
     <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
     <!-- Supabase -->
-   
+   <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+
+  window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</script>
+
     <style>
         /* CSS Reset and Base Styles */
         * {

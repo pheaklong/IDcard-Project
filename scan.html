@@ -429,13 +429,6 @@
                         <div class="scan-type-title">ជួយការងារ</div>
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
                     </div>
-                    <!--delete sen
-                    <div class="scan-type-card" data-type="haircut" onclick="selectScanType('haircut')">
-                        <div class="scan-type-icon">💇</div>
-                        <div class="scan-type-title">ការៀបចំខ្លូន</div>
-                        <div class="scan-type-desc">សិស្សដែលត្រូវវិន័យទាក់ទងការរៀបចំខ្លួន</div>
-                    </div>
-                    -->
                 </div>
             </div>
 
@@ -568,13 +561,10 @@
     </div>
 
     <script>
-        // Supabase Configuration
+        // Supabase Configuration - ប្រើឈ្មោះផ្សេងគ្នាដើម្បីជៀសវាងការប៉ះទង្គិច
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         // DOM Elements
         const video = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
@@ -599,7 +589,8 @@
         const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
         const otherDescription = document.getElementById('otherDescription');
 
-        // Global Variables
+        // Global Variables - ប្រើឈ្មោះអថេរផ្សេង
+        let supabaseClient = null;
         let stream = null;
         let isScanning = false;
         let selectedScanType = null;
@@ -647,9 +638,42 @@
             other: { title: "ផ្សេងៗ", icon: "📝" }
         };
 
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded, initializing app...');
+            
+            // Initialize Supabase client
+            try {
+                // Check if supabase is loaded
+                if (typeof supabase === 'undefined' && !window.supabase) {
+                    console.error('Supabase library not loaded');
+                    showError('⚠️ មិនអាចភ្ជាប់ទៅកាន់ Supabase. សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
+                    return;
+                }
+                
+                // Create client - use a different variable name
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase client initialized');
+                
+                // Initialize the rest of the app
+                await initApp();
+                
+                // Add event listener for student search
+                studentSearch.addEventListener('input', filterStudents);
+                
+            } catch (error) {
+                console.error('❌ Error initializing Supabase client:', error);
+                showError('❌ កំហុសក្នុងការចាប់ផ្តើម Supabase: ' + error.message);
+            }
+        });
+
         // Initialize App
         async function initApp() {
             console.log('🚀 Starting app initialization...');
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                return;
+            }
             await fetchStudents();
             await updateAllStats();
             testSupabaseConnection();
@@ -929,7 +953,7 @@
                 
                 console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
                 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from(tableName)
                     .select('timestamp')
                     .eq('student_id', studentId)
@@ -975,7 +999,7 @@
             scanAnimationFrame = requestAnimationFrame(scanFrame);
         }
 
-        // Record Student - Updated to include discipline subtype and custom description
+        // Record Student
         async function recordStudent(student) {
             const now = new Date();
             const record = {
@@ -1005,7 +1029,7 @@
                 console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
                 
                 const tableName = scanTypes[selectedScanType].table;
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from(tableName)
                     .insert([record])
                     .select();
@@ -1077,7 +1101,7 @@
         // Try alternative table if RLS policy fails
         async function tryAlternativeTable(record) {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('student_reports')
                     .insert([record])
                     .select();
@@ -1136,7 +1160,7 @@
                     const from = page * pageSize;
                     const to = from + pageSize - 1;
                     
-                    const { data, error } = await supabase
+                    const { data, error } = await supabaseClient
                         .from('students')
                         .select('*')
                         .range(from, to);
@@ -1183,7 +1207,7 @@
                 for (const type in scanTypes) {
                     const tableName = scanTypes[type].table;
                     try {
-                        const { data, error } = await supabase
+                        const { data, error } = await supabaseClient
                             .from(tableName)
                             .select('*', { count: 'exact' })
                             .eq('date', today);
@@ -1225,7 +1249,7 @@
                 
                 console.log(`📊 Updating stats for ${selectedScanType} from table ${tableName}`);
                 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from(tableName)
                     .select('*', { count: 'exact' })
                     .eq('date', today);
@@ -1370,7 +1394,7 @@
                 console.log('🔗 Testing Supabase connection and tables...');
                 
                 // Test connection to students table
-                const { data: studentsData, error: studentsError } = await supabase
+                const { data: studentsData, error: studentsError } = await supabaseClient
                     .from('students')
                     .select('*')
                     .limit(1);
@@ -1386,7 +1410,7 @@
                 
                 for (const tableName of tablesToTest) {
                     try {
-                        const { data, error } = await supabase
+                        const { data, error } = await supabaseClient
                             .from(tableName)
                             .select('*')
                             .limit(1);
@@ -1431,15 +1455,6 @@
             window.location.href = 'list.html';
         }
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing app...');
-            initApp();
-            
-            // Add event listener for student search
-            studentSearch.addEventListener('input', filterStudents);
-        });
-
         // Handle page visibility changes
         document.addEventListener('visibilitychange', function() {
             if (document.hidden && isScanning) {
@@ -1449,6 +1464,3 @@
     </script>
 </body>
 </html>
-
-
-

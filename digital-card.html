@@ -6,8 +6,9 @@
     <title>Digital Student ID Card</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="qrcode.min.js"></script>
-    <!-- Supabase Client -->
+    <!-- QR Code Library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <!-- Supabase Client (ONLY ONE INSTANCE) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -218,15 +219,20 @@
 
     <!-- Error message display -->
     <div id="error" class="error-message"></div>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Initialize Supabase client
-        // Replace with your actual Supabase URL and API Key
-        const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    <script>
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Supabase client
+            const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+            
+            // Check if supabase is already defined
+            if (typeof window.supabase === 'undefined') {
+                window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+            }
+            
+            // Initialize page
             initializePage();
         });
 
@@ -237,7 +243,7 @@
         // Find student by ID from Supabase
         async function findStudentById(studentId) {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await window.supabase
                     .from('students')
                     .select('*')
                     .eq('id', studentId)
@@ -274,16 +280,16 @@
             document.getElementById('studentName').textContent = student.name || '--';
             document.getElementById('studentClass').textContent = student.class || '--';
             document.getElementById('studentYear').textContent = student.studyYear || '--';
-            document.getElementById('guardain_number').textContent =student.guardain_number || '--';
+            document.getElementById('guardain_number').textContent = student.guardain_number || '--';
         }
 
         function generateQRCode(student) {
             const qrElement = document.getElementById('qrCode');
             qrElement.innerHTML = '';
             
-            // Create QR code with link to digital card page (same as id-card.html)
-            const currentUrl = window.location.origin + window.location.pathname.replace('digital-card.html', '');
-            const qrData = `${currentUrl}digital-card.html?id=${student.id}`;
+            // Create QR code with link to digital card page
+            const currentUrl = window.location.origin + window.location.pathname;
+            const qrData = `${currentUrl}?id=${student.id}`;
             console.log('QR Data (Link):', qrData);
             
             if (typeof QRCode !== 'undefined') {
@@ -327,7 +333,7 @@
                     name: 'កំពុងទាញយកទិន្នន័យ...',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
                 
                 // Auto-generate card if student ID is in URL
@@ -339,7 +345,7 @@
                     name: 'No Student Selected',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
                 showError('សូមបញ្ចូលលេខសម្គាល់សិស្ស (ID) ក្នុង URL');
             }
@@ -356,7 +362,7 @@
                     name: 'សិស្សមិនត្រូវបានរកឃើញ',
                     class: '--',
                     studyYear: '--',
-                    លេខទូរស័ព្ទ: '-- -- --'
+                    guardain_number: '--'
                 });
                 showError('សិស្សមិនត្រូវបានរកឃើញ!');
                 return;

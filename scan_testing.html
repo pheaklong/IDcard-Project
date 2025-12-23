@@ -1066,8 +1066,6 @@
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
                     <video id="camera" playsinline></video>
-                    <!-- Canvas for QR scanning -->
-                    <canvas id="qr-canvas" style="display:none;"></canvas>
                     <div class="scanner-overlay">
                         <div class="scanner-line"></div>
                         <div class="scanner-corners"></div>
@@ -1190,7 +1188,7 @@
         let scanAnimationFrame = null;
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
-        let supabaseClient = null; // Renamed from 'supabase' to avoid conflicts
+        let supabaseClient = null;
         
         // Device detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1247,7 +1245,6 @@
             try {
                 console.log('🔄 Checking Supabase availability...');
                 
-                // Check if supabase library is loaded
                 if (!window.supabase) {
                     console.error('❌ Supabase library not loaded');
                     throw new Error('Supabase library not loaded');
@@ -1255,10 +1252,8 @@
                 
                 console.log('✅ Supabase library found, creating client...');
                 
-                // Create Supabase client
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
-                // Test connection
                 const { data, error } = await supabaseClient.from('students').select('count');
                 
                 if (error) {
@@ -1271,121 +1266,9 @@
                 
             } catch (error) {
                 console.error('❌ Error initializing Supabase client:', error);
-                
-                // Create fallback client
-                supabaseClient = createFallbackSupabaseClient();
-                console.log('⚠️ Using fallback Supabase client (localStorage)');
-                showWarning('⚠️ មិនអាចតភ្ជាប់ទៅកាន់ Supabase បាន។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ');
+                showError('❌ មិនអាចតភ្ជាប់ទៅកាន់ Supabase បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
                 return false;
             }
-        }
-        
-        // ============================================
-        // FALLBACK SUPABASE CLIENT
-        // ============================================
-        
-        function createFallbackSupabaseClient() {
-            console.warn('⚠️ Creating fallback Supabase client (localStorage)');
-            return {
-                from: (tableName) => {
-                    console.log(`Fallback: accessing table ${tableName}`);
-                    return {
-                        select: (columns = '*') => ({
-                            eq: (column, value) => ({
-                                limit: (count) => ({
-                                    then: (callback) => {
-                                        console.log(`Fallback: select from ${tableName} where ${column}=${value} limit ${count}`);
-                                        // Return promise with empty data
-                                        return Promise.resolve({
-                                            data: [],
-                                            error: null
-                                        }).then(callback);
-                                    }
-                                }),
-                                then: (callback) => {
-                                    console.log(`Fallback: select from ${tableName} where ${column}=${value}`);
-                                    // Return promise with empty data
-                                    return Promise.resolve({
-                                        data: [],
-                                        error: null
-                                    }).then(callback);
-                                }
-                            }),
-                            limit: (count) => ({
-                                then: (callback) => {
-                                    console.log(`Fallback: select from ${tableName} limit ${count}`);
-                                    // Return promise with empty data
-                                    return Promise.resolve({
-                                        data: [],
-                                        error: null
-                                    }).then(callback);
-                                }
-                            }),
-                            then: (callback) => {
-                                console.log(`Fallback: select from ${tableName}`);
-                                // Return promise with empty data
-                                return Promise.resolve({
-                                    data: [],
-                                    error: null
-                                }).then(callback);
-                            }
-                        }),
-                        insert: (data) => {
-                            console.log(`Fallback: insert into ${tableName}`, data);
-                            // Save to localStorage
-                            const key = `${tableName}_local`;
-                            const existing = JSON.parse(localStorage.getItem(key) || '[]');
-                            const record = {
-                                ...data[0],
-                                id: Date.now() + Math.random(),
-                                created_at: new Date().toISOString()
-                            };
-                            existing.push(record);
-                            localStorage.setItem(key, JSON.stringify(existing));
-                            
-                            return {
-                                select: () => ({
-                                    then: (callback) => {
-                                        return Promise.resolve({
-                                            data: [record],
-                                            error: null
-                                        }).then(callback);
-                                    }
-                                })
-                            };
-                        },
-                        eq: (column, value) => ({
-                            select: (columns = '*') => ({
-                                order: (sortColumn, options = { ascending: true }) => ({
-                                    limit: (count) => ({
-                                        then: (callback) => {
-                                            console.log(`Fallback: select where ${column}=${value} order by ${sortColumn} limit ${count}`);
-                                            return Promise.resolve({
-                                                data: [],
-                                                error: null
-                                            }).then(callback);
-                                        }
-                                    }),
-                                    then: (callback) => {
-                                        console.log(`Fallback: select where ${column}=${value} order by ${sortColumn}`);
-                                        return Promise.resolve({
-                                            data: [],
-                                            error: null
-                                        }).then(callback);
-                                    }
-                                }),
-                                then: (callback) => {
-                                    console.log(`Fallback: select where ${column}=${value}`);
-                                    return Promise.resolve({
-                                        data: [],
-                                        error: null
-                                    }).then(callback);
-                                }
-                            })
-                        })
-                    };
-                }
-            };
         }
         
         // ============================================
@@ -1398,24 +1281,20 @@
         async function initApp() {
             console.log('🚀 Starting app initialization...');
             
-            // Initialize Supabase first
-            await initializeSupabase();
+            const supabaseInitialized = await initializeSupabase();
+            if (!supabaseInitialized) {
+                showError('❌ ប្រព័ន្ធតម្រូវឱ្យមានការតភ្ជាប់អ៊ីនធើណិត');
+                return;
+            }
             
-            // Set up viewport for mobile
             setupViewport();
-            
-            // Fetch students data
             await fetchStudents();
-            
-            // Update statistics
             await updateAllStats();
             
-            // Adjust UI for mobile devices
             if (isMobile) {
                 adjustUIForMobile();
             }
             
-            // Add event listeners
             setupEventListeners();
             
             console.log('✅ App initialization complete');
@@ -1426,13 +1305,11 @@
          */
         function setupViewport() {
             if (isMobile) {
-                // Force proper viewport on mobile
                 const viewport = document.querySelector('meta[name="viewport"]');
                 if (viewport) {
                     viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
                 }
                 
-                // Fix for iOS 100vh issue
                 document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
                 
                 window.addEventListener('resize', () => {
@@ -1447,20 +1324,17 @@
         function adjustUIForMobile() {
             console.log('Adjusting UI for mobile...');
             
-            // Make buttons larger for touch
             document.querySelectorAll('.btn').forEach(btn => {
                 btn.style.minHeight = '54px';
                 btn.style.fontSize = '16px';
                 btn.style.padding = '16px 20px';
             });
             
-            // Adjust scanner size
             if (video) {
                 video.style.maxWidth = '100%';
                 video.style.height = '280px';
             }
             
-            // Update camera permission text for mobile
             const cameraPermissionText = document.querySelector('#camera-permission p');
             if (cameraPermissionText && isMobile) {
                 let platformHint = '';
@@ -1478,7 +1352,6 @@
                 `;
             }
             
-            // Fix for Safari 100vh issue
             if (isIOS) {
                 document.body.style.minHeight = window.innerHeight + 'px';
                 
@@ -1492,25 +1365,15 @@
          * Set up event listeners
          */
         function setupEventListeners() {
-            // Student search
             if (studentSearch) {
                 studentSearch.addEventListener('input', filterStudents);
             }
             
-            // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyboardShortcuts);
-            
-            // Page visibility changes
             document.addEventListener('visibilitychange', handleVisibilityChange);
-            
-            // Orientation changes (mobile)
             window.addEventListener('orientationchange', handleOrientationChange);
-            
-            // Page unload
             window.addEventListener('beforeunload', handlePageUnload);
             window.addEventListener('pagehide', handlePageUnload);
-            
-            // Resize events for mobile
             window.addEventListener('resize', handleResize);
         }
         
@@ -1524,26 +1387,20 @@
         function selectScanType(type) {
             console.log('Selected scan type:', type);
             
-            // Update UI
             document.querySelectorAll('.scan-type-card').forEach(card => {
                 card.classList.remove('selected');
             });
             document.querySelector(`[data-type="${type}"]`).classList.add('selected');
             
-            // Set selected type
             selectedScanType = type;
             selectedDisciplineSubtype = null;
             
-            // Update display
             updateCurrentScanDisplay();
             
-            // Enable start button
             if (startBtn) startBtn.disabled = false;
             
-            // Update statistics
             updateSelectedTypeStats();
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(50);
             }
@@ -1553,31 +1410,26 @@
          * Open discipline subtypes modal
          */
         function openDisciplineSubtypes() {
-            // Reset selection
             selectedDisciplineSubtype = null;
             document.querySelectorAll('.subtype-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // Hide other description
             if (otherDescriptionContainer) {
                 otherDescriptionContainer.style.display = 'none';
                 otherDescription.value = '';
             }
             
-            // Show modal
             if (disciplineSubtypesModal) {
                 disciplineSubtypesModal.style.display = 'flex';
             }
             
-            // Prevent background scrolling on mobile
             if (isMobile) {
                 document.body.style.overflow = 'hidden';
                 document.body.style.position = 'fixed';
                 document.body.style.width = '100%';
             }
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(50);
             }
@@ -1591,7 +1443,6 @@
                 disciplineSubtypesModal.style.display = 'none';
             }
             
-            // Reset main selection if no subtype was chosen
             if (!selectedDisciplineSubtype) {
                 document.querySelectorAll('.scan-type-card').forEach(card => {
                     card.classList.remove('selected');
@@ -1600,7 +1451,6 @@
                 if (startBtn) startBtn.disabled = true;
             }
             
-            // Restore scrolling
             if (isMobile) {
                 document.body.style.overflow = 'auto';
                 document.body.style.position = 'static';
@@ -1611,7 +1461,6 @@
          * Select discipline subtype
          */
         function selectDisciplineSubtype(subtype) {
-            // Update UI
             document.querySelectorAll('.subtype-card').forEach(card => {
                 card.classList.remove('selected');
             });
@@ -1619,10 +1468,8 @@
             
             selectedDisciplineSubtype = subtype;
             
-            // Show/hide other description input
             if (subtype === 'other' && otherDescriptionContainer && otherDescription) {
                 otherDescriptionContainer.style.display = 'block';
-                // Focus on textarea
                 setTimeout(() => {
                     otherDescription.focus();
                 }, 300);
@@ -1631,7 +1478,6 @@
                 if (otherDescription) otherDescription.value = '';
             }
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(30);
             }
@@ -1646,36 +1492,28 @@
                 return;
             }
             
-            // For "other" subtype, check description
             if (selectedDisciplineSubtype === 'other' && otherDescription && !otherDescription.value.trim()) {
                 showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
                 return;
             }
             
-            // Set main scan type
             selectedScanType = 'discipline';
             
-            // Update main UI
             document.querySelectorAll('.scan-type-card').forEach(card => {
                 card.classList.remove('selected');
             });
             document.querySelector('[data-type="discipline"]').classList.add('selected');
             
-            // Update display
             updateCurrentScanDisplay();
             
-            // Enable start button
             if (startBtn) startBtn.disabled = false;
             
-            // Close modal
             closeDisciplineSubtypes();
             
-            // Update statistics
             updateSelectedTypeStats();
             
             console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype}`);
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(100);
             }
@@ -1690,11 +1528,9 @@
             let displayTitle = scanTypes[selectedScanType].title;
             let displayDescription = scanTypes[selectedScanType].description;
             
-            // Add discipline subtype info
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
                 
-                // Use custom description for "other" subtype
                 if (selectedDisciplineSubtype === 'other' && otherDescription && otherDescription.value.trim()) {
                     subtypeTitle = otherDescription.value.trim();
                 }
@@ -1725,7 +1561,6 @@
                     return;
                 }
                 
-                // Camera constraints
                 const constraints = {
                     video: {
                         facingMode: "environment",
@@ -1735,7 +1570,6 @@
                     audio: false
                 };
                 
-                // iOS-specific constraints
                 if (isIOS) {
                     constraints.video = {
                         facingMode: { exact: "environment" },
@@ -1747,15 +1581,12 @@
                 
                 console.log('Camera constraints:', constraints);
                 
-                // Request camera access
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 console.log('Camera access granted');
                 
-                // Update UI
                 if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'none';
                 showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
                 
-                // Enable start button
                 if (startBtn) startBtn.disabled = false;
                 
             } catch (error) {
@@ -1792,15 +1623,14 @@
         }
         
         /**
-         * Start camera and QR scanning
+         * Start camera
          */
-        async function startCamera() {
+        function startCamera() {
             if (!selectedScanType) {
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
                 return;
             }
             
-            // Check discipline subtype
             if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
                 openDisciplineSubtypes();
@@ -1812,7 +1642,6 @@
                 return;
             }
             
-            // Set up video element
             if (video) {
                 video.srcObject = stream;
                 video.setAttribute('playsinline', 'true');
@@ -1821,24 +1650,14 @@
                 video.setAttribute('autoplay', 'true');
             }
             
-            // Update UI
             if (scannerContainer) scannerContainer.style.display = 'block';
             if (scanCountDiv) scanCountDiv.style.display = 'block';
             if (startBtn) startBtn.disabled = true;
             if (stopBtn) stopBtn.disabled = false;
             
-            // Start video playback
             if (video) {
                 video.play().then(() => {
                     console.log('Video playback started');
-                    
-                    // Initialize canvas for QR scanning
-                    const canvas = document.getElementById('qr-canvas');
-                    if (canvas) {
-                        canvas.width = video.videoWidth || 640;
-                        canvas.height = video.videoHeight || 480;
-                    }
-                    
                     startQRScanning();
                 }).catch(err => {
                     console.error('Video play error:', err);
@@ -1877,21 +1696,9 @@
             if (!isScanning || !video) return;
             
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                // Create canvas for image processing
-                const canvas = document.getElementById('qr-canvas');
-                if (!canvas) {
-                    // Create canvas if it doesn't exist
-                    const newCanvas = document.createElement('canvas');
-                    newCanvas.id = 'qr-canvas';
-                    newCanvas.style.display = 'none';
-                    document.querySelector('.scanner-frame').appendChild(newCanvas);
-                    scanAnimationFrame = requestAnimationFrame(scanFrame);
-                    return;
-                }
-                
+                const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 
-                // Set canvas size
                 if (isMobile) {
                     canvas.width = 320;
                     canvas.height = 240;
@@ -1900,28 +1707,19 @@
                     canvas.height = Math.min(video.videoHeight, 480);
                 }
                 
-                // Draw video frame to canvas
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
                 
-                // Get image data
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 
-                // Scan for QR code using jsQR library
-                try {
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    
-                    if (code) {
-                        handleScannedQR(code.data);
-                        return;
-                    }
-                } catch (error) {
-                    console.error('Error scanning QR:', error);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    handleScannedQR(code.data);
+                    return;
                 }
             }
             
-            // Continue scanning
             if (isScanning) {
-                // Adjust frame rate for mobile performance
                 if (isMobile) {
                     setTimeout(() => {
                         scanAnimationFrame = requestAnimationFrame(scanFrame);
@@ -1938,18 +1736,15 @@
         async function handleScannedQR(qrData) {
             console.log('QR Scanned:', qrData);
             
-            // Stop scanning temporarily
             isScanning = false;
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
             }
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(200);
             }
             
-            // Extract student ID
             let studentId = qrData;
             if (qrData.includes('?')) {
                 try {
@@ -1960,11 +1755,9 @@
                 }
             }
             
-            // Find student
             const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
-                // Check time limit
                 const timeCheckResult = await checkStudentScanTimeLimit(student.id);
                 if (timeCheckResult.withinLimit) {
                     const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
@@ -2051,7 +1844,6 @@
             isScanning = false;
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
-                scanAnimationFrame = null;
             }
             
             if (stream) {
@@ -2061,10 +1853,8 @@
                 stream = null;
             }
             
-            // Clear video source
             if (video) video.srcObject = null;
             
-            // Update UI
             if (scannerContainer) scannerContainer.style.display = 'none';
             if (scanCountDiv) scanCountDiv.style.display = 'none';
             if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'block';
@@ -2096,7 +1886,6 @@
                 scan_type: selectedScanType
             };
             
-            // Add discipline subtype info
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
                 
@@ -2122,10 +1911,6 @@
                 } else {
                     console.log('✅ Successfully saved to Supabase:', data);
                     
-                    // Save to localStorage as backup
-                    saveToLocalStorage(record);
-                    
-                    // Show native alert
                     let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
                     alertMessage += `សិស្ស: ${student.name}\n`;
                     alertMessage += `ថ្នាក់: ${student.class}\n`;
@@ -2137,43 +1922,18 @@
                     
                     alertMessage += `ពេលវេលា: ${record.scan_time}`;
                     
-                    // Show alert dialog
                     alert(alertMessage);
                     
-                    // Show success message in UI
                     showSuccessMessage(record, student, tableName);
                     
-                    // Update statistics
                     await updateAllStats();
                 }
                 
             } catch (error) {
                 console.error('❌ Error saving to Supabase:', error);
-                
-                // Fallback to localStorage
-                saveToLocalStorage(record);
-                
-                // Show alert even for local save
-                let alertMessage = `✅ ស្កេនជោគជ័យ! (ក្នុងឧបករណ៍)\n`;
-                alertMessage += `សិស្ស: ${student.name}\n`;
-                alertMessage += `ថ្នាក់: ${student.class}\n`;
-                alertMessage += `ប្រភេទ: ${scanTypes[selectedScanType].title}\n`;
-                
-                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    alertMessage += `កំហុស: ${record.discipline_description}\n`;
-                }
-                
-                alertMessage += `ពេលវេលា: ${record.scan_time}`;
-                alert(alertMessage);
-                
-                // Show success message with warning
-                showLocalSuccessMessage(record, student, error);
-                
-                // Update statistics
-                await updateAllStats();
+                showError('❌ មិនអាចរក្សាទិន្នន័យបាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
             }
             
-            // Restart scanning
             setTimeout(() => restartScanning(), 2000);
         }
         
@@ -2199,63 +1959,15 @@
             }
             
             successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
-            successMessage += `<em style="font-size: 0.9rem; color: #666;">ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>
+            successMessage += `<em style="font-size: 0.9rem; color: #666;">ទិន្នន័យត្រូវបានរក្សាទុកក្នុង Supabase!</em>
                     </div>
                 </div>`;
             
-            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate([100, 50, 100]);
             }
             
             showSuccess(successMessage);
-        }
-        
-        /**
-         * Show local success message
-         */
-        function showLocalSuccessMessage(record, student, error) {
-            let successMessage = `
-                <div style="display: flex; align-items: flex-start; gap: 15px;">
-                    <div style="font-size: 2rem; color: #28a745;">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div>
-                        <strong style="font-size: 1.1rem;">✅ កត់ត្រាបានជោគ! (Local)</strong><br>
-                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                        <strong>ឈ្មោះ:</strong> ${student.name}\n`;
-                successMessage += `<strong>ថ្នាក់:</strong> ${student.class}<br>
-                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
-            `;
-            
-            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
-            }
-            
-            successMessage += `<p class="message message-warning" style="margin-top: 10px; padding: 10px;">
-                                <i class="fas fa-exclamation-triangle"></i> ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ
-                              </p>`;
-            successMessage += `<small style="color: #999;">កំហុស: ${error.message}</small>
-                    </div>
-                </div>`;
-            
-            showSuccess(successMessage);
-        }
-        
-        /**
-         * Save to localStorage
-         */
-        function saveToLocalStorage(record) {
-            const key = `${selectedScanType}Reports`;
-            const existing = JSON.parse(localStorage.getItem(key) || '[]');
-            const localRecord = {
-                ...record,
-                date: new Date().toDateString(),
-                timestamp: new Date().getTime()
-            };
-            existing.push(localRecord);
-            localStorage.setItem(key, JSON.stringify(existing));
-            console.log(`💾 Saved to localStorage: ${key}`);
         }
         
         // ============================================
@@ -2276,7 +1988,7 @@
                 const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
-                    .limit(3000); // Limit to 3000 students for performance
+                    .limit(3000);
                 
                 if (error) {
                     console.error('Error fetching students:', error);
@@ -2335,16 +2047,7 @@
                 
             } catch (error) {
                 console.error('Error updating scan count:', error);
-                // Fallback to localStorage
-                let totalScans = 0;
-                for (const type in scanTypes) {
-                    const key = `${type}Reports`;
-                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                    const today = new Date().toDateString();
-                    const todayScans = reports.filter(report => report.date === today);
-                    totalScans += todayScans.length;
-                }
-                if (todayScansElement) todayScansElement.textContent = totalScans;
+                if (todayScansElement) todayScansElement.textContent = '0';
             }
         }
         
@@ -2375,13 +2078,8 @@
                 }
             } catch (error) {
                 console.error('Error updating selected type stats:', error);
-                // Fallback to localStorage
-                const key = `${selectedScanType}Reports`;
-                const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                const today = new Date().toDateString();
-                const todayScans = reports.filter(report => report.date === today);
                 if (selectedTypeCountElement && selectedTypeLabelElement) {
-                    selectedTypeCountElement.textContent = todayScans.length;
+                    selectedTypeCountElement.textContent = '0';
                     let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
                     if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                         label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
@@ -2397,11 +2095,7 @@
         function updateScannedCount() {
             if (!selectedScanType || !scannedCountSpan) return;
             
-            const key = `${selectedScanType}Reports`;
-            const reports = JSON.parse(localStorage.getItem(key) || '[]');
-            const today = new Date().toDateString();
-            const todayScans = reports.filter(report => report.date === today);
-            scannedCountSpan.textContent = todayScans.length;
+            scannedCountSpan.textContent = '0';
         }
         
         // ============================================
@@ -2417,27 +2111,22 @@
                 return;
             }
             
-            // Check discipline subtype
             if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
                 openDisciplineSubtypes();
                 return;
             }
             
-            // Populate student list
             populateStudentList();
             
-            // Show modal
             if (manualEntryModal) manualEntryModal.style.display = 'flex';
             
-            // Prevent background scrolling on mobile
             if (isMobile) {
                 document.body.style.overflow = 'hidden';
                 document.body.style.position = 'fixed';
                 document.body.style.width = '100%';
             }
             
-            // Focus on search input
             setTimeout(() => {
                 if (studentSearch) studentSearch.focus();
             }, 300);
@@ -2450,7 +2139,6 @@
             if (manualEntryModal) manualEntryModal.style.display = 'none';
             if (studentSearch) studentSearch.value = '';
             
-            // Restore scrolling
             if (isMobile) {
                 document.body.style.overflow = 'auto';
                 document.body.style.position = 'static';
@@ -2470,7 +2158,6 @@
                 return;
             }
             
-            // Sort students by name
             const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
             
             sortedStudents.forEach(student => {
@@ -2512,7 +2199,6 @@
         async function selectStudent(student) {
             closeManualEntryModal();
             
-            // Check time limit
             const timeCheckResult = await checkStudentScanTimeLimit(student.id);
             if (timeCheckResult.withinLimit) {
                 const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
@@ -2582,7 +2268,6 @@
          * Handle keyboard shortcuts
          */
         function handleKeyboardShortcuts(e) {
-            // ESC to close modals
             if (e.key === 'Escape') {
                 if (disciplineSubtypesModal && disciplineSubtypesModal.style.display === 'flex') {
                     closeDisciplineSubtypes();
@@ -2609,7 +2294,6 @@
         function handleOrientationChange() {
             console.log('Orientation changed');
             
-            // Fix for iOS orientation change
             if (isIOS && video && video.srcObject && isScanning) {
                 setTimeout(() => {
                     video.style.height = '280px';
@@ -2637,7 +2321,6 @@
                 video.style.height = '280px';
             }
             
-            // Fix for Safari 100vh issue
             if (isIOS) {
                 document.body.style.minHeight = window.innerHeight + 'px';
             }
@@ -2647,9 +2330,7 @@
         // INITIALIZE APPLICATION
         // ============================================
         
-        // Initialize the app when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for Supabase library to load
             const checkSupabase = setInterval(function() {
                 if (window.supabase) {
                     clearInterval(checkSupabase);
@@ -2657,14 +2338,11 @@
                 }
             }, 100);
             
-            // Timeout after 5 seconds
             setTimeout(function() {
                 clearInterval(checkSupabase);
                 if (!window.supabase) {
                     console.error('Supabase library failed to load');
                     showError('❌ មិនអាចផ្ទុក Supabase library បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
-                    // Initialize with fallback
-                    initApp();
                 }
             }, 5000);
         });
@@ -2673,7 +2351,6 @@
         // EXPORT FUNCTIONS TO GLOBAL SCOPE
         // ============================================
         
-        // Make functions available globally
         window.selectScanType = selectScanType;
         window.openDisciplineSubtypes = openDisciplineSubtypes;
         window.closeDisciplineSubtypes = closeDisciplineSubtypes;

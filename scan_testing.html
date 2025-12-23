@@ -12,8 +12,8 @@
     <meta name="theme-color" content="#4361ee">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- JSQR Library -->
-    <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
+    <!-- HTML5 QR Code Library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
@@ -526,12 +526,11 @@
             max-width: 350px;
         }
 
-        video {
+        #camera {
             width: 100%;
             height: 300px;
             background: #000;
             display: block;
-            object-fit: cover;
         }
 
         .scanner-overlay {
@@ -759,7 +758,7 @@
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            video {
+            #camera {
                 max-width: 100%;
                 height: 280px;
             }
@@ -844,7 +843,7 @@
                 height: 250px;
             }
             
-            video {
+            #camera {
                 height: 250px;
             }
             
@@ -928,6 +927,23 @@
             input, textarea, select {
                 font-size: 16px !important;
             }
+        }
+        
+        /* Test QR Styles */
+        .test-qr-container {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .test-qr-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
         }
     </style>
 </head>
@@ -1061,11 +1077,26 @@
                 <button class="permission-btn" onclick="requestCameraPermission()">
                     <i class="fas fa-camera"></i> អនុញ្ញាតកាមេរ៉ា
                 </button>
+                
+                <div class="test-qr-container" style="margin-top: 20px;">
+                    <h4><i class="fas fa-vial"></i> សាកល្បងស្កេន</h4>
+                    <div class="test-qr-box">
+                        <p style="margin-bottom: 10px;">សាកល្បងស្កេនដោយមិនប្រើកាមេរ៉ា៖</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-warning" onclick="testQRScanning()" style="flex: 1; min-width: 150px;">
+                                <i class="fas fa-qrcode"></i> សាកល្បងស្កេន
+                            </button>
+                            <button class="btn btn-info" onclick="testWithRealStudent()" style="flex: 1; min-width: 150px;">
+                                <i class="fas fa-user-graduate"></i> សិស្សពិត
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
-                    <video id="camera" playsinline></video>
+                    <div id="camera"></div>
                     <div class="scanner-overlay">
                         <div class="scanner-line"></div>
                         <div class="scanner-corners"></div>
@@ -1076,6 +1107,10 @@
                 <div id="scan-count" class="scan-count" style="display: none;">
                     <i class="fas fa-check-circle"></i> ស្កេនរួចរាល់៖ <span id="scanned-count">0</span> នាក់
                 </div>
+                
+                <button class="btn btn-primary" onclick="openManualEntryModal()" style="margin-top: 10px;">
+                    <i class="fas fa-keyboard"></i> បញ្ចូលអត្តលេខសិស្សដោយផ្ទាល់
+                </button>
             </div>
 
             <div id="result"></div>
@@ -1107,6 +1142,15 @@
                 </button>
                 <button class="btn btn-primary" onclick="openManualEntryModal()">
                     <i class="fas fa-keyboard"></i> កត់ត្រាតាមអត្តលេខ
+                </button>
+            </div>
+            
+            <!-- Debug Panel -->
+            <div id="debug-panel" style="display: none; background: #f8f9fa; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 2px solid #e9ecef;">
+                <h4><i class="fas fa-bug"></i> Debug Information</h4>
+                <div id="debug-info" style="font-family: monospace; font-size: 12px; line-height: 1.6;"></div>
+                <button class="btn btn-sm btn-danger" onclick="clearDebugInfo()" style="margin-top: 10px; padding: 5px 10px; font-size: 12px;">
+                    <i class="fas fa-trash"></i> Clear Debug
                 </button>
             </div>
         </div>
@@ -1153,7 +1197,7 @@
         // DOM ELEMENTS
         // ============================================
         
-        const video = document.getElementById('camera');
+        const cameraElement = document.getElementById('camera');
         const resultDiv = document.getElementById('result');
         const scannerContainer = document.getElementById('scanner-container');
         const cameraPermissionDiv = document.getElementById('camera-permission');
@@ -1175,20 +1219,23 @@
         const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
         const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
         const otherDescription = document.getElementById('otherDescription');
+        const debugPanel = document.getElementById('debug-panel');
+        const debugInfo = document.getElementById('debug-info');
         
         // ============================================
         // GLOBAL VARIABLES
         // ============================================
         
-        let stream = null;
+        let html5QrCode = null;
         let isScanning = false;
         let selectedScanType = null;
         let selectedDisciplineSubtype = null;
         let students = [];
-        let scanAnimationFrame = null;
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
         let supabaseClient = null;
+        let debugMode = false;
+        let debugLogs = [];
         
         // Device detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1235,6 +1282,57 @@
         };
         
         // ============================================
+        // DEBUG FUNCTIONS
+        // ============================================
+        
+        function addDebugLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLogs.push(`[${timestamp}] ${message}`);
+            
+            if (debugLogs.length > 20) {
+                debugLogs.shift();
+            }
+            
+            updateDebugInfo();
+        }
+        
+        function updateDebugInfo() {
+            if (!debugInfo) return;
+            
+            const info = `
+                <strong>Application Status:</strong><br>
+                - Selected Type: ${selectedScanType || 'None'}<br>
+                - Discipline Subtype: ${selectedDisciplineSubtype || 'None'}<br>
+                - Scanning: ${isScanning ? 'Yes' : 'No'}<br>
+                - QR Code Scanner: ${html5QrCode ? 'Initialized' : 'Not Initialized'}<br>
+                - Students Loaded: ${students.length}<br>
+                <br>
+                <strong>Device Info:</strong><br>
+                - Mobile: ${isMobile ? 'Yes' : 'No'}<br>
+                - iOS: ${isIOS ? 'Yes' : 'No'}<br>
+                - Android: ${isAndroid ? 'Yes' : 'No'}<br>
+                <br>
+                <strong>Recent Logs:</strong><br>
+                ${debugLogs.slice(-5).join('<br>')}
+            `;
+            
+            debugInfo.innerHTML = info;
+        }
+        
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            if (debugPanel) {
+                debugPanel.style.display = debugMode ? 'block' : 'none';
+            }
+            updateDebugInfo();
+        }
+        
+        function clearDebugInfo() {
+            debugLogs = [];
+            updateDebugInfo();
+        }
+        
+        // ============================================
         // SUPABASE CLIENT INITIALIZATION
         // ============================================
         
@@ -1243,29 +1341,29 @@
          */
         async function initializeSupabase() {
             try {
-                console.log('🔄 Checking Supabase availability...');
+                addDebugLog('Checking Supabase availability...');
                 
                 if (!window.supabase) {
-                    console.error('❌ Supabase library not loaded');
+                    addDebugLog('Supabase library not loaded');
                     throw new Error('Supabase library not loaded');
                 }
                 
-                console.log('✅ Supabase library found, creating client...');
+                addDebugLog('Supabase library found, creating client...');
                 
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 
                 const { data, error } = await supabaseClient.from('students').select('count');
                 
                 if (error) {
-                    console.error('❌ Supabase connection test failed:', error);
+                    addDebugLog('Supabase connection test failed: ' + error.message);
                     throw error;
                 }
                 
-                console.log('✅ Supabase client initialized and connected successfully');
+                addDebugLog('Supabase client initialized and connected successfully');
                 return true;
                 
             } catch (error) {
-                console.error('❌ Error initializing Supabase client:', error);
+                addDebugLog('Error initializing Supabase client: ' + error.message);
                 showError('❌ មិនអាចតភ្ជាប់ទៅកាន់ Supabase បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
                 return false;
             }
@@ -1279,7 +1377,7 @@
          * Initialize the application
          */
         async function initApp() {
-            console.log('🚀 Starting app initialization...');
+            addDebugLog('Starting app initialization...');
             
             const supabaseInitialized = await initializeSupabase();
             if (!supabaseInitialized) {
@@ -1297,7 +1395,12 @@
             
             setupEventListeners();
             
-            console.log('✅ App initialization complete');
+            addDebugLog('App initialization complete');
+            
+            // Enable debug mode by adding ?debug to URL
+            if (window.location.search.includes('debug')) {
+                toggleDebugMode();
+            }
         }
         
         /**
@@ -1322,18 +1425,13 @@
          * Adjust UI for mobile devices
          */
         function adjustUIForMobile() {
-            console.log('Adjusting UI for mobile...');
+            addDebugLog('Adjusting UI for mobile...');
             
             document.querySelectorAll('.btn').forEach(btn => {
                 btn.style.minHeight = '54px';
                 btn.style.fontSize = '16px';
                 btn.style.padding = '16px 20px';
             });
-            
-            if (video) {
-                video.style.maxWidth = '100%';
-                video.style.height = '280px';
-            }
             
             const cameraPermissionText = document.querySelector('#camera-permission p');
             if (cameraPermissionText && isMobile) {
@@ -1385,7 +1483,7 @@
          * Select scan type
          */
         function selectScanType(type) {
-            console.log('Selected scan type:', type);
+            addDebugLog('Selected scan type: ' + type);
             
             document.querySelectorAll('.scan-type-card').forEach(card => {
                 card.classList.remove('selected');
@@ -1512,7 +1610,7 @@
             
             updateSelectedTypeStats();
             
-            console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype}`);
+            addDebugLog('Selected discipline subtype: ' + selectedDisciplineSubtype);
             
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(100);
@@ -1553,44 +1651,76 @@
          * Request camera permission
          */
         async function requestCameraPermission() {
-            console.log('Requesting camera permission...');
+            addDebugLog('Requesting camera permission...');
             
             try {
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ។ សូមប្រើ Chrome ឬ Safari លើទូរស័ព្ទ');
-                    return;
-                }
+                // Initialize HTML5 QR Code Scanner
+                html5QrCode = new Html5Qrcode("camera");
                 
-                const constraints = {
-                    video: {
-                        facingMode: "environment",
-                        width: { ideal: isMobile ? 1280 : 1920 },
-                        height: { ideal: isMobile ? 720 : 1080 }
-                    },
-                    audio: false
-                };
+                // Get available cameras
+                const cameras = await Html5Qrcode.getCameras();
+                addDebugLog('Found cameras: ' + cameras.length);
                 
-                if (isIOS) {
-                    constraints.video = {
-                        facingMode: { exact: "environment" },
-                        width: { min: 640, ideal: 1280, max: 1920 },
-                        height: { min: 480, ideal: 720, max: 1080 },
-                        frameRate: { ideal: 30, max: 60 }
+                if (cameras && cameras.length > 0) {
+                    console.log('Available cameras:', cameras);
+                    
+                    // Use back camera if available
+                    const backCamera = cameras.find(cam => 
+                        cam.label.toLowerCase().includes('back') || 
+                        cam.label.includes('2') ||
+                        cam.label.toLowerCase().includes('rear')
+                    );
+                    
+                    const cameraId = backCamera ? backCamera.id : cameras[0].id;
+                    addDebugLog('Using camera: ' + (backCamera ? backCamera.label : cameras[0].label));
+                    
+                    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                        addDebugLog('QR Code detected: ' + decodedText);
+                        handleScannedQR(decodedText);
                     };
+                    
+                    const qrCodeErrorCallback = (errorMessage) => {
+                        // Don't show every error, just log it
+                        if (!errorMessage.includes("NotFoundException")) {
+                            addDebugLog('QR scan error: ' + errorMessage);
+                        }
+                    };
+                    
+                    const config = {
+                        fps: 10,
+                        qrbox: { 
+                            width: isMobile ? 200 : 250, 
+                            height: isMobile ? 200 : 250 
+                        },
+                        aspectRatio: 1.0,
+                        disableFlip: false
+                    };
+                    
+                    // Start scanning
+                    await html5QrCode.start(
+                        cameraId,
+                        config,
+                        qrCodeSuccessCallback,
+                        qrCodeErrorCallback
+                    );
+                    
+                    addDebugLog('Camera started successfully');
+                    
+                    // Update UI
+                    if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'none';
+                    if (scannerContainer) scannerContainer.style.display = 'block';
+                    if (scanCountDiv) scanCountDiv.style.display = 'block';
+                    if (startBtn) startBtn.disabled = true;
+                    if (stopBtn) stopBtn.disabled = false;
+                    
+                    isScanning = true;
+                    
+                } else {
+                    showError('មិនមានកាមេរ៉ាអាចប្រើបានទេ');
                 }
-                
-                console.log('Camera constraints:', constraints);
-                
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                console.log('Camera access granted');
-                
-                if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'none';
-                showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
-                
-                if (startBtn) startBtn.disabled = false;
                 
             } catch (error) {
-                console.error('Camera error:', error);
+                addDebugLog('Camera error: ' + error.message);
                 handleCameraError(error);
             }
         }
@@ -1615,8 +1745,10 @@
                 errorMessage += 'មិនមានកាមេរ៉ាទេ';
             } else if (error.name === 'NotSupportedError') {
                 errorMessage += 'Browser មិនគាំទ្រកាមេរ៉ាទេ';
+            } else if (error.name === 'NotReadableError') {
+                errorMessage += 'កាមេរ៉ាកំពុងប្រើប្រាស់ដោយកម្មវិធីផ្សេង';
             } else {
-                errorMessage += 'សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា';
+                errorMessage += 'សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា: ' + error.message;
             }
             
             showError(errorMessage);
@@ -1625,7 +1757,7 @@
         /**
          * Start camera
          */
-        function startCamera() {
+        async function startCamera() {
             if (!selectedScanType) {
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
                 return;
@@ -1637,96 +1769,42 @@
                 return;
             }
             
-            if (!stream) {
-                requestCameraPermission();
-                return;
-            }
-            
-            if (video) {
-                video.srcObject = stream;
-                video.setAttribute('playsinline', 'true');
-                video.setAttribute('webkit-playsinline', 'true');
-                video.setAttribute('muted', 'true');
-                video.setAttribute('autoplay', 'true');
-            }
-            
-            if (scannerContainer) scannerContainer.style.display = 'block';
-            if (scanCountDiv) scanCountDiv.style.display = 'block';
-            if (startBtn) startBtn.disabled = true;
-            if (stopBtn) stopBtn.disabled = false;
-            
-            if (video) {
-                video.play().then(() => {
-                    console.log('Video playback started');
-                    startQRScanning();
-                }).catch(err => {
-                    console.error('Video play error:', err);
-                    handleVideoPlayError(err);
-                });
-            }
-        }
-        
-        /**
-         * Handle video play errors
-         */
-        function handleVideoPlayError(err) {
-            console.error('Video playback failed:', err);
-            showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
-        }
-        
-        /**
-         * Start QR scanning
-         */
-        function startQRScanning() {
-            isScanning = true;
             let scanTypeText = scanTypes[selectedScanType].title;
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
             }
+            
             if (resultDiv) {
                 resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
             }
-            scanFrame();
+            
+            // Start camera
+            await requestCameraPermission();
         }
         
         /**
-         * Scan frame for QR codes
+         * Stop camera
          */
-        function scanFrame() {
-            if (!isScanning || !video) return;
-            
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                
-                if (isMobile) {
-                    canvas.width = 320;
-                    canvas.height = 240;
-                } else {
-                    canvas.width = Math.min(video.videoWidth, 640);
-                    canvas.height = Math.min(video.videoHeight, 480);
-                }
-                
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (code) {
-                    handleScannedQR(code.data);
-                    return;
+        async function stopCamera() {
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    addDebugLog('Camera stopped');
+                    isScanning = false;
+                } catch (error) {
+                    addDebugLog('Error stopping camera: ' + error.message);
                 }
             }
             
-            if (isScanning) {
-                if (isMobile) {
-                    setTimeout(() => {
-                        scanAnimationFrame = requestAnimationFrame(scanFrame);
-                    }, 150);
-                } else {
-                    scanAnimationFrame = requestAnimationFrame(scanFrame);
-                }
+            // Update UI
+            if (scannerContainer) scannerContainer.style.display = 'none';
+            if (scanCountDiv) scanCountDiv.style.display = 'none';
+            if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'block';
+            if (startBtn) startBtn.disabled = false;
+            if (stopBtn) stopBtn.disabled = true;
+            
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="message message-info"><i class="fas fa-camera"></i> កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
             }
         }
         
@@ -1734,17 +1812,24 @@
          * Handle scanned QR code
          */
         async function handleScannedQR(qrData) {
-            console.log('QR Scanned:', qrData);
+            addDebugLog('QR Scanned: ' + qrData);
             
-            isScanning = false;
-            if (scanAnimationFrame) {
-                cancelAnimationFrame(scanAnimationFrame);
+            // Stop scanning temporarily
+            if (html5QrCode && isScanning) {
+                try {
+                    await html5QrCode.stop();
+                    isScanning = false;
+                } catch (error) {
+                    addDebugLog('Error stopping scanner: ' + error.message);
+                }
             }
             
+            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate(200);
             }
             
+            // Extract student ID
             let studentId = qrData;
             if (qrData.includes('?')) {
                 try {
@@ -1755,22 +1840,157 @@
                 }
             }
             
-            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+            // Clean up student ID
+            studentId = studentId.trim();
+            addDebugLog('Looking for student ID: ' + studentId);
+            
+            // Find student
+            const student = students.find(s => {
+                // Check multiple possibilities
+                return s.id === studentId || 
+                       s.id.toString() === studentId ||
+                       s.qr_code === qrData ||
+                       s.qr_code === studentId ||
+                       (s.student_id && s.student_id.toString() === studentId);
+            });
             
             if (student) {
+                addDebugLog('Student found: ' + student.name + ' (ID: ' + student.id + ')');
+                
+                // Check time limit
                 const timeCheckResult = await checkStudentScanTimeLimit(student.id);
                 if (timeCheckResult.withinLimit) {
                     const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
                     showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់<br><br>សូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
-                    setTimeout(() => restartScanning(), 3000);
+                    
+                    // Restart scanning after 3 seconds
+                    setTimeout(async () => {
+                        await restartScanning();
+                    }, 3000);
                 } else {
                     await recordStudent(student);
                 }
             } else {
-                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
-                setTimeout(() => restartScanning(), 2000);
+                addDebugLog('Student not found. Available students: ' + students.length);
+                console.log('Available students:', students.map(s => ({id: s.id, name: s.name})));
+                
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធដែលមានអត្តលេខ: ' + studentId);
+                
+                // Restart scanning after 2 seconds
+                setTimeout(async () => {
+                    await restartScanning();
+                }, 2000);
             }
         }
+        
+        /**
+         * Restart scanning
+         */
+        async function restartScanning() {
+            if (isScanning) return;
+            
+            try {
+                let scanTypeText = scanTypes[selectedScanType].title;
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+                }
+                
+                if (resultDiv) {
+                    resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
+                }
+                
+                // Get available cameras again
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    const backCamera = cameras.find(cam => 
+                        cam.label.toLowerCase().includes('back') || 
+                        cam.label.includes('2') ||
+                        cam.label.toLowerCase().includes('rear')
+                    );
+                    const cameraId = backCamera ? backCamera.id : cameras[0].id;
+                    
+                    const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                        addDebugLog('QR Code detected: ' + decodedText);
+                        handleScannedQR(decodedText);
+                    };
+                    
+                    const qrCodeErrorCallback = (errorMessage) => {
+                        // Don't show every error
+                        if (!errorMessage.includes("NotFoundException")) {
+                            addDebugLog('QR scan error: ' + errorMessage);
+                        }
+                    };
+                    
+                    const config = {
+                        fps: 10,
+                        qrbox: { 
+                            width: isMobile ? 200 : 250, 
+                            height: isMobile ? 200 : 250 
+                        },
+                        aspectRatio: 1.0,
+                        disableFlip: false
+                    };
+                    
+                    await html5QrCode.start(
+                        cameraId,
+                        config,
+                        qrCodeSuccessCallback,
+                        qrCodeErrorCallback
+                    );
+                    
+                    isScanning = true;
+                    addDebugLog('Scanning restarted');
+                }
+                
+            } catch (error) {
+                addDebugLog('Error restarting scanner: ' + error.message);
+                showError('មិនអាចបើកកាមេរ៉ាឡើងវិញ: ' + error.message);
+            }
+        }
+        
+        // ============================================
+        // TEST FUNCTIONS
+        // ============================================
+        
+        /**
+         * Test QR scanning function
+         */
+        function testQRScanning() {
+            // Create a test QR code data
+            const testData = "STUDENT_12345";
+            
+            addDebugLog('Testing QR scan with data: ' + testData);
+            showInfo('🧪 កំពុងសាកល្បងស្កេន QR code...');
+            
+            // Simulate QR scan after 1 second
+            setTimeout(() => {
+                handleScannedQR(testData);
+            }, 1000);
+        }
+        
+        /**
+         * Test with real student data
+         */
+        async function testWithRealStudent() {
+            if (students.length === 0) {
+                showError('មិនមានទិន្នន័យសិស្សទេ។ សូមរង់ចាំ...');
+                return;
+            }
+            
+            // Take first student
+            const testStudent = students[0];
+            addDebugLog('Testing with student: ' + testStudent.name + ' (ID: ' + testStudent.id + ')');
+            showInfo('🧪 កំពុងសាកល្បងជាមួយសិស្សពិត: ' + testStudent.name);
+            
+            // Simulate QR scan
+            setTimeout(() => {
+                handleScannedQR(testStudent.id.toString());
+            }, 1000);
+        }
+        
+        // ============================================
+        // STUDENT RECORDING FUNCTIONS
+        // ============================================
         
         /**
          * Check student scan time limit
@@ -1779,7 +1999,7 @@
             try {
                 const tableName = scanTypes[selectedScanType].table;
                 
-                console.log(`🔍 Checking ${selectedScanType} scan for student ${studentId}`);
+                addDebugLog(`Checking ${selectedScanType} scan for student ${studentId}`);
                 
                 const { data, error } = await supabaseClient
                     .from(tableName)
@@ -1789,7 +2009,7 @@
                     .limit(1);
                 
                 if (error) {
-                    console.error('Error checking scan time:', error);
+                    addDebugLog('Error checking scan time: ' + error.message);
                     return { withinLimit: false, remainingTime: 0 };
                 }
                 
@@ -1802,7 +2022,7 @@
                 const timeDiff = currentTime - lastScanTime;
                 const remainingTime = TIME_LIMIT_MS - timeDiff;
                 
-                console.log(`Time since last scan: ${Math.floor(timeDiff/1000/60)} minutes`);
+                addDebugLog(`Time since last scan: ${Math.floor(timeDiff/1000/60)} minutes`);
                 
                 return {
                     withinLimit: timeDiff < TIME_LIMIT_MS,
@@ -1810,65 +2030,10 @@
                 };
                 
             } catch (error) {
-                console.error('Error checking student scan time limit:', error);
+                addDebugLog('Error checking student scan time limit: ' + error.message);
                 return { withinLimit: false, remainingTime: 0 };
             }
         }
-        
-        /**
-         * Restart scanning
-         */
-        function restartScanning() {
-            isScanning = true;
-            let scanTypeText = scanTypes[selectedScanType].title;
-            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
-            }
-            if (resultDiv) {
-                resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-qrcode"></i> កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
-            }
-            
-            if (isMobile) {
-                setTimeout(() => {
-                    scanAnimationFrame = requestAnimationFrame(scanFrame);
-                }, 150);
-            } else {
-                scanAnimationFrame = requestAnimationFrame(scanFrame);
-            }
-        }
-        
-        /**
-         * Stop camera
-         */
-        function stopCamera() {
-            isScanning = false;
-            if (scanAnimationFrame) {
-                cancelAnimationFrame(scanAnimationFrame);
-            }
-            
-            if (stream) {
-                stream.getTracks().forEach(track => {
-                    track.stop();
-                });
-                stream = null;
-            }
-            
-            if (video) video.srcObject = null;
-            
-            if (scannerContainer) scannerContainer.style.display = 'none';
-            if (scanCountDiv) scanCountDiv.style.display = 'none';
-            if (cameraPermissionDiv) cameraPermissionDiv.style.display = 'block';
-            if (startBtn) startBtn.disabled = false;
-            if (stopBtn) stopBtn.disabled = true;
-            
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="message message-info"><i class="fas fa-camera"></i> កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
-            }
-        }
-        
-        // ============================================
-        // STUDENT RECORDING FUNCTIONS
-        // ============================================
         
         /**
          * Record student
@@ -1886,6 +2051,7 @@
                 scan_type: selectedScanType
             };
             
+            // Add discipline subtype info
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
                 
@@ -1897,7 +2063,7 @@
             }
             
             try {
-                console.log(`💾 Saving to Supabase: ${scanTypes[selectedScanType].table}`);
+                addDebugLog(`Saving to Supabase: ${scanTypes[selectedScanType].table}`);
                 
                 const tableName = scanTypes[selectedScanType].table;
                 const { data, error } = await supabaseClient
@@ -1906,10 +2072,10 @@
                     .select();
                 
                 if (error) {
-                    console.error('❌ Supabase error:', error);
+                    addDebugLog('Supabase error: ' + error.message);
                     throw error;
                 } else {
-                    console.log('✅ Successfully saved to Supabase:', data);
+                    addDebugLog('Successfully saved to Supabase');
                     
                     let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
                     alertMessage += `សិស្ស: ${student.name}\n`;
@@ -1922,19 +2088,25 @@
                     
                     alertMessage += `ពេលវេលា: ${record.scan_time}`;
                     
+                    // Show alert dialog
                     alert(alertMessage);
                     
+                    // Show success message in UI
                     showSuccessMessage(record, student, tableName);
                     
+                    // Update statistics
                     await updateAllStats();
                 }
                 
             } catch (error) {
-                console.error('❌ Error saving to Supabase:', error);
-                showError('❌ មិនអាចរក្សាទិន្នន័យបាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
+                addDebugLog('Error saving to Supabase: ' + error.message);
+                showError('❌ មិនអាចរក្សាទិន្នន័យបាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត: ' + error.message);
             }
             
-            setTimeout(() => restartScanning(), 2000);
+            // Restart scanning
+            setTimeout(async () => {
+                await restartScanning();
+            }, 2000);
         }
         
         /**
@@ -1963,6 +2135,7 @@
                     </div>
                 </div>`;
             
+            // Vibrate on mobile
             if (isMobile && navigator.vibrate) {
                 navigator.vibrate([100, 50, 100]);
             }
@@ -1979,7 +2152,7 @@
          */
         async function fetchStudents() {
             try {
-                console.log('Fetching students...');
+                addDebugLog('Fetching students...');
                 
                 if (!supabaseClient) {
                     throw new Error('Supabase client not initialized');
@@ -1988,19 +2161,25 @@
                 const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
-                    .limit(3000);
+                    .limit(1000);
                 
                 if (error) {
-                    console.error('Error fetching students:', error);
+                    addDebugLog('Error fetching students: ' + error.message);
                     throw error;
                 }
                 
                 students = data || [];
+                
+                // Log student IDs for debugging
+                addDebugLog('Students loaded: ' + students.length);
+                if (students.length > 0) {
+                    console.log('Students:', students.slice(0, 3).map(s => ({id: s.id, name: s.name})));
+                }
+                
                 if (totalStudentsElement) totalStudentsElement.textContent = students.length;
-                console.log(`Fetched ${students.length} students`);
                 
             } catch (error) {
-                console.error('Error fetching students:', error);
+                addDebugLog('Error fetching students: ' + error.message);
                 students = [];
                 if (totalStudentsElement) totalStudentsElement.textContent = '0';
                 showWarning('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន។ តភ្ជាប់អ៊ីនធើណិត ឬផ្ទុកទំព័រឡើងវិញ');
@@ -2014,6 +2193,7 @@
             await updateScanCount();
             await updateSelectedTypeStats();
             updateScannedCount();
+            if (debugMode) updateDebugInfo();
         }
         
         /**
@@ -2038,15 +2218,15 @@
                             }
                         }
                     } catch (tableError) {
-                        console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
+                        addDebugLog(`Could not access table ${tableName}: ` + tableError.message);
                     }
                 }
                 
                 if (todayScansElement) todayScansElement.textContent = totalScans;
-                console.log(`📈 Total scans today: ${totalScans}`);
+                addDebugLog('Total scans today: ' + totalScans);
                 
             } catch (error) {
-                console.error('Error updating scan count:', error);
+                addDebugLog('Error updating scan count: ' + error.message);
                 if (todayScansElement) todayScansElement.textContent = '0';
             }
         }
@@ -2077,7 +2257,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Error updating selected type stats:', error);
+                addDebugLog('Error updating selected type stats: ' + error.message);
                 if (selectedTypeCountElement && selectedTypeLabelElement) {
                     selectedTypeCountElement.textContent = '0';
                     let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
@@ -2240,6 +2420,15 @@
         }
         
         /**
+         * Show info message
+         */
+        function showInfo(message) {
+            if (resultDiv) {
+                resultDiv.innerHTML = `<div class="message message-info"><i class="fas fa-info-circle"></i> ${message}</div>`;
+            }
+        }
+        
+        /**
          * Go to home page
          */
         function goToHome() {
@@ -2275,6 +2464,15 @@
                 if (manualEntryModal && manualEntryModal.style.display === 'flex') {
                     closeManualEntryModal();
                 }
+                if (isScanning) {
+                    stopCamera();
+                }
+            }
+            
+            // Ctrl+D for debug
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                toggleDebugMode();
             }
         }
         
@@ -2283,7 +2481,7 @@
          */
         function handleVisibilityChange() {
             if (document.hidden && isScanning) {
-                console.log('Page hidden, stopping camera');
+                addDebugLog('Page hidden, stopping camera');
                 stopCamera();
             }
         }
@@ -2292,14 +2490,16 @@
          * Handle orientation change
          */
         function handleOrientationChange() {
-            console.log('Orientation changed');
+            addDebugLog('Orientation changed');
             
-            if (isIOS && video && video.srcObject && isScanning) {
+            if (isIOS && isScanning) {
                 setTimeout(() => {
-                    video.style.height = '280px';
-                    video.play().catch(err => {
-                        console.error('Error restarting video after orientation:', err);
-                    });
+                    if (html5QrCode) {
+                        // Restart camera on orientation change for iOS
+                        stopCamera().then(() => {
+                            setTimeout(() => startCamera(), 500);
+                        });
+                    }
                 }, 300);
             }
         }
@@ -2317,10 +2517,6 @@
          * Handle resize events
          */
         function handleResize() {
-            if (isMobile && video) {
-                video.style.height = '280px';
-            }
-            
             if (isIOS) {
                 document.body.style.minHeight = window.innerHeight + 'px';
             }
@@ -2341,7 +2537,7 @@
             setTimeout(function() {
                 clearInterval(checkSupabase);
                 if (!window.supabase) {
-                    console.error('Supabase library failed to load');
+                    addDebugLog('Supabase library failed to load');
                     showError('❌ មិនអាចផ្ទុក Supabase library បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
                 }
             }, 5000);
@@ -2364,6 +2560,10 @@
         window.goToHome = goToHome;
         window.goBack = goBack;
         window.viewReports = viewReports;
+        window.testQRScanning = testQRScanning;
+        window.testWithRealStudent = testWithRealStudent;
+        window.toggleDebugMode = toggleDebugMode;
+        window.clearDebugInfo = clearDebugInfo;
     </script>
 </body>
 </html>

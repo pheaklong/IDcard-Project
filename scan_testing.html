@@ -2254,7 +2254,7 @@
                 const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
-                    .limit(100); // Limit to 100 students for performance
+                    .limit(3000); // Limit to 30000 students for performance
                 
                 if (error) {
                     console.error('Error fetching students:', error);

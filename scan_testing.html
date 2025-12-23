@@ -1066,6 +1066,8 @@
             <div id="scanner-container" style="display: none;">
                 <div class="scanner-frame">
                     <video id="camera" playsinline></video>
+                    <!-- Canvas for QR scanning -->
+                    <canvas id="qr-canvas" style="display:none;"></canvas>
                     <div class="scanner-overlay">
                         <div class="scanner-line"></div>
                         <div class="scanner-corners"></div>
@@ -1790,9 +1792,9 @@
         }
         
         /**
-         * Start camera
+         * Start camera and QR scanning
          */
-        function startCamera() {
+        async function startCamera() {
             if (!selectedScanType) {
                 showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
                 return;
@@ -1829,6 +1831,14 @@
             if (video) {
                 video.play().then(() => {
                     console.log('Video playback started');
+                    
+                    // Initialize canvas for QR scanning
+                    const canvas = document.getElementById('qr-canvas');
+                    if (canvas) {
+                        canvas.width = video.videoWidth || 640;
+                        canvas.height = video.videoHeight || 480;
+                    }
+                    
                     startQRScanning();
                 }).catch(err => {
                     console.error('Video play error:', err);
@@ -1868,7 +1878,17 @@
             
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 // Create canvas for image processing
-                const canvas = document.createElement('canvas');
+                const canvas = document.getElementById('qr-canvas');
+                if (!canvas) {
+                    // Create canvas if it doesn't exist
+                    const newCanvas = document.createElement('canvas');
+                    newCanvas.id = 'qr-canvas';
+                    newCanvas.style.display = 'none';
+                    document.querySelector('.scanner-frame').appendChild(newCanvas);
+                    scanAnimationFrame = requestAnimationFrame(scanFrame);
+                    return;
+                }
+                
                 const context = canvas.getContext('2d');
                 
                 // Set canvas size
@@ -1886,12 +1906,16 @@
                 // Get image data
                 const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                 
-                // Scan for QR code
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (code) {
-                    handleScannedQR(code.data);
-                    return;
+                // Scan for QR code using jsQR library
+                try {
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        handleScannedQR(code.data);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error scanning QR:', error);
                 }
             }
             
@@ -2027,6 +2051,7 @@
             isScanning = false;
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
+                scanAnimationFrame = null;
             }
             
             if (stream) {
@@ -2100,9 +2125,6 @@
                     // Save to localStorage as backup
                     saveToLocalStorage(record);
                     
-                    // ============================
-                    // ADDED: SUCCESS ALERT MESSAGE
-                    // ============================
                     // Show native alert
                     let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
                     alertMessage += `សិស្ស: ${student.name}\n`;
@@ -2254,7 +2276,7 @@
                 const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
-                    .limit(3000); // Limit to 30000 students for performance
+                    .limit(3000); // Limit to 3000 students for performance
                 
                 if (error) {
                     console.error('Error fetching students:', error);

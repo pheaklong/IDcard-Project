@@ -477,32 +477,107 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-      // Initialize Supabase client
-      const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
-      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-      
-      // Global variable to store all students
+      // Global variable to store all students and Supabase client
       let allStudents = [];
       let currentUpdateStudentId = null;
+      let currentDeleteStudentId = null;
+      let currentDeleteStudentName = null;
+      let supabaseClient = null;
+      
+      // Wait for DOM to be fully loaded and Supabase library to be loaded
+      document.addEventListener('DOMContentLoaded', async function() {
+        try {
+          // Initialize Supabase client
+          const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+          const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+          
+          // Check if supabase library is loaded
+          if (typeof supabase === 'undefined') {
+            throw new Error('Supabase library not loaded. Please check your internet connection.');
+          }
+          
+          // Create Supabase client
+          supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+          
+          // Test connection
+          const { data, error } = await supabaseClient
+            .from('students')
+            .select('count')
+            .limit(1);
+            
+          if (error) {
+            throw new Error('Failed to connect to database: ' + error.message);
+          }
+          
+          console.log('Supabase connected successfully');
+          
+          // Initialize page
+          initializePage();
+          
+        } catch (error) {
+          console.error('Initialization error:', error);
+          showError('កំហុសក្នុងការចាប់ផ្តើម: ' + error.message);
+        }
+      });
+
+      function initializePage() {
+        // Load initial data
+        getStudents();
+        
+        // Event listeners for search and filter
+        document.getElementById('searchButton').addEventListener('click', populateStudentTable);
+        document.getElementById('filterButton').addEventListener('click', populateStudentTable);
+        
+        // Search on Enter key press
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            populateStudentTable();
+          }
+        });
+        
+        // Event listener for confirm update button
+        document.getElementById('confirmUpdateBtn').addEventListener('click', confirmUpdate);
+        
+        // Event listener for confirm delete button
+        document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+      }
+      
+      // Show error message
+      function showError(message) {
+        const tableBody = document.getElementById("studentTableBody");
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i>${message}
+            </td>
+          </tr>
+        `;
+      }
       
       // Load students from Supabase
       async function getStudents() {
         try {
-          const { data, error } = await supabase
+          if (!supabaseClient) {
+            throw new Error('Database connection not established');
+          }
+          
+          const { data, error } = await supabaseClient
             .from('students')
             .select('*')
             .order('id', { ascending: true });
             
           if (error) {
             console.error('Error fetching students:', error);
+            showError('កំហុសក្នុងការទាញយកទិន្នន័យ: ' + error.message);
             return [];
           }
           
           allStudents = data || [];
+          populateStudentTable();
           return allStudents;
         } catch (error) {
           console.error('Error:', error);
+          showError('កំហុស: ' + error.message);
           return [];
         }
       }
@@ -533,37 +608,28 @@
       }
       
       // Render student table
-      async function populateStudentTable() {
+      function populateStudentTable() {
         const tableBody = document.getElementById("studentTableBody");
-        
-        // Show loading state
-        tableBody.innerHTML = `
-          <tr>
-            <td colspan="6" class="text-center">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2">កំពុងទាញយកទិន្នន័យ...</p>
-            </td>
-          </tr>
-        `;
-        
-        // Get students from Supabase
-        await getStudents();
         const students = filterStudents();
         
         // Clear table
         tableBody.innerHTML = "";
 
         if (students.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="6" class="text-center">No students found.</td></tr>`;
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center">
+                <i class="fas fa-search me-2"></i>រកមិនឃើញសិស្ស
+              </td>
+            </tr>
+          `;
           return;
         }
 
         students.forEach((student) => {
           const row = document.createElement("tr");
           row.innerHTML = `
-                <td><img src="${student.photo || 'https://via.placeholder.com/50'}" alt="${student.name}" class="student-photo"></td>
+                <td><img src="${student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTUiIGZpbGw9IiM2NjY2NjYiLz4KPHBhdGggZD0iTTI1IDc1QzI1IDY1LjA1OTQgMzMuMDU5NCA1NyA0MyA1N0g1N0M2Ni45NDA2IDU3IDc1IDY1LjA1OTQgNzUgNzVWMTAwSDI1Vjc1WiIgZmlsbD0iIzY2NjY2NiIvPgo8L3N2Zz4='}" alt="${student.name}" class="student-photo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiB�dHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTUiIGZpbGw9IiM2NjY2NjYiLz4KPHBhdGggZD0iTTI1IDc1QzI1IDY1LjA1OTQgMzMuMDU5NCA1NyA0MyA1N0g1N0M2Ni45NDA2IDU3IDc1IDY1LjA1OTQgNzUgNzVWMTAwSDI1Vjc1WiIgZmlsbD0iIzY2NjY2NiIvPgo8L3N2Zz4='"></td>
                 <td>${student.id}</td>
                 <td>${student.name}</td>
                 <td>${student.class}</td>
@@ -646,7 +712,7 @@
       
       // Confirm update function
       async function confirmUpdate() {
-        if (!currentUpdateStudentId) {
+        if (!currentUpdateStudentId || !supabaseClient) {
           return;
         }
         
@@ -679,7 +745,7 @@
           confirmBtn.innerHTML = '<div class="loading-spinner"></div> កំពុងរក្សាទុក...';
           
           // Update in Supabase
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from('students')
             .update(updatedData)
             .eq('id', currentUpdateStudentId);
@@ -689,14 +755,15 @@
           }
           
           // Hide modal
-          const updateModal = bootstrap.Modal.getInstance(document.getElementById('updateModal'));
+          const updateModalEl = document.getElementById('updateModal');
+          const updateModal = bootstrap.Modal.getInstance(updateModalEl) || new bootstrap.Modal(updateModalEl);
           updateModal.hide();
           
           // Show success message
           alert(`ព័ត៌មានសិស្សត្រូវបានកែសម្រួលដោយជោគជ័យ!`);
           
           // Refresh the table
-          await populateStudentTable();
+          await getStudents();
           
         } catch (error) {
           console.error('Error updating student:', error);
@@ -722,10 +789,6 @@
         }
       }
       
-      // Global variables for delete modal
-      let currentDeleteStudentId = null;
-      let currentDeleteStudentName = null;
-      
       // Delete student function
       function deleteStudent(studentId, studentName) {
         currentDeleteStudentId = studentId;
@@ -742,19 +805,18 @@
       
       // Confirm delete function
       async function confirmDelete() {
-        if (!currentDeleteStudentId || !currentDeleteStudentName) {
+        if (!currentDeleteStudentId || !currentDeleteStudentName || !supabaseClient) {
           return;
         }
         
         try {
           // Show loading state on confirm button
           const confirmBtn = document.getElementById('confirmDeleteBtn');
-          const originalText = confirmBtn.innerHTML;
           confirmBtn.disabled = true;
           confirmBtn.innerHTML = '<div class="loading-spinner"></div> កំពុងលុប...';
           
           // Delete from Supabase
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from('students')
             .delete()
             .eq('id', currentDeleteStudentId);
@@ -764,14 +826,15 @@
           }
           
           // Hide modal
-          const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+          const deleteModalEl = document.getElementById('deleteModal');
+          const deleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
           deleteModal.hide();
           
           // Show success message
           alert(`សិស្ស "${currentDeleteStudentName}" ត្រូវបានលុបដោយជោគជ័យ!`);
           
           // Refresh the table
-          await populateStudentTable();
+          await getStudents();
           
         } catch (error) {
           console.error('Error deleting student:', error);
@@ -797,26 +860,6 @@
           currentDeleteStudentName = null;
         }
       }
-      
-      // Event listeners for search and filter
-      document.getElementById('searchButton').addEventListener('click', populateStudentTable);
-      document.getElementById('filterButton').addEventListener('click', populateStudentTable);
-      
-      // Search on Enter key press
-      document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-          populateStudentTable();
-        }
-      });
-      
-      // Event listener for confirm update button
-      document.getElementById('confirmUpdateBtn').addEventListener('click', confirmUpdate);
-      
-      // Event listener for confirm delete button
-      document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-      
-      // Initial population
-      document.addEventListener("DOMContentLoaded", populateStudentTable);
     </script>
   </body>
 </html>

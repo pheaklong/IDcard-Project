@@ -221,29 +221,41 @@
     <div id="error" class="error-message"></div>
 
     <script>
+        // Declare supabaseClient as a global variable
+        let supabaseClient = null;
+
         // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Supabase client
-            const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
-            
-            // Check if supabase is already defined
-            if (typeof window.supabase === 'undefined') {
-                window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize Supabase client
+                const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+                
+                // Create Supabase client
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
+                console.log('Supabase client initialized successfully');
+                
+                // Initialize page
+                await initializePage();
+            } catch (error) {
+                console.error('Failed to initialize Supabase:', error);
+                showError('Failed to initialize database connection. Please refresh the page.');
             }
-            
-            // Initialize page
-            initializePage();
         });
 
-        function initializePage() {
-            checkUrlParameters();
+        async function initializePage() {
+            await checkUrlParameters();
         }
 
         // Find student by ID from Supabase
         async function findStudentById(studentId) {
             try {
-                const { data, error } = await window.supabase
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
+                const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
                     .eq('id', studentId)
@@ -256,7 +268,7 @@
                 
                 return data;
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error in findStudentById:', error);
                 return null;
             }
         }
@@ -336,6 +348,9 @@
                     guardain_number: '--'
                 });
                 
+                // Wait a bit to ensure Supabase is fully loaded
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
                 // Auto-generate card if student ID is in URL
                 await generateDigitalCard(studentId);
             } else {
@@ -353,6 +368,11 @@
 
         async function generateDigitalCard(studentId) {
             clearError();
+            
+            if (!supabaseClient) {
+                showError('Database not ready. Please refresh the page.');
+                return;
+            }
             
             const student = await findStudentById(studentId);
             if (!student) {

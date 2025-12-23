@@ -1188,7 +1188,7 @@
         let scanAnimationFrame = null;
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
-        let supabaseClient = null; // Use a different name
+        let supabaseClient = null; // Renamed from 'supabase' to avoid conflicts
         
         // Device detection
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -1235,83 +1235,156 @@
         };
         
         // ============================================
-        // SUPABASE INITIALIZATION - SIMPLE VERSION
+        // SUPABASE CLIENT INITIALIZATION
         // ============================================
         
-        // Initialize Supabase with error handling
-        function initializeSupabase() {
+        /**
+         * Initialize Supabase client
+         */
+        async function initializeSupabase() {
             try {
-                console.log('🔄 Initializing Supabase...');
+                console.log('🔄 Checking Supabase availability...');
                 
-                // Check if supabase is loaded
-                if (typeof window.supabase === 'undefined') {
-                    console.error('Supabase library not loaded');
-                    showWarning('⚠️ Supabase library not loaded. Using localStorage fallback.');
-                    return createFallbackSupabaseClient();
+                // Check if supabase library is loaded
+                if (!window.supabase) {
+                    console.error('❌ Supabase library not loaded');
+                    throw new Error('Supabase library not loaded');
                 }
                 
+                console.log('✅ Supabase library found, creating client...');
+                
                 // Create Supabase client
-                const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('✅ Supabase client initialized');
-                return client;
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Test connection
+                const { data, error } = await supabaseClient.from('students').select('count');
+                
+                if (error) {
+                    console.error('❌ Supabase connection test failed:', error);
+                    throw error;
+                }
+                
+                console.log('✅ Supabase client initialized and connected successfully');
+                return true;
                 
             } catch (error) {
-                console.error('Error initializing Supabase:', error);
-                showWarning('⚠️ Error connecting to Supabase. Using localStorage fallback.');
-                return createFallbackSupabaseClient();
+                console.error('❌ Error initializing Supabase client:', error);
+                
+                // Create fallback client
+                supabaseClient = createFallbackSupabaseClient();
+                console.log('⚠️ Using fallback Supabase client (localStorage)');
+                showWarning('⚠️ មិនអាចតភ្ជាប់ទៅកាន់ Supabase បាន។ ទិន្នន័យនឹងត្រូវរក្សាទុកក្នុងឧបករណ៍ប៉ុណ្ណោះ');
+                return false;
             }
         }
         
-        // Create fallback client for offline/local use
+        // ============================================
+        // FALLBACK SUPABASE CLIENT
+        // ============================================
+        
         function createFallbackSupabaseClient() {
-            console.log('⚠️ Creating fallback client for localStorage');
+            console.warn('⚠️ Creating fallback Supabase client (localStorage)');
             return {
                 from: (tableName) => {
+                    console.log(`Fallback: accessing table ${tableName}`);
                     return {
                         select: (columns = '*') => ({
                             eq: (column, value) => ({
+                                limit: (count) => ({
+                                    then: (callback) => {
+                                        console.log(`Fallback: select from ${tableName} where ${column}=${value} limit ${count}`);
+                                        // Return promise with empty data
+                                        return Promise.resolve({
+                                            data: [],
+                                            error: null
+                                        }).then(callback);
+                                    }
+                                }),
                                 then: (callback) => {
-                                    console.log(`Fallback: select where ${column}=${value} from ${tableName}`);
-                                    // Get data from localStorage
-                                    const key = `${tableName}_local`;
-                                    const allData = JSON.parse(localStorage.getItem(key) || '[]');
-                                    const filteredData = allData.filter(item => item[column] === value);
-                                    return Promise.resolve({ data: filteredData, error: null }).then(callback);
+                                    console.log(`Fallback: select from ${tableName} where ${column}=${value}`);
+                                    // Return promise with empty data
+                                    return Promise.resolve({
+                                        data: [],
+                                        error: null
+                                    }).then(callback);
+                                }
+                            }),
+                            limit: (count) => ({
+                                then: (callback) => {
+                                    console.log(`Fallback: select from ${tableName} limit ${count}`);
+                                    // Return promise with empty data
+                                    return Promise.resolve({
+                                        data: [],
+                                        error: null
+                                    }).then(callback);
                                 }
                             }),
                             then: (callback) => {
                                 console.log(`Fallback: select from ${tableName}`);
-                                const key = `${tableName}_local`;
-                                const data = JSON.parse(localStorage.getItem(key) || '[]');
-                                return Promise.resolve({ data: data, error: null }).then(callback);
+                                // Return promise with empty data
+                                return Promise.resolve({
+                                    data: [],
+                                    error: null
+                                }).then(callback);
                             }
                         }),
                         insert: (data) => {
                             console.log(`Fallback: insert into ${tableName}`, data);
+                            // Save to localStorage
                             const key = `${tableName}_local`;
                             const existing = JSON.parse(localStorage.getItem(key) || '[]');
-                            const newRecord = {
+                            const record = {
                                 ...data[0],
-                                id: Date.now(),
+                                id: Date.now() + Math.random(),
                                 created_at: new Date().toISOString()
                             };
-                            existing.push(newRecord);
+                            existing.push(record);
                             localStorage.setItem(key, JSON.stringify(existing));
-                            return Promise.resolve({ data: [newRecord], error: null });
-                        }
+                            
+                            return {
+                                select: () => ({
+                                    then: (callback) => {
+                                        return Promise.resolve({
+                                            data: [record],
+                                            error: null
+                                        }).then(callback);
+                                    }
+                                })
+                            };
+                        },
+                        eq: (column, value) => ({
+                            select: (columns = '*') => ({
+                                order: (sortColumn, options = { ascending: true }) => ({
+                                    limit: (count) => ({
+                                        then: (callback) => {
+                                            console.log(`Fallback: select where ${column}=${value} order by ${sortColumn} limit ${count}`);
+                                            return Promise.resolve({
+                                                data: [],
+                                                error: null
+                                            }).then(callback);
+                                        }
+                                    }),
+                                    then: (callback) => {
+                                        console.log(`Fallback: select where ${column}=${value} order by ${sortColumn}`);
+                                        return Promise.resolve({
+                                            data: [],
+                                            error: null
+                                        }).then(callback);
+                                    }
+                                }),
+                                then: (callback) => {
+                                    console.log(`Fallback: select where ${column}=${value}`);
+                                    return Promise.resolve({
+                                        data: [],
+                                        error: null
+                                    }).then(callback);
+                                }
+                            })
+                        })
                     };
                 }
             };
         }
-        
-        // Initialize Supabase when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait a bit for Supabase to load
-            setTimeout(() => {
-                supabaseClient = initializeSupabase();
-                initApp();
-            }, 100);
-        });
         
         // ============================================
         // APPLICATION FUNCTIONS
@@ -1322,6 +1395,9 @@
          */
         async function initApp() {
             console.log('🚀 Starting app initialization...');
+            
+            // Initialize Supabase first
+            await initializeSupabase();
             
             // Set up viewport for mobile
             setupViewport();
@@ -1888,53 +1964,23 @@
                 
                 console.log(`🔍 Checking ${selectedScanType} scan for student ${studentId}`);
                 
-                // Check in Supabase
                 const { data, error } = await supabaseClient
                     .from(tableName)
                     .select('timestamp')
-                    .eq('student_id', studentId);
+                    .eq('student_id', studentId)
+                    .order('timestamp', { ascending: false })
+                    .limit(1);
                 
                 if (error) {
                     console.error('Error checking scan time:', error);
-                    // Check in localStorage as fallback
-                    const key = `${tableName}_local`;
-                    const allData = JSON.parse(localStorage.getItem(key) || '[]');
-                    const studentData = allData.filter(item => item.student_id === studentId);
-                    
-                    if (studentData.length === 0) {
-                        return { withinLimit: false, remainingTime: 0 };
-                    }
-                    
-                    // Get most recent scan
-                    const lastScan = studentData.reduce((latest, current) => {
-                        const latestTime = new Date(latest.timestamp || latest.created_at).getTime();
-                        const currentTime = new Date(current.timestamp || current.created_at).getTime();
-                        return currentTime > latestTime ? current : latest;
-                    });
-                    
-                    const lastScanTime = new Date(lastScan.timestamp || lastScan.created_at).getTime();
-                    const currentTime = new Date().getTime();
-                    const timeDiff = currentTime - lastScanTime;
-                    const remainingTime = TIME_LIMIT_MS - timeDiff;
-                    
-                    return {
-                        withinLimit: timeDiff < TIME_LIMIT_MS,
-                        remainingTime: remainingTime > 0 ? remainingTime : 0
-                    };
+                    return { withinLimit: false, remainingTime: 0 };
                 }
                 
                 if (!data || data.length === 0) {
                     return { withinLimit: false, remainingTime: 0 };
                 }
                 
-                // Get most recent scan
-                const lastScan = data.reduce((latest, current) => {
-                    const latestTime = new Date(latest.timestamp).getTime();
-                    const currentTime = new Date(current.timestamp).getTime();
-                    return currentTime > latestTime ? current : latest;
-                });
-                
-                const lastScanTime = new Date(lastScan.timestamp).getTime();
+                const lastScanTime = new Date(data[0].timestamp).getTime();
                 const currentTime = new Date().getTime();
                 const timeDiff = currentTime - lastScanTime;
                 const remainingTime = TIME_LIMIT_MS - timeDiff;
@@ -2040,41 +2086,44 @@
                 console.log(`💾 Saving to Supabase: ${scanTypes[selectedScanType].table}`);
                 
                 const tableName = scanTypes[selectedScanType].table;
-                
-                // Try to save to Supabase
                 const { data, error } = await supabaseClient
                     .from(tableName)
-                    .insert([record]);
+                    .insert([record])
+                    .select();
                 
                 if (error) {
                     console.error('❌ Supabase error:', error);
                     throw error;
+                } else {
+                    console.log('✅ Successfully saved to Supabase:', data);
+                    
+                    // Save to localStorage as backup
+                    saveToLocalStorage(record);
+                    
+                    // ============================
+                    // ADDED: SUCCESS ALERT MESSAGE
+                    // ============================
+                    // Show native alert
+                    let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
+                    alertMessage += `សិស្ស: ${student.name}\n`;
+                    alertMessage += `ថ្នាក់: ${student.class}\n`;
+                    alertMessage += `ប្រភេទ: ${scanTypes[selectedScanType].title}\n`;
+                    
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        alertMessage += `កំហុស: ${record.discipline_description}\n`;
+                    }
+                    
+                    alertMessage += `ពេលវេលា: ${record.scan_time}`;
+                    
+                    // Show alert dialog
+                    alert(alertMessage);
+                    
+                    // Show success message in UI
+                    showSuccessMessage(record, student, tableName);
+                    
+                    // Update statistics
+                    await updateAllStats();
                 }
-                
-                console.log('✅ Successfully saved to Supabase:', data);
-                
-                // Also save to localStorage as backup
-                saveToLocalStorage(record);
-                
-                // Show success alert
-                let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
-                alertMessage += `សិស្ស: ${student.name}\n`;
-                alertMessage += `ថ្នាក់: ${student.class}\n`;
-                alertMessage += `ប្រភេទ: ${scanTypes[selectedScanType].title}\n`;
-                
-                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    alertMessage += `កំហុស: ${record.discipline_description}\n`;
-                }
-                
-                alertMessage += `ពេលវេលា: ${record.scan_time}`;
-                
-                alert(alertMessage);
-                
-                // Show success message in UI
-                showSuccessMessage(record, student, tableName);
-                
-                // Update statistics
-                await updateAllStats();
                 
             } catch (error) {
                 console.error('❌ Error saving to Supabase:', error);
@@ -2152,8 +2201,8 @@
                     <div>
                         <strong style="font-size: 1.1rem;">✅ កត់ត្រាបានជោគ! (Local)</strong><br>
                         <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
-                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
-                        <strong>ថ្នាក់:</strong> ${student.class}<br>
+                        <strong>ឈ្មោះ:</strong> ${student.name}\n`;
+                successMessage += `<strong>ថ្នាក់:</strong> ${student.class}<br>
                         <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
             `;
             
@@ -2198,30 +2247,28 @@
             try {
                 console.log('Fetching students...');
                 
-                // Try to fetch from Supabase
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+                
                 const { data, error } = await supabaseClient
                     .from('students')
                     .select('*')
-                    .limit(3000);
+                    .limit(100); // Limit to 100 students for performance
                 
                 if (error) {
-                    console.error('Error fetching students from Supabase:', error);
-                    // Fallback to localStorage
-                    const localStudents = JSON.parse(localStorage.getItem('students_local') || '[]');
-                    students = localStudents;
-                } else {
-                    students = data || [];
+                    console.error('Error fetching students:', error);
+                    throw error;
                 }
                 
+                students = data || [];
                 if (totalStudentsElement) totalStudentsElement.textContent = students.length;
                 console.log(`Fetched ${students.length} students`);
                 
             } catch (error) {
                 console.error('Error fetching students:', error);
-                // Fallback to localStorage
-                const localStudents = JSON.parse(localStorage.getItem('students_local') || '[]');
-                students = localStudents;
-                if (totalStudentsElement) totalStudentsElement.textContent = students.length;
+                students = [];
+                if (totalStudentsElement) totalStudentsElement.textContent = '0';
                 showWarning('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន។ តភ្ជាប់អ៊ីនធើណិត ឬផ្ទុកទំព័រឡើងវិញ');
             }
         }
@@ -2245,36 +2292,19 @@
                 
                 for (const type in scanTypes) {
                     const tableName = scanTypes[type].table;
-                    
-                    // Try Supabase first
                     try {
-                        const { data, error } = await supabaseClient
-                            .from(tableName)
-                            .select('*')
-                            .eq('date', today);
-                        
-                        if (!error && data) {
-                            totalScans += data.length;
-                        } else {
-                            // Fallback to localStorage
-                            const key = `${type}Reports`;
-                            const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                            const todayScans = reports.filter(report => {
-                                const reportDate = new Date(report.timestamp || report.created_at);
-                                return reportDate.toISOString().split('T')[0] === today;
-                            });
-                            totalScans += todayScans.length;
+                        if (supabaseClient) {
+                            const { data, error } = await supabaseClient
+                                .from(tableName)
+                                .select('*', { count: 'exact' })
+                                .eq('date', today);
+                            
+                            if (!error && data) {
+                                totalScans += data.length;
+                            }
                         }
                     } catch (tableError) {
                         console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
-                        // Fallback to localStorage
-                        const key = `${type}Reports`;
-                        const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                        const todayScans = reports.filter(report => {
-                            const reportDate = new Date(report.timestamp || report.created_at);
-                            return reportDate.toISOString().split('T')[0] === today;
-                        });
-                        totalScans += todayScans.length;
                     }
                 }
                 
@@ -2283,7 +2313,7 @@
                 
             } catch (error) {
                 console.error('Error updating scan count:', error);
-                // Fallback completely to localStorage
+                // Fallback to localStorage
                 let totalScans = 0;
                 for (const type in scanTypes) {
                     const key = `${type}Reports`;
@@ -2306,32 +2336,21 @@
                 const today = new Date().toISOString().split('T')[0];
                 const tableName = scanTypes[selectedScanType].table;
                 
-                // Try Supabase
-                const { data, error } = await supabaseClient
-                    .from(tableName)
-                    .select('*')
-                    .eq('date', today);
-                
-                if (!error && selectedTypeCountElement && selectedTypeLabelElement) {
-                    selectedTypeCountElement.textContent = data.length;
-                } else {
-                    // Fallback to localStorage
-                    const key = `${selectedScanType}Reports`;
-                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
-                    const todayScans = reports.filter(report => {
-                        const reportDate = new Date(report.timestamp || report.created_at);
-                        return reportDate.toISOString().split('T')[0] === today;
-                    });
-                    selectedTypeCountElement.textContent = todayScans.length;
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from(tableName)
+                        .select('*', { count: 'exact' })
+                        .eq('date', today);
+                    
+                    if (!error && selectedTypeCountElement && selectedTypeLabelElement) {
+                        selectedTypeCountElement.textContent = data.length;
+                        let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                        if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                            label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                        }
+                        selectedTypeLabelElement.textContent = label;
+                    }
                 }
-                
-                // Update label
-                let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
-                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
-                    label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
-                }
-                selectedTypeLabelElement.textContent = label;
-                
             } catch (error) {
                 console.error('Error updating selected type stats:', error);
                 // Fallback to localStorage
@@ -2606,15 +2625,26 @@
         // INITIALIZE APPLICATION
         // ============================================
         
-        // Initialize Supabase when page loads
+        // Initialize the app when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing app...');
+            // Wait for Supabase library to load
+            const checkSupabase = setInterval(function() {
+                if (window.supabase) {
+                    clearInterval(checkSupabase);
+                    initApp();
+                }
+            }, 100);
             
-            // Initialize Supabase first
-            supabaseClient = initializeSupabase();
-            
-            // Then initialize the app
-            initApp();
+            // Timeout after 5 seconds
+            setTimeout(function() {
+                clearInterval(checkSupabase);
+                if (!window.supabase) {
+                    console.error('Supabase library failed to load');
+                    showError('❌ មិនអាចផ្ទុក Supabase library បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធើណិត');
+                    // Initialize with fallback
+                    initApp();
+                }
+            }, 5000);
         });
         
         // ============================================

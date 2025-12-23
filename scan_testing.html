@@ -1140,7 +1140,7 @@
         </div>
     </div>
 
-     <script>
+    <script>
         // ============================================
         // APPLICATION CONFIGURATION
         // ============================================
@@ -2185,7 +2185,25 @@
                         // Save to localStorage as backup
                         saveToLocalStorage(record);
                         
-                        // Show success message
+                        // ============================
+                        // ADDED: SUCCESS ALERT MESSAGE
+                        // ============================
+                        // Show native alert
+                        let alertMessage = `✅ ស្កេនជោគជ័យ!\n`;
+                        alertMessage += `សិស្ស: ${student.name}\n`;
+                        alertMessage += `ថ្នាក់: ${student.class}\n`;
+                        alertMessage += `ប្រភេទ: ${scanTypes[selectedScanType].title}\n`;
+                        
+                        if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                            alertMessage += `កំហុស: ${record.discipline_description}\n`;
+                        }
+                        
+                        alertMessage += `ពេលវេលា: ${record.scan_time}`;
+                        
+                        // Show alert dialog
+                        alert(alertMessage);
+                        
+                        // Show success message in UI
                         showSuccessMessage(record, student, tableName);
                         
                         // Update statistics
@@ -2197,6 +2215,19 @@
                     
                     // Fallback to localStorage
                     saveToLocalStorage(record);
+                    
+                    // Show alert even for local save
+                    let alertMessage = `✅ ស្កេនជោគជ័យ! (ក្នុងឧបករណ៍)\n`;
+                    alertMessage += `សិស្ស: ${student.name}\n`;
+                    alertMessage += `ថ្នាក់: ${student.class}\n`;
+                    alertMessage += `ប្រភេទ: ${scanTypes[selectedScanType].title}\n`;
+                    
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        alertMessage += `កំហុស: ${record.discipline_description}\n`;
+                    }
+                    
+                    alertMessage += `ពេលវេលា: ${record.scan_time}`;
+                    alert(alertMessage);
                     
                     // Show success message with warning
                     showLocalSuccessMessage(record, student, error);

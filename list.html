@@ -1215,6 +1215,57 @@
             console.log('applyFilters called');
             if (window.appInitialized && window.applyFiltersReal) {
                 window.applyFiltersReal();
+            } else {
+                console.warn('applyFiltersReal not available yet');
+            }
+        }
+
+        // Discipline summary functions
+        function exportDisciplineSummaryToExcel() {
+            console.log('exportDisciplineSummaryToExcel called');
+            if (window.appInitialized && window.exportDisciplineSummaryToExcelReal) {
+                window.exportDisciplineSummaryToExcelReal();
+            } else {
+                console.warn('exportDisciplineSummaryToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function printDisciplineSummaryReport() {
+            console.log('printDisciplineSummaryReport called');
+            if (window.appInitialized && window.printDisciplineSummaryReportReal) {
+                window.printDisciplineSummaryReportReal();
+            } else {
+                console.warn('printDisciplineSummaryReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function handleDisciplineSummaryPeriodChange() {
+            console.log('handleDisciplineSummaryPeriodChange called');
+            if (window.appInitialized && window.handleDisciplineSummaryPeriodChangeReal) {
+                window.handleDisciplineSummaryPeriodChangeReal();
+            } else {
+                console.warn('handleDisciplineSummaryPeriodChangeReal not available yet');
+            }
+        }
+
+        function updateDisciplineSummaryReport() {
+            console.log('updateDisciplineSummaryReport called');
+            if (window.appInitialized && window.updateDisciplineSummaryReportReal) {
+                window.updateDisciplineSummaryReportReal();
+            } else {
+                console.warn('updateDisciplineSummaryReportReal not available yet');
+            }
+        }
+
+        // Late summary functions
+        function handleSummaryPeriodChange() {
+            console.log('handleSummaryPeriodChange called');
+            if (window.appInitialized && window.handleSummaryPeriodChangeReal) {
+                window.handleSummaryPeriodChangeReal();
+            } else {
+                console.warn('handleSummaryPeriodChangeReal not available yet');
             }
         }
 
@@ -1222,6 +1273,8 @@
             console.log('updateSummaryReport called');
             if (window.appInitialized && window.updateSummaryReportReal) {
                 window.updateSummaryReportReal();
+            } else {
+                console.warn('updateSummaryReportReal not available yet');
             }
         }
 
@@ -1229,14 +1282,50 @@
             console.log('exportSummaryToExcel called');
             if (window.appInitialized && window.exportSummaryToExcelReal) {
                 window.exportSummaryToExcelReal();
+            } else {
+                console.warn('exportSummaryToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
             }
         }
 
-        function handleDateTimeChange() {
-            console.log('handleDateTimeChange called');
-            // Call the actual function if it exists
-            if (window.appInitialized && window.handleDateFilterChange) {
-                window.handleDateFilterChange();
+        function printSummaryReport() {
+            console.log('printSummaryReport called');
+            if (window.appInitialized && window.printSummaryReportReal) {
+                window.printSummaryReportReal();
+            } else {
+                console.warn('printSummaryReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // Regular report functions
+        function exportToExcel() {
+            console.log('exportToExcel called');
+            if (window.appInitialized && window.exportToExcelReal) {
+                window.exportToExcelReal();
+            } else {
+                console.warn('exportToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function printReport() {
+            console.log('printReport called');
+            if (window.appInitialized && window.printReportReal) {
+                window.printReportReal();
+            } else {
+                console.warn('printReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // Date filter function
+        function handleDateFilterChange() {
+            console.log('handleDateFilterChange called');
+            if (window.appInitialized && window.handleDateFilterChangeReal) {
+                window.handleDateFilterChangeReal();
+            } else {
+                console.warn('handleDateFilterChangeReal not available yet');
             }
         }
 
@@ -1328,6 +1417,28 @@
             console.log('sortDisciplineSummaryByDate called');
             if (window.appInitialized && window.sortDisciplineSummaryByDateReal) {
                 window.sortDisciplineSummaryByDateReal();
+            }
+        }
+
+        // Table sorting functions
+        function sortTable(column) {
+            console.log('sortTable called for column:', column);
+            if (window.appInitialized && window.sortTableReal) {
+                window.sortTableReal(column);
+            }
+        }
+
+        function sortSummaryTable(column) {
+            console.log('sortSummaryTable called for column:', column);
+            if (window.appInitialized && window.sortSummaryTableReal) {
+                window.sortSummaryTableReal(column);
+            }
+        }
+
+        function sortDisciplineSummaryTable(column) {
+            console.log('sortDisciplineSummaryTable called for column:', column);
+            if (window.appInitialized && window.sortDisciplineSummaryTableReal) {
+                window.sortDisciplineSummaryTableReal(column);
             }
         }
 
@@ -1544,7 +1655,7 @@
             // ========== DATE FILTER HANDLING ==========
 
             // Handle date filter change for regular reports
-            function handleDateFilterChange() {
+            function handleDateFilterChangeReal() {
                 const dateFilter = document.getElementById('date-filter').value;
                 const customDateGroup = document.getElementById('custom-date-group');
                 const dateRangeStartGroup = document.getElementById('date-range-start-group');
@@ -1563,11 +1674,11 @@
                     dateRangeEndGroup.style.display = 'block';
                 }
                 
-                applyFilters();
+                applyFiltersReal();
             }
 
             // Handle discipline summary period change
-            function handleDisciplineSummaryPeriodChange() {
+            function handleDisciplineSummaryPeriodChangeReal() {
                 const period = document.getElementById('discipline-summary-period').value;
                 const customDateGroup = document.getElementById('custom-discipline-summary-date-group');
                 const dateRangeStartGroup = document.getElementById('discipline-summary-date-range-start-group');
@@ -1586,11 +1697,11 @@
                     dateRangeEndGroup.style.display = 'block';
                 }
                 
-                updateDisciplineSummaryReport();
+                updateDisciplineSummaryReportReal();
             }
 
             // Handle summary period change
-            function handleSummaryPeriodChange() {
+            function handleSummaryPeriodChangeReal() {
                 const period = document.getElementById('summary-period').value;
                 const customDateGroup = document.getElementById('custom-summary-date-group');
                 const dateRangeStartGroup = document.getElementById('summary-date-range-start-group');
@@ -1609,13 +1720,13 @@
                     dateRangeEndGroup.style.display = 'block';
                 }
                 
-                updateSummaryReport();
+                updateSummaryReportReal();
             }
 
             // ========== SORTING FUNCTIONS ==========
 
             // តម្រៀបតារាងទិន្នន័យ
-            function sortTable(column) {
+            function sortTableReal(column) {
                 const tableBody = document.getElementById('report-table-body');
                 const rows = Array.from(tableBody.querySelectorAll('tr'));
                 
@@ -1648,7 +1759,7 @@
             }
 
             // តម្រៀបតារាងសង្ខេប
-            function sortSummaryTable(column) {
+            function sortSummaryTableReal(column) {
                 const tableBody = document.getElementById('summary-table-body');
                 const rows = Array.from(tableBody.querySelectorAll('tr'));
                 
@@ -1687,7 +1798,7 @@
             }
 
             // តម្រៀបតារាងសង្ខេបវិន័យ
-            function sortDisciplineSummaryTable(column) {
+            function sortDisciplineSummaryTableReal(column) {
                 const tableBody = document.getElementById('discipline-summary-table-body');
                 const rows = Array.from(tableBody.querySelectorAll('tr'));
                 
@@ -1746,32 +1857,18 @@
 
             // ========== BUTTON SORTING FUNCTIONS ==========
 
-            function sortByClassReal() { sortTable(2); }
-            function sortByNameReal() { sortTable(1); }
-            function sortByDateReal() { sortTable(6); }
-            function sortByTimeReal() { sortTable(5); }
-            function sortSummaryByClassReal() { sortSummaryTable(2); }
-            function sortSummaryByNameReal() { sortSummaryTable(1); }
-            function sortSummaryByCountReal() { sortSummaryTable(4); }
-            function sortSummaryByDateReal() { sortSummaryTable(5); }
-            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTable(2); }
-            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTable(1); }
-            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTable(4); }
-            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTable(6); }
-
-            // Make sorting functions available globally
-            window.sortByClassReal = sortByClassReal;
-            window.sortByNameReal = sortByNameReal;
-            window.sortByDateReal = sortByDateReal;
-            window.sortByTimeReal = sortByTimeReal;
-            window.sortSummaryByClassReal = sortSummaryByClassReal;
-            window.sortSummaryByNameReal = sortSummaryByNameReal;
-            window.sortSummaryByCountReal = sortSummaryByCountReal;
-            window.sortSummaryByDateReal = sortSummaryByDateReal;
-            window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
-            window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
-            window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
-            window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
+            function sortByClassReal() { sortTableReal(2); }
+            function sortByNameReal() { sortTableReal(1); }
+            function sortByDateReal() { sortTableReal(6); }
+            function sortByTimeReal() { sortTableReal(5); }
+            function sortSummaryByClassReal() { sortSummaryTableReal(2); }
+            function sortSummaryByNameReal() { sortSummaryTableReal(1); }
+            function sortSummaryByCountReal() { sortSummaryTableReal(4); }
+            function sortSummaryByDateReal() { sortSummaryTableReal(5); }
+            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTableReal(2); }
+            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTableReal(1); }
+            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTableReal(4); }
+            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTableReal(6); }
 
             // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
 
@@ -1799,17 +1896,17 @@
                     
                     console.log(`✅ Loaded ${allReports.length} discipline records for summary`);
                     
-                    updateDisciplineSummaryReport();
+                    updateDisciplineSummaryReportReal();
                     
                 } catch (error) {
                     console.error('❌ Error loading discipline summary data:', error);
                     allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} discipline records`);
-                    updateDisciplineSummaryReport();
+                    updateDisciplineSummaryReportReal();
                 }
             }
 
-            function updateDisciplineSummaryReport() {
+            function updateDisciplineSummaryReportReal() {
                 if (currentReportType !== 'discipline-summary' || allReports.length === 0) {
                     document.getElementById('discipline-summary-loading').style.display = 'none';
                     document.getElementById('discipline-summary-empty').style.display = 'block';
@@ -2016,7 +2113,7 @@
                 });
             }
 
-            function exportDisciplineSummaryToExcel() {
+            function exportDisciplineSummaryToExcelReal() {
                 if (disciplineSummaryData.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
                     return;
@@ -2069,7 +2166,7 @@
                 }
             }
 
-            function printDisciplineSummaryReport() {
+            function printDisciplineSummaryReportReal() {
                 if (disciplineSummaryData.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
                     return;
@@ -2198,17 +2295,17 @@
                     
                     console.log(`✅ Loaded ${allReports.length} records for summary`);
                     
-                    updateSummaryReport();
+                    updateSummaryReportReal();
                     
                 } catch (error) {
                     console.error('❌ Error loading summary data:', error);
                     allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
-                    updateSummaryReport();
+                    updateSummaryReportReal();
                 }
             }
 
-            function updateSummaryReport() {
+            function updateSummaryReportReal() {
                 if (currentReportType !== 'summary' || allReports.length === 0) {
                     document.getElementById('summary-loading').style.display = 'none';
                     document.getElementById('summary-empty').style.display = 'block';
@@ -2405,7 +2502,7 @@
                 });
             }
 
-            function exportSummaryToExcel() {
+            function exportSummaryToExcelReal() {
                 if (summaryData.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
                     return;
@@ -2457,7 +2554,7 @@
                 }
             }
 
-            function printSummaryReport() {
+            function printSummaryReportReal() {
                 if (summaryData.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
                     return;
@@ -2601,13 +2698,6 @@
                 console.log(`✅ Selected report type: ${type} - ${reportTypes[type].title}`);
             }
 
-            // Make functions available globally
-            window.selectReportTypeReal = selectReportTypeReal;
-            window.applyFiltersReal = applyFilters;
-            window.updateSummaryReportReal = updateSummaryReport;
-            window.exportSummaryToExcelReal = exportSummaryToExcel;
-            window.handleDateFilterChange = handleDateFilterChange;
-
             // ទាញយកទិន្នន័យរបាយការណ៍
             async function loadReportData() {
                 if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary') return;
@@ -2633,7 +2723,7 @@
                     
                     console.log(`✅ Loaded ${allReports.length} records`);
                     
-                    applyFilters();
+                    applyFiltersReal();
                     updateStats();
                     populateClassFilter();
                     
@@ -2641,14 +2731,14 @@
                     console.error('❌ Error loading report data:', error);
                     allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
-                    applyFilters();
+                    applyFiltersReal();
                     updateStats();
                     populateClassFilter();
                 }
             }
 
             // ស្វែងរកទិន្នន័យ
-            function applyFilters() {
+            function applyFiltersReal() {
                 if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary' || allReports.length === 0) {
                     document.getElementById('table-loading').style.display = 'none';
                     document.getElementById('table-empty').style.display = 'block';
@@ -2838,7 +2928,7 @@
             }
 
             // បញ្ចូលទៅ Excel - FIXED VERSION
-            function exportToExcel() {
+            function exportToExcelReal() {
                 if (filteredReports.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
                     return;
@@ -2906,7 +2996,7 @@
             }
 
             // បោះពុម្ពរបាយការណ៍ - FIXED VERSION
-            function printReport() {
+            function printReportReal() {
                 if (filteredReports.length === 0) {
                     alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
                     return;
@@ -3018,20 +3108,68 @@
                 }, 500);
             }
 
+            // ============================================
+            // MAKE FUNCTIONS AVAILABLE GLOBALLY
+            // ============================================
+
+            // Make all functions available globally with Real suffix
+            window.selectReportTypeReal = selectReportTypeReal;
+            window.applyFiltersReal = applyFiltersReal;
+            
+            // Discipline summary functions
+            window.exportDisciplineSummaryToExcelReal = exportDisciplineSummaryToExcelReal;
+            window.printDisciplineSummaryReportReal = printDisciplineSummaryReportReal;
+            window.handleDisciplineSummaryPeriodChangeReal = handleDisciplineSummaryPeriodChangeReal;
+            window.updateDisciplineSummaryReportReal = updateDisciplineSummaryReportReal;
+            
+            // Late summary functions
+            window.handleSummaryPeriodChangeReal = handleSummaryPeriodChangeReal;
+            window.updateSummaryReportReal = updateSummaryReportReal;
+            window.exportSummaryToExcelReal = exportSummaryToExcelReal;
+            window.printSummaryReportReal = printSummaryReportReal;
+            
+            // Regular report functions
+            window.exportToExcelReal = exportToExcelReal;
+            window.printReportReal = printReportReal;
+            window.handleDateFilterChangeReal = handleDateFilterChangeReal;
+            
+            // Sorting functions
+            window.sortByClassReal = sortByClassReal;
+            window.sortByNameReal = sortByNameReal;
+            window.sortByDateReal = sortByDateReal;
+            window.sortByTimeReal = sortByTimeReal;
+            window.sortSummaryByClassReal = sortSummaryByClassReal;
+            window.sortSummaryByNameReal = sortSummaryByNameReal;
+            window.sortSummaryByCountReal = sortSummaryByCountReal;
+            window.sortSummaryByDateReal = sortSummaryByDateReal;
+            window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
+            window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
+            window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
+            window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
+            window.sortTableReal = sortTableReal;
+            window.sortSummaryTableReal = sortSummaryTableReal;
+            window.sortDisciplineSummaryTableReal = sortDisciplineSummaryTableReal;
+
             // Initialize page
             window.onload = function() {
                 console.log('📊 Report page loaded');
                 
                 // Add event listeners for period changes
-                document.getElementById('date-filter').addEventListener('change', handleDateFilterChange);
-                document.getElementById('discipline-summary-period').addEventListener('change', handleDisciplineSummaryPeriodChange);
-                document.getElementById('summary-period').addEventListener('change', handleSummaryPeriodChange);
+                const dateFilter = document.getElementById('date-filter');
+                const disciplineSummaryPeriod = document.getElementById('discipline-summary-period');
+                const summaryPeriod = document.getElementById('summary-period');
+                
+                if (dateFilter) dateFilter.addEventListener('change', handleDateFilterChangeReal);
+                if (disciplineSummaryPeriod) disciplineSummaryPeriod.addEventListener('change', handleDisciplineSummaryPeriodChangeReal);
+                if (summaryPeriod) summaryPeriod.addEventListener('change', handleSummaryPeriodChangeReal);
                 
                 // Mark app as initialized
                 window.appInitialized = true;
                 
                 // Select default report type
                 selectReportTypeReal('discipline');
+                
+                console.log('✅ Application initialized successfully');
             };
         }
     </script>

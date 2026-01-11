@@ -1241,6 +1241,97 @@
         }
 
         // ============================================
+        // GLOBAL SORTING FUNCTIONS
+        // ============================================
+
+        // Regular report sorting functions
+        function sortByClass() {
+            console.log('sortByClass called');
+            if (window.appInitialized && window.sortByClassReal) {
+                window.sortByClassReal();
+            }
+        }
+
+        function sortByName() {
+            console.log('sortByName called');
+            if (window.appInitialized && window.sortByNameReal) {
+                window.sortByNameReal();
+            }
+        }
+
+        function sortByDate() {
+            console.log('sortByDate called');
+            if (window.appInitialized && window.sortByDateReal) {
+                window.sortByDateReal();
+            }
+        }
+
+        function sortByTime() {
+            console.log('sortByTime called');
+            if (window.appInitialized && window.sortByTimeReal) {
+                window.sortByTimeReal();
+            }
+        }
+
+        // Summary report sorting functions
+        function sortSummaryByClass() {
+            console.log('sortSummaryByClass called');
+            if (window.appInitialized && window.sortSummaryByClassReal) {
+                window.sortSummaryByClassReal();
+            }
+        }
+
+        function sortSummaryByName() {
+            console.log('sortSummaryByName called');
+            if (window.appInitialized && window.sortSummaryByNameReal) {
+                window.sortSummaryByNameReal();
+            }
+        }
+
+        function sortSummaryByCount() {
+            console.log('sortSummaryByCount called');
+            if (window.appInitialized && window.sortSummaryByCountReal) {
+                window.sortSummaryByCountReal();
+            }
+        }
+
+        function sortSummaryByDate() {
+            console.log('sortSummaryByDate called');
+            if (window.appInitialized && window.sortSummaryByDateReal) {
+                window.sortSummaryByDateReal();
+            }
+        }
+
+        // Discipline summary sorting functions
+        function sortDisciplineSummaryByClass() {
+            console.log('sortDisciplineSummaryByClass called');
+            if (window.appInitialized && window.sortDisciplineSummaryByClassReal) {
+                window.sortDisciplineSummaryByClassReal();
+            }
+        }
+
+        function sortDisciplineSummaryByName() {
+            console.log('sortDisciplineSummaryByName called');
+            if (window.appInitialized && window.sortDisciplineSummaryByNameReal) {
+                window.sortDisciplineSummaryByNameReal();
+            }
+        }
+
+        function sortDisciplineSummaryByCount() {
+            console.log('sortDisciplineSummaryByCount called');
+            if (window.appInitialized && window.sortDisciplineSummaryByCountReal) {
+                window.sortDisciplineSummaryByCountReal();
+            }
+        }
+
+        function sortDisciplineSummaryByDate() {
+            console.log('sortDisciplineSummaryByDate called');
+            if (window.appInitialized && window.sortDisciplineSummaryByDateReal) {
+                window.sortDisciplineSummaryByDateReal();
+            }
+        }
+
+        // ============================================
         // APPLICATION CONFIGURATION
         // ============================================
 
@@ -1655,18 +1746,32 @@
 
             // ========== BUTTON SORTING FUNCTIONS ==========
 
-            function sortByClass() { sortTable(2); }
-            function sortByName() { sortTable(1); }
-            function sortByDate() { sortTable(6); }
-            function sortByTime() { sortTable(5); }
-            function sortSummaryByClass() { sortSummaryTable(2); }
-            function sortSummaryByName() { sortSummaryTable(1); }
-            function sortSummaryByCount() { sortSummaryTable(4); }
-            function sortSummaryByDate() { sortSummaryTable(5); }
-            function sortDisciplineSummaryByClass() { sortDisciplineSummaryTable(2); }
-            function sortDisciplineSummaryByName() { sortDisciplineSummaryTable(1); }
-            function sortDisciplineSummaryByCount() { sortDisciplineSummaryTable(4); }
-            function sortDisciplineSummaryByDate() { sortDisciplineSummaryTable(6); }
+            function sortByClassReal() { sortTable(2); }
+            function sortByNameReal() { sortTable(1); }
+            function sortByDateReal() { sortTable(6); }
+            function sortByTimeReal() { sortTable(5); }
+            function sortSummaryByClassReal() { sortSummaryTable(2); }
+            function sortSummaryByNameReal() { sortSummaryTable(1); }
+            function sortSummaryByCountReal() { sortSummaryTable(4); }
+            function sortSummaryByDateReal() { sortSummaryTable(5); }
+            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTable(2); }
+            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTable(1); }
+            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTable(4); }
+            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTable(6); }
+
+            // Make sorting functions available globally
+            window.sortByClassReal = sortByClassReal;
+            window.sortByNameReal = sortByNameReal;
+            window.sortByDateReal = sortByDateReal;
+            window.sortByTimeReal = sortByTimeReal;
+            window.sortSummaryByClassReal = sortSummaryByClassReal;
+            window.sortSummaryByNameReal = sortSummaryByNameReal;
+            window.sortSummaryByCountReal = sortSummaryByCountReal;
+            window.sortSummaryByDateReal = sortSummaryByDateReal;
+            window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
+            window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
+            window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
+            window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
 
             // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
 

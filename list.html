@@ -839,7 +839,7 @@
                     <div class="filter-grid">
                         <div class="form-group">
                             <label for="discipline-summary-period">រយៈពេល</label>
-                            <select id="discipline-summary-period" class="form-control" onchange="updateDisciplineSummaryReport()">
+                            <select id="discipline-summary-period" class="form-control" onchange="handleDisciplineSummaryPeriodChange()">
                                 <option value="week">សប្តាហ៍</option>
                                 <option value="month">ខែ</option>
                                 <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
@@ -961,7 +961,7 @@
                     <div class="filter-grid">
                         <div class="form-group">
                             <label for="summary-period">រយៈពេល</label>
-                            <select id="summary-period" class="form-control" onchange="updateSummaryReport()">
+                            <select id="summary-period" class="form-control" onchange="handleSummaryPeriodChange()">
                                 <option value="week">សប្តាហ៍</option>
                                 <option value="month">ខែ</option>
                                 <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
@@ -1203,6 +1203,40 @@
                 window.selectReportTypeReal(type);
             } else {
                 alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // ============================================
+        // GLOBAL FUNCTIONS FOR HTML EVENT HANDLERS
+        // ============================================
+
+        // These wrapper functions prevent "undefined" errors
+        function applyFilters() {
+            console.log('applyFilters called');
+            if (window.appInitialized && window.applyFiltersReal) {
+                window.applyFiltersReal();
+            }
+        }
+
+        function updateSummaryReport() {
+            console.log('updateSummaryReport called');
+            if (window.appInitialized && window.updateSummaryReportReal) {
+                window.updateSummaryReportReal();
+            }
+        }
+
+        function exportSummaryToExcel() {
+            console.log('exportSummaryToExcel called');
+            if (window.appInitialized && window.exportSummaryToExcelReal) {
+                window.exportSummaryToExcelReal();
+            }
+        }
+
+        function handleDateTimeChange() {
+            console.log('handleDateTimeChange called');
+            // Call the actual function if it exists
+            if (window.appInitialized && window.handleDateFilterChange) {
+                window.handleDateFilterChange();
             }
         }
 
@@ -2462,8 +2496,12 @@
                 console.log(`✅ Selected report type: ${type} - ${reportTypes[type].title}`);
             }
 
-            // Make it available globally
+            // Make functions available globally
             window.selectReportTypeReal = selectReportTypeReal;
+            window.applyFiltersReal = applyFilters;
+            window.updateSummaryReportReal = updateSummaryReport;
+            window.exportSummaryToExcelReal = exportSummaryToExcel;
+            window.handleDateFilterChange = handleDateFilterChange;
 
             // ទាញយកទិន្នន័យរបាយការណ៍
             async function loadReportData() {

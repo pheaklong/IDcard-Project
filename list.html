@@ -2692,6 +2692,8 @@
                 });
             }
 
+           // ========== REGULAR REPORT FUNCTIONS ==========
+
             // បញ្ចូលទៅ Excel
             function exportToExcel() {
                 if (filteredReports.length === 0) {
@@ -2700,7 +2702,14 @@
                 }
                 
                 try {
-                    const excelData = filteredReports.map((report, index) => {
+                    // ប្តូរពី JSON ទៅជា Array 2D សម្រាប់ XLSX
+                    const excelData = [
+                        // បរិយាយជួរឈរ
+                        ['ល.រ', 'ឈ្មោះសិស្ស', 'លេខសម្គាល់', 'ថ្នាក់', 'ភេទ', 'បញ្ហា', 'ពេលវេលា', 'កាលបរិច្ឆេទ']
+                    ];
+                    
+                    // បន្ថែមទិន្នន័យ
+                    filteredReports.forEach((report, index) => {
                         const dateObj = new Date(report.date);
                         const displayDate = dateObj.toLocaleDateString('km-KH', {
                             year: 'numeric',
@@ -2715,19 +2724,35 @@
                             problemTypeText = reportTypes[currentReportType].problemType;
                         }
                         
-                        return {
-                            'ល.រ': index + 1,
-                            'ឈ្មោះសិស្ស': report.name,
-                            'លេខសម្គាល់': report.student_id,
-                            'ថ្នាក់': report.class,
-                            'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
-                            'បញ្ហា': problemTypeText,
-                            'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
-                            'កាលបរិច្ឆេទ': displayDate
-                        };
+                        excelData.push([
+                            index + 1,
+                            report.name,
+                            report.student_id,
+                            report.class,
+                            report.gender || 'មិនមានទិន្នន័យ',
+                            problemTypeText,
+                            report.scan_time || report.late_time || 'N/A',
+                            displayDate
+                        ]);
                     });
                     
-                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    // បង្កើត worksheet
+                    const ws = XLSX.utils.aoa_to_sheet(excelData);
+                    
+                    // កំណត់ទទឹងជួរឈរ
+                    const wscols = [
+                        {wch: 5},   // ល.រ
+                        {wch: 25},  // ឈ្មោះសិស្ស
+                        {wch: 15},  // លេខសម្គាល់
+                        {wch: 10},  // ថ្នាក់
+                        {wch: 8},   // ភេទ
+                        {wch: 30},  // បញ្ហា
+                        {wch: 15},  // ពេលវេលា
+                        {wch: 20}   // កាលបរិច្ឆេទ
+                    ];
+                    ws['!cols'] = wscols;
+                    
+                    // បង្កើត workbook
                     const wb = XLSX.utils.book_new();
                     
                     let sheetName = '';
@@ -2752,7 +2777,7 @@
                     alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
                 }
             }
-
+            
             // បោះពុម្ពរបាយការណ៍
             function printReport() {
                 if (filteredReports.length === 0) {
@@ -2760,7 +2785,7 @@
                     return;
                 }
                 
-                const printWindow = window.open('', '_blank');
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
                 const today = new Date().toLocaleDateString('km-KH');
                 const dateFilter = document.getElementById('date-filter').value;
                 let periodText = '';
@@ -2776,6 +2801,39 @@
                     default: periodText = 'ទាំងអស់';
                 }
                 
+                // បង្កើតតារាង HTML
+                let tableHTML = '';
+                filteredReports.forEach((report, index) => {
+                    const dateObj = new Date(report.date);
+                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let problemTypeText = '';
+                    if (currentReportType === 'discipline') {
+                        problemTypeText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                    } else {
+                        problemTypeText = reportTypes[currentReportType].problemType;
+                    }
+                    
+                    tableHTML += `
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${index + 1}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">
+                                ${report.name}<br>
+                                <small style="color: #666;">ID: ${report.student_id}</small>
+                            </td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${report.class}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${report.gender || 'មិនមានទិន្នន័យ'}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; max-width: 200px;">${problemTypeText}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${report.scan_time || report.late_time || 'N/A'}</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">${displayDate}</td>
+                        </tr>
+                    `;
+                });
+                
                 printWindow.document.write(`
                     <!DOCTYPE html>
                     <html lang="km">
@@ -2783,16 +2841,71 @@
                         <meta charset="UTF-8">
                         <title>របាយការណ៍${reportTypes[currentReportType].title}</title>
                         <style>
-                            body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
-                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
-                            .header h1 { color: #333; margin-bottom: 10px; }
-                            .header .date { color: #666; }
-                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-                            th { background-color: #f5f5f5; font-weight: bold; }
-                            .summary { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
-                            .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
-                            .discipline-description { max-width: 300px; word-wrap: break-word; }
+                            body { 
+                                font-family: 'Arial', sans-serif; 
+                                margin: 20px; 
+                                font-size: 12px;
+                            }
+                            .header { 
+                                text-align: center; 
+                                margin-bottom: 20px; 
+                                padding-bottom: 15px; 
+                                border-bottom: 2px solid #333; 
+                            }
+                            .header h1 { 
+                                color: #333; 
+                                margin-bottom: 10px;
+                                font-size: 18px;
+                            }
+                            .header .date { 
+                                color: #666; 
+                                margin: 5px 0;
+                                font-size: 14px;
+                            }
+                            table { 
+                                width: 100%; 
+                                border-collapse: collapse; 
+                                margin: 15px 0; 
+                                font-size: 11px;
+                            }
+                            th { 
+                                background-color: #f5f5f5; 
+                                font-weight: bold;
+                                border: 1px solid #ddd;
+                                padding: 8px;
+                                text-align: left;
+                            }
+                            .summary { 
+                                margin: 15px 0; 
+                                padding: 10px; 
+                                background: #f9f9f9; 
+                                border-radius: 5px;
+                                font-size: 12px;
+                            }
+                            .footer { 
+                                margin-top: 20px; 
+                                text-align: center; 
+                                color: #666; 
+                                font-size: 10px;
+                            }
+                            @media print {
+                                body { margin: 0; padding: 10px; }
+                                .no-print { display: none; }
+                                table { page-break-inside: auto; }
+                                tr { page-break-inside: avoid; }
+                            }
+                            button {
+                                padding: 8px 16px;
+                                background: #4CAF50;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                margin: 10px;
+                            }
+                            button:hover {
+                                background: #45a049;
+                            }
                         </style>
                     </head>
                     <body>
@@ -2800,8 +2913,14 @@
                             <h1>របាយការណ៍${reportTypes[currentReportType].title}</h1>
                             <div class="date">កាលបរិច្ឆេទ: ${today}</div>
                             <div class="date">រយៈពេល: ${periodText}</div>
-                            <div class="date">ចំនួនទិន្នន័យស្កេនសរុប: ${filteredReports.length}</div>
+                            <div class="date">ចំនួនទិន្នន័យសរុប: ${filteredReports.length}</div>
                         </div>
+                        
+                        <div class="no-print" style="text-align: center; margin: 10px 0;">
+                            <button onclick="window.print()">🖨️ បោះពុម្ព</button>
+                            <button onclick="window.close()">❌ បិទ</button>
+                        </div>
+                        
                         <table>
                             <thead>
                                 <tr>
@@ -2815,64 +2934,42 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                ${filteredReports.map((report, index) => {
-                                    const dateObj = new Date(report.date);
-                                    const displayDate = dateObj.toLocaleDateString('km-KH', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    });
-                                    
-                                    let problemTypeText = '';
-                                    if (currentReportType === 'discipline') {
-                                        problemTypeText = report.discipline_description || 'គ្មានការពិពណ៌នា';
-                                    } else {
-                                        problemTypeText = reportTypes[currentReportType].problemType;
-                                    }
-                                    
-                                    return `
-                                        <tr>
-                                            <td>${index + 1}</td>
-                                            <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
-                                            <td>${report.class}</td>
-                                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                                            <td class="discipline-description">${problemTypeText}</td>
-                                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
-                                            <td>${displayDate}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
+                                ${tableHTML}
                             </tbody>
                         </table>
+                        
+                        <div class="summary">
+                            <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                            - សរុបទិន្នន័យ: ${filteredReports.length} ជួរ<br>
+                            - ថ្ងៃចុងក្រោយ: ${today}<br>
+                            - ប្រភេទរបាយការណ៍: ${reportTypes[currentReportType].title}
+                        </div>
+                        
                         <div class="footer">
                             <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
                         </div>
+                        
+                        <script>
+                            // បោះពុម្ពដោយស្វ័យប្រវត្តិ
+                            setTimeout(() => {
+                                window.print();
+                            }, 500);
+                            
+                            // បិទបង្អួចបន្ទាប់ពីបោះពុម្ព
+                            window.onafterprint = function() {
+                                setTimeout(() => {
+                                    window.close();
+                                }, 500);
+                            };
+                        </script>
                     </body>
                     </html>
                 `);
                 
                 printWindow.document.close();
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
             }
-
-            // Initialize page
-            window.onload = function() {
-                console.log('📊 Report page loaded');
-                
-                // Add event listeners for period changes
-                document.getElementById('date-filter').addEventListener('change', handleDateFilterChange);
-                document.getElementById('discipline-summary-period').addEventListener('change', handleDisciplineSummaryPeriodChange);
-                document.getElementById('summary-period').addEventListener('change', handleSummaryPeriodChange);
-                
-                // Mark app as initialized
-                window.appInitialized = true;
-                
-                // Select default report type
-                selectReportTypeReal('discipline');
-            };
         }
     </script>
 </body>
 </html>
+

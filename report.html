@@ -1,444 +1,2210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="km">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Export Report - High School</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>របាយការណ៍ទិន្នន័យ</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --success-dark: #2fb5e0;
+            --warning: #f72585;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
         }
-        
-        .navbar {
-            background-color: var(--primary-color);
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .section-title {
-            position: relative;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-        }
-        
-        .section-title:after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 80px;
-            height: 3px;
-            background-color: var(--secondary-color);
-        }
-        
-        .table-responsive {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .table thead {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        footer {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 30px 0;
-            margin-top: 50px;
-        }
-        
-        .export-options {
-            background-color: #f8f9fa;
-            border-radius: 10px;
+
+        body {
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            margin-bottom: 30px;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 18px 25px;
+            background: var(--light);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content {
+            padding: 30px 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Report Type Selection */
+        .report-type-selection {
+            margin-bottom: 25px;
+        }
+
+        .report-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .report-type-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .report-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .report-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .report-type-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .report-type-desc {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Button Styles */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        .btn-success:hover:not(:disabled) {
+            background: var(--success-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
+        }
+
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        .btn-warning:hover:not(:disabled) {
+            background: #e51775;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
+        }
+
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
+        }
+        .btn-info:hover:not(:disabled) {
+            background: #65199e;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(114, 9, 183, 0.3);
+        }
+
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 65, 68, 0.3);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: auto;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--transition);
+            padding-right: 30px;
+        }
+
+        .data-table th:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            line-height: 1.4;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Sort Icon Styles */
+        .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sortable-header {
+            position: relative;
+            padding-right: 30px !important;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Summary Report Styles */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: var(--border-radius);
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Sort Button Styles */
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sort-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .sort-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* ==================== NEW STYLES FOR OPTIMIZATION ==================== */
+        
+        /* Pagination Styles */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
         }
         
-        .stats-card {
-            border-left: 4px solid var(--secondary-color);
+        .pagination-button {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        
+        .pagination-button:hover:not(.disabled):not(.active) {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+        }
+        
+        .pagination-button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .pagination-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .page-info {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin: 0 15px;
+        }
+        
+        .page-size-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        .page-size-selector select {
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+        
+        /* Performance Warning */
+        .performance-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #856404;
+        }
+        
+        .performance-warning-icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Data Summary */
+        .data-summary {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .data-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        
+        .data-summary-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .data-summary-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .data-summary-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Filter Badges */
+        .filter-badges {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-badge {
+            background: #e9ecef;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-badge .remove {
+            cursor: pointer;
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        /* Search Container */
+        .search-container {
+            position: relative;
+        }
+        
+        .search-results-count {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8rem;
+            color: var(--gray);
+            background: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        /* Skeleton Loading */
+        .skeleton-row {
+            height: 60px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .report-type-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 14px 18px;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sort-buttons {
+                gap: 8px;
+            }
+
+            .sort-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .data-summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .pagination-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .page-size-selector {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .performance-warning {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .back-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .sort-buttons {
+                flex-direction: column;
+            }
+
+            .sort-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .data-summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pagination-button {
+                padding: 6px 12px;
+                min-width: 32px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="index.html">
-                <i class="fas fa-graduation-cap me-2"></i>High School Portal
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="report.html"><i class="fas fa-file-excel me-1"></i> Reports</a>
-                    </li>
-                </ul>
-            </div>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 របាយការណ៍ទិន្នន័យ</h1>
+            <p>ព័ត៌មានលម្អិតអំពីទិន្នន័យសិស្សនិស្សិតទាំងអស់</p>
         </div>
-    </nav>
+        
+        <!-- Back Buttons -->
+        <div class="back-buttons">
+            <button class="btn btn-primary" onclick="goToHome()">
+                🏠 ត្រឡប់ទៅផ្ទះវិញ
+            </button>
+            <button class="btn btn-secondary" onclick="goToScanner()">
+                📱 ស្កេនសិស្ស
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Performance Warning -->
+            <div id="performance-warning" class="performance-warning" style="display: none;">
+                <div class="performance-warning-icon">⚠️</div>
+                <div>
+                    <strong>ការព្រមានប្រសិទ្ធភាព:</strong> ទិន្នន័យមានច្រើន។ សូមប្រើការតម្រៀប និងការស្វែងរកដើម្បីរកទិន្នន័យឱ្យបានលឿន។
+                </div>
+            </div>
 
-    <!-- Report Section -->
-    <section class="py-5">
-        <div class="container">
-            <h2 class="section-title">Export Student Data to Excel</h2>
-            <p class="mb-4">Generate and export student reports in Excel format</p>
-            
-            <div class="row mb-5">
-                <div class="col-md-8">
-                    <div class="export-options">
-                        <h4 class="mb-3">Export Options</h4>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="reportClass" class="form-label">Filter by Class</label>
-                                <select class="form-select" id="reportClass">
-                                    <option value="all">All Classes</option>
-                                    <option value="7">Grade 7</option>
-                                    <option value="8">Grade 8</option>
-                                    <option value="9">Grade 9</option>
-                                    <option value="10">Grade 10</option>
-                                    <option value="11">Grade 11</option>
-                                    <option value="12">Grade 12</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="reportYear" class="form-label">Study Year</label>
-                                <select class="form-select" id="reportYear">
-                                    <option value="all">All Years</option>
-                                    <option value="2023">2023</option>
-                                    <option value="2022">2022</option>
-                                    <option value="2021">2021</option>
-                                </select>
-                            </div>
+            <!-- Report Type Selection -->
+            <div class="report-type-selection">
+                <div class="card">
+                    <h2 class="card-title">📊 ជ្រើសរើសប្រភេទរបាយការណ៍</h2>
+                    <div class="report-type-grid">
+                        <div class="report-type-card" data-type="late" onclick="selectReportType('late')">
+                            <div class="report-type-icon">⏰</div>
+                            <div class="report-type-title">ទិន្នន័យយឺត</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន</div>
                         </div>
-                        <div class="mb-3">
-                            <label for="reportColumns" class="form-label">Include Columns</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="id" id="colId" checked>
-                                <label class="form-check-label" for="colId">Student ID</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="name" id="colName" checked>
-                                <label class="form-check-label" for="colName">Full Name</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="class" id="colClass" checked>
-                                <label class="form-check-label" for="colClass">Class</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="gender" id="colGender">
-                                <label class="form-check-label" for="colGender">Gender</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="dob" id="colDob">
-                                <label class="form-check-label" for="colDob">Date of Birth</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="phone" id="colPhone">
-                                <label class="form-check-label" for="colPhone">Phone</label>
-                            </div>
+                        <div class="report-type-card" data-type="discipline" onclick="selectReportType('discipline')">
+                            <div class="report-type-icon">⚠️</div>
+                            <div class="report-type-title">ទិន្នន័យវិន័យ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ</div>
                         </div>
-                        <button class="btn btn-success" id="generateReport">
-                            <i class="fas fa-file-excel me-2"></i>Generate Excel Report
-                        </button>
+                        <div class="report-type-card" data-type="helpful" onclick="selectReportType('helpful')">
+                            <div class="report-type-icon">🤝</div>
+                            <div class="report-type-title">ទិន្នន័យជំនួយ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ</div>
+                        </div>
+                        <div class="report-type-card" data-type="haircut" onclick="selectReportType('haircut')">
+                            <div class="report-type-icon">🧹</div>
+                            <div class="report-type-title">ទិន្នន័យសក់</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាសក់</div>
+                        </div>
+                        <div class="report-type-card" data-type="summary" onclick="selectReportType('summary')">
+                            <div class="report-type-icon">📈</div>
+                            <div class="report-type-title">សង្ខេបទិន្នន័យយឺត</div>
+                            <div class="report-type-desc">របាយការណ៍សង្ខេបទិន្នន័យសិស្សយឺតតាមសប្តាហ៍/ខែ</div>
+                        </div>
+                        <div class="report-type-card" data-type="discipline-summary" onclick="selectReportType('discipline-summary')">
+                            <div class="report-type-icon">📊</div>
+                            <div class="report-type-title">សង្ខេបទិន្នន័យវិន័យ</div>
+                            <div class="report-type-desc">របាយការណ៍សង្ខេបទិន្នន័យសិស្សវិន័យតាមសប្តាហ៍/ខែ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Report Type Display -->
+            <div id="current-report-type" class="card" style="display: none;">
+                <h2 class="card-title" id="current-report-title">របាយការណ៍ទិន្នន័យវិន័យ</h2>
+                <p id="current-report-description">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ</p>
+                
+                <!-- Data Summary -->
+                <div id="data-summary" class="data-summary" style="display: none;">
+                    <div class="data-summary-grid">
+                        <div class="data-summary-item">
+                            <div class="data-summary-value" id="total-records">0</div>
+                            <div class="data-summary-label">ទិន្នន័យសរុប</div>
+                        </div>
+                        <div class="data-summary-item">
+                            <div class="data-summary-value" id="filtered-records">0</div>
+                            <div class="data-summary-label">ទិន្នន័យបានស្វែងរក</div>
+                        </div>
+                        <div class="data-summary-item">
+                            <div class="data-summary-value" id="unique-students-count">0</div>
+                            <div class="data-summary-label">សិស្សពិសេស</div>
+                        </div>
+                        <div class="data-summary-item">
+                            <div class="data-summary-value" id="last-updated">ឥឡូវ</div>
+                            <div class="data-summary-label">ធ្វើបច្ចុប្បន្នភាពចុងក្រោយ</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="col-md-4">
-                    <div class="card stats-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Report Statistics</h5>
-                            <div class="mb-3">
-                                <h6>Total Students</h6>
-                                <h3 id="totalStudents">0</h3>
-                            </div>
-                            <div class="mb-3">
-                                <h6>By Class</h6>
-                                <div id="classStats">
-                                    <!-- Class statistics will be populated here -->
-                                </div>
-                            </div>
-                            <div>
-                                <h6>By Gender</h6>
-                                <div id="genderStats">
-                                    <!-- Gender statistics will be populated here -->
-                                </div>
-                            </div>
-                        </div>
+                <!-- Filter Badges -->
+                <div id="filter-badges" class="filter-badges" style="display: none;">
+                    <!-- Filter badges will be added here -->
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="exportCurrentPageToExcel()">
+                        📄 នាំចេញទំព័រនេះ
+                    </button>
+                    <button class="quick-action-btn" onclick="clearAllFilters()">
+                        🗑️ លុបការស្វែងរកទាំងអស់
+                    </button>
+                    <button class="quick-action-btn" onclick="loadMoreData()">
+                        ⬇️ ទាញយកទិន្នន័យបន្ថែម
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Section for Regular Reports -->
+            <div id="filter-section" class="filter-section" style="display: none;">
+                <h3 style="margin-bottom: 20px; color: var(--primary);">🔍 ស្វែងរកទិន្នន័យ</h3>
+                
+                <!-- Sort Buttons for Regular Reports -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                    <button class="sort-btn" onclick="sortByTime()">
+                        ⏰ តម្រៀបតាមពេលវេលា
+                    </button>
+                </div>
+                
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="date-filter">កាលបរិច្ឆេទ</label>
+                        <select id="date-filter" class="form-control" onchange="handleDateFilterChange()">
+                            <option value="today">ថ្ងៃនេះ</option>
+                            <option value="today-tomorrow">ថ្ងៃនេះ និងថ្ងៃស្អែក</option>
+                            <option value="yesterday">ម្សិលមិញ</option>
+                            <option value="week">សប្តាហ៍នេះ</option>
+                            <option value="month" selected>ខែនេះ</option>
+                            <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                            <option value="date-range">ចន្លោះកាលបរិច្ឆេទ</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-date-group" style="display: none;">
+                        <label for="custom-date">កាលបរិច្ឆេទជាក់លាក់</label>
+                        <input type="date" id="custom-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-start-group" style="display: none;">
+                        <label for="start-date">ចាប់ផ្ដើម</label>
+                        <input type="date" id="start-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-end-group" style="display: none;">
+                        <label for="end-date">បញ្ចប់</label>
+                        <input type="date" id="end-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="class-filter">ថ្នាក់</label>
+                        <select id="class-filter" class="form-control" onchange="applyFilters()">
+                            <option value="all">ទាំងអស់</option>
+                        </select>
+                    </div>
+                    <div class="form-group search-container">
+                        <label for="search-filter">ស្វែងរក</label>
+                        <input type="text" id="search-filter" class="form-control" placeholder="ឈ្មោះ ឬលេខសម្គាល់សិស្ស..." onkeyup="handleSearchInput()">
+                        <div id="search-results-count" class="search-results-count" style="display: none;">0 លទ្ធផល</div>
                     </div>
                 </div>
             </div>
-            
-            <h3 class="mb-3">Student Data Preview</h3>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="reportTable">
-                    <thead>
-                        <tr>
-                            <th>Student ID</th>
-                            <th>Name</th>
-                            <th>Class</th>
-                            <th>Gender</th>
-                            <th>Date of Birth</th>
-                            <th>Phone</th>
-                            <th>Address</th>
-                            <th>Study Year</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportTableBody">
-                        <!-- Report data will be populated here -->
-                    </tbody>
-                </table>
+
+            <!-- Stats Section -->
+            <div id="stats-section" class="stats-grid" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-scans">0</div>
+                    <div class="stat-label">ស្កេនសរុប</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="today-scans">0</div>
+                    <div class="stat-label">ស្កេនថ្ងៃនេះ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="unique-students">0</div>
+                    <div class="stat-label">សិស្សពិសេស</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="most-frequent">0</div>
+                    <div class="stat-label">ស្កេនញឹកញាប់ជាងគេ</div>
+                </div>
+            </div>
+
+            <!-- Data Table for Regular Reports -->
+            <div id="table-section" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="card-title" id="table-title">📊 ទិន្នន័យវិន័យ</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" onclick="exportToExcel()">
+                                📊 Export to Excel
+                            </button>
+                            <button class="btn btn-primary" onclick="printReport()">
+                                🖨️ Print
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" onclick="sortTable(0)">ល.រ</th>
+                                    <th class="sortable-header" onclick="sortTable(1)">ឈ្មោះសិស្ស</th>
+                                    <th class="sortable-header" onclick="sortTable(2)">ថ្នាក់</th>
+                                    <th class="sortable-header" onclick="sortTable(3)">ភេទ</th>
+                                    <th class="sortable-header" onclick="sortTable(4)">បញ្ហា</th>
+                                    <th class="sortable-header" onclick="sortTable(5)">ពេលវេលា</th>
+                                    <th class="sortable-header" onclick="sortTable(6)">កាលបរិច្ឆេទ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="table-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📄</div>
+                        <h3>មិនមានទិន្នន័យ</h3>
+                        <p>មិនមានទិន្នន័យស្កេនសិស្សវិន័យទេ</p>
+                    </div>
+                    <div id="table-loading" class="empty-state">
+                        <div class="loading"></div>
+                        <p>កំពុងទាញយកទិន្នន័យ...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination Container -->
+            <div id="pagination-container" class="pagination-container" style="display: none;"></div>
+
+            <!-- Summary Sections (Keep existing) -->
+            <div id="summary-section" class="card" style="display: none;">
+                <!-- Keep existing summary section content -->
             </div>
             
-            <div class="mt-4">
-                <a href="student-list.html" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Student List
-                </a>
+            <div id="discipline-summary-section" class="card" style="display: none;">
+                <!-- Keep existing discipline summary section content -->
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>High School Portal</h5>
-                    <p>Providing quality education since 1995.</p>
-                </div>
-                <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>Contact Info</h5>
-                    <p><i class="fas fa-map-marker-alt me-2"></i> 123 Education Street</p>
-                    <p><i class="fas fa-phone me-2"></i> (123) 456-7890</p>
-                    <p><i class="fas fa-envelope me-2"></i> info@highschool.edu</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="index.html" class="text-white">Home</a></li>
-                        <li><a href="student-list.html" class="text-white">Student List</a></li>
-                        <li><a href="id-card.html" class="text-white">ID Card</a></li>
-                        <li><a href="admin.html" class="text-white">Admin</a></li>
-                        <li><a href="report.html" class="text-white">Reports</a></li>
-                    </ul>
-                </div>
-            </div>
-            <hr class="my-4 bg-light">
-            <div class="text-center">
-                <p>&copy; 2023 High School Portal. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Sample student data
-        const students = JSON.parse(localStorage.getItem('students')) || [
-            {
-                id: "HS2023001",
-                name: "John Smith",
-                gender: "Male",
-                dob: "2007-05-15",
-                class: "10",
-                address: "123 Main Street, City, State 12345",
-                photo: "https://via.placeholder.com/150",
-                phone: "(123) 456-7890",
-                father: "Robert Smith",
-                mother: "Mary Smith",
-                studyYear: 2023
-            },
-            {
-                id: "HS2023002",
-                name: "Emily Johnson",
-                gender: "Female",
-                dob: "2007-08-22",
-                class: "10",
-                address: "456 Oak Avenue, City, State 12345",
-                photo: "https://via.placeholder.com/150",
-                phone: "(123) 456-7891",
-                father: "Michael Johnson",
-                mother: "Sarah Johnson",
-                studyYear: 2023
-            },
-            {
-                id: "HS2023003",
-                name: "David Williams",
-                gender: "Male",
-                dob: "2006-11-10",
-                class: "11",
-                address: "789 Pine Road, City, State 12345",
-                photo: "https://via.placeholder.com/150",
-                phone: "(123) 456-7892",
-                father: "James Williams",
-                mother: "Lisa Williams",
-                studyYear: 2023
-            },
-            {
-                id: "HS2023004",
-                name: "Sophia Brown",
-                gender: "Female",
-                dob: "2008-03-30",
-                class: "9",
-                address: "321 Elm Street, City, State 12345",
-                photo: "https://via.placeholder.com/150",
-                phone: "(123) 456-7893",
-                father: "William Brown",
-                mother: "Jennifer Brown",
-                studyYear: 2023
-            },
-            {
-                id: "HS2023005",
-                name: "Daniel Miller",
-                gender: "Male",
-                dob: "2005-12-05",
-                class: "12",
-                address: "654 Maple Lane, City, State 12345",
-                photo: "https://via.placeholder.com/150",
-                phone: "(123) 456-7894",
-                father: "Thomas Miller",
-                mother: "Karen Miller",
-                studyYear: 2023
-            }
-        ];
+        // ============================================
+        // CONFIGURATION AND INITIALIZATION
+        // ============================================
+        
+        // Configuration
+        const CONFIG = {
+            PAGE_SIZE: 50,
+            MAX_PAGES_TO_SHOW: 10,
+            DEBOUNCE_DELAY: 500,
+            MAX_RECORDS_FOR_CLIENT_SORT: 5000,
+            ENABLE_INCREMENTAL_LOADING: true,
+            INITIAL_LOAD_LIMIT: 1000,
+            BATCH_LOAD_SIZE: 500
+        };
 
-        // Populate report table and statistics
-        function populateReportTable(studentList = students) {
-            const tableBody = document.getElementById('reportTableBody');
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+
+        // Global state
+        let appState = {
+            currentReportType: null,
+            allReports: [],
+            filteredReports: [],
+            currentPage: 1,
+            totalPages: 1,
+            pageSize: CONFIG.PAGE_SIZE,
+            sortField: null,
+            sortDirection: 'asc',
+            searchTerm: '',
+            classFilter: 'all',
+            dateFilter: 'month',
+            isLoading: false,
+            totalRecords: 0,
+            loadedRecords: 0,
+            hasMoreData: true,
+            supabase: null
+        };
+
+        // Report type definitions
+        const reportTypes = {
+            late: {
+                title: "ទិន្នន័យយឺត",
+                description: "របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន",
+                table: "attendance_reports",
+                type: "late",
+                problemType: "ទិន្នន័យយឺត"
+            },
+            discipline: {
+                title: "ទិន្នន័យវិន័យ",
+                description: "របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ",
+                table: "discipline_reports",
+                type: "discipline",
+                problemType: "discipline_description"
+            },
+            helpful: {
+                title: "ទិន្នន័យជំនួយ",
+                description: "របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ",
+                table: "helpful_reports",
+                type: "helpful",
+                problemType: "ជំនួយ"
+            },
+            haircut: {
+                title: "ទិន្នន័យសក់",
+                description: "របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាសក់",
+                table: "haircut_reports",
+                type: "haircut",
+                problemType: "បញ្ហាសក់"
+            },
+            summary: {
+                title: "សង្ខេបទិន្នន័យយឺត",
+                description: "របាយការណ៍សង្ខេបទិន្នន័យសិស្សយឺតតាមសប្តាហ៍/ខែ",
+                table: "attendance_reports",
+                type: "summary"
+            },
+            'discipline-summary': {
+                title: "សង្ខេបទិន្នន័យវិន័យ",
+                description: "របាយការណ៍សង្ខេបទិន្នន័យសិស្សវិន័យតាមសប្តាហ៍/ខែ",
+                table: "discipline_reports",
+                type: "discipline-summary"
+            }
+        };
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString('km-KH');
+        }
+
+        function showLoading() {
+            document.getElementById('table-loading').style.display = 'block';
+            document.getElementById('table-empty').style.display = 'none';
+            document.getElementById('table-section').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('table-loading').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('table-section').style.display = 'none';
+            document.getElementById('table-empty').style.display = 'block';
+            document.getElementById('pagination-container').style.display = 'none';
+        }
+
+        function showPerformanceWarning() {
+            if (appState.totalRecords > 5000) {
+                document.getElementById('performance-warning').style.display = 'flex';
+            }
+        }
+
+        function updateDataSummary() {
+            const totalRecords = appState.totalRecords;
+            const filteredRecords = appState.filteredReports.length;
             
-            tableBody.innerHTML = '';
+            // Count unique students
+            const uniqueStudents = new Set(appState.allReports.map(r => r.student_id)).size;
             
-            studentList.forEach(student => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${student.id}</td>
-                    <td>${student.name}</td>
-                    <td>Grade ${student.class}</td>
-                    <td>${student.gender}</td>
-                    <td>${student.dob}</td>
-                    <td>${student.phone}</td>
-                    <td>${student.address}</td>
-                    <td>${student.studyYear}</td>
+            document.getElementById('total-records').textContent = formatNumber(totalRecords);
+            document.getElementById('filtered-records').textContent = formatNumber(filteredRecords);
+            document.getElementById('unique-students-count').textContent = formatNumber(uniqueStudents);
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('km-KH', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Update search results count
+            const searchResultsCount = document.getElementById('search-results-count');
+            if (appState.searchTerm && filteredRecords > 0) {
+                searchResultsCount.textContent = `${formatNumber(filteredRecords)} លទ្ធផល`;
+                searchResultsCount.style.display = 'block';
+            } else {
+                searchResultsCount.style.display = 'none';
+            }
+        }
+
+        function updateFilterBadges() {
+            const badgesContainer = document.getElementById('filter-badges');
+            if (!badgesContainer) return;
+            
+            const badges = [];
+            
+            if (appState.searchTerm) {
+                badges.push({
+                    text: `ស្វែងរក: "${appState.searchTerm}"`,
+                    type: 'search',
+                    value: appState.searchTerm
+                });
+            }
+            
+            if (appState.classFilter !== 'all') {
+                badges.push({
+                    text: `ថ្នាក់: ${appState.classFilter}`,
+                    type: 'class',
+                    value: appState.classFilter
+                });
+            }
+            
+            if (appState.dateFilter !== 'month') {
+                badges.push({
+                    text: `កាលបរិច្ឆេទ: ${appState.dateFilter}`,
+                    type: 'date',
+                    value: appState.dateFilter
+                });
+            }
+            
+            if (badges.length === 0) {
+                badgesContainer.style.display = 'none';
+                return;
+            }
+            
+            badgesContainer.style.display = 'flex';
+            badgesContainer.innerHTML = badges.map(badge => `
+                <div class="filter-badge">
+                    ${badge.text}
+                    <span class="remove" onclick="removeFilter('${badge.type}', '${badge.value}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // NAVIGATION FUNCTIONS
+        // ============================================
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        function goToScanner() {
+            window.location.href = 'scan.html';
+        }
+
+        // ============================================
+        // MAIN FUNCTIONS
+        // ============================================
+
+        // Report type selection
+        function selectReportType(type) {
+            if (window.appInitialized && window.selectReportTypeReal) {
+                window.selectReportTypeReal(type);
+            } else {
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function selectReportTypeReal(type) {
+            console.log(`Selecting report type: ${type}`);
+            
+            // Reset state
+            appState = {
+                ...appState,
+                currentReportType: type,
+                currentPage: 1,
+                sortField: null,
+                sortDirection: 'asc',
+                searchTerm: '',
+                classFilter: 'all',
+                dateFilter: 'month',
+                allReports: [],
+                filteredReports: [],
+                totalRecords: 0,
+                loadedRecords: 0,
+                hasMoreData: true
+            };
+            
+            // Update UI
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
+            
+            const reportType = reportTypes[type];
+            document.getElementById('current-report-title').textContent = `របាយការណ៍${reportType.title}`;
+            document.getElementById('current-report-description').textContent = reportType.description;
+            document.getElementById('table-title').textContent = `📊 ${reportType.title}`;
+            
+            document.getElementById('current-report-type').style.display = 'block';
+            document.getElementById('data-summary').style.display = 'block';
+            
+            // Show/hide sections
+            const isSummary = type === 'summary' || type === 'discipline-summary';
+            document.getElementById('filter-section').style.display = isSummary ? 'none' : 'block';
+            document.getElementById('summary-section').style.display = type === 'summary' ? 'block' : 'none';
+            document.getElementById('discipline-summary-section').style.display = type === 'discipline-summary' ? 'block' : 'none';
+            document.getElementById('performance-warning').style.display = 'none';
+            
+            // Clear search
+            document.getElementById('search-filter').value = '';
+            document.getElementById('search-results-count').style.display = 'none';
+            
+            // Load data
+            if (isSummary) {
+                // For summary reports, use existing logic
+                if (type === 'summary') {
+                    if (window.loadSummaryReport) window.loadSummaryReport();
+                } else {
+                    if (window.loadDisciplineSummaryReport) window.loadDisciplineSummaryReport();
+                }
+            } else {
+                loadReportData();
+            }
+        }
+
+        // Data loading
+        async function loadReportData() {
+            if (!appState.currentReportType || appState.currentReportType === 'summary' || appState.currentReportType === 'discipline-summary') {
+                return;
+            }
+            
+            showLoading();
+            appState.isLoading = true;
+            
+            try {
+                const tableName = reportTypes[appState.currentReportType].table;
+                console.log(`Loading data from ${tableName}...`);
+                
+                // Initial load
+                const { data, error, count } = await appState.supabase
+                    .from(tableName)
+                    .select('*', { count: 'exact' })
+                    .order('date', { ascending: false })
+                    .limit(CONFIG.INITIAL_LOAD_LIMIT);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                appState.allReports = data || [];
+                appState.totalRecords = count || data.length;
+                appState.loadedRecords = data.length;
+                appState.hasMoreData = data.length === CONFIG.INITIAL_LOAD_LIMIT;
+                
+                console.log(`Loaded ${appState.allReports.length} records (total: ${appState.totalRecords})`);
+                
+                // Update class filter options
+                updateClassFilter();
+                
+                // Apply filters
+                applyFiltersReal();
+                
+                // Show performance warning if needed
+                showPerformanceWarning();
+                
+            } catch (error) {
+                console.error('Error loading report data:', error);
+                // Fallback to localStorage
+                appState.allReports = JSON.parse(localStorage.getItem(`${appState.currentReportType}Reports`) || '[]');
+                appState.totalRecords = appState.allReports.length;
+                appState.loadedRecords = appState.allReports.length;
+                appState.hasMoreData = false;
+                applyFiltersReal();
+            } finally {
+                appState.isLoading = false;
+                hideLoading();
+            }
+        }
+
+        async function loadMoreData() {
+            if (appState.isLoading || !appState.hasMoreData || !appState.currentReportType) {
+                return;
+            }
+            
+            appState.isLoading = true;
+            showLoading();
+            
+            try {
+                const tableName = reportTypes[appState.currentReportType].table;
+                const { data, error } = await appState.supabase
+                    .from(tableName)
+                    .select('*')
+                    .order('date', { ascending: false })
+                    .range(appState.loadedRecords, appState.loadedRecords + CONFIG.BATCH_LOAD_SIZE - 1);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                if (data && data.length > 0) {
+                    appState.allReports = [...appState.allReports, ...data];
+                    appState.loadedRecords += data.length;
+                    appState.hasMoreData = data.length === CONFIG.BATCH_LOAD_SIZE;
+                    
+                    console.log(`Loaded additional ${data.length} records (total loaded: ${appState.loadedRecords})`);
+                    
+                    // Reapply filters with new data
+                    applyFiltersReal();
+                    
+                    // Show notification
+                    alert(`បានទាញយកទិន្នន័យបន្ថែម ${data.length} records`);
+                } else {
+                    appState.hasMoreData = false;
+                    alert('ទិន្នន័យទាំងអស់ត្រូវបានទាញយករួចរាល់។');
+                }
+                
+            } catch (error) {
+                console.error('Error loading more data:', error);
+                alert('មានបញ្ហាក្នុងការទាញយកទិន្នន័យបន្ថែម');
+            } finally {
+                appState.isLoading = false;
+                hideLoading();
+            }
+        }
+
+        // Filtering
+        function applyFilters() {
+            if (window.appInitialized && window.applyFiltersReal) {
+                window.applyFiltersReal();
+            }
+        }
+
+        function applyFiltersReal() {
+            if (!appState.currentReportType || appState.allReports.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            let filtered = [...appState.allReports];
+            
+            // Apply date filter
+            const dateFilterValue = document.getElementById('date-filter')?.value || 'month';
+            appState.dateFilter = dateFilterValue;
+            filtered = applyDateFilter(filtered, dateFilterValue);
+            
+            // Apply class filter
+            const classFilterValue = document.getElementById('class-filter')?.value || 'all';
+            appState.classFilter = classFilterValue;
+            if (classFilterValue !== 'all') {
+                filtered = filtered.filter(report => report.class === classFilterValue);
+            }
+            
+            // Apply search
+            const searchValue = document.getElementById('search-filter')?.value || '';
+            appState.searchTerm = searchValue.trim();
+            if (appState.searchTerm) {
+                const searchLower = appState.searchTerm.toLowerCase();
+                filtered = filtered.filter(report => 
+                    (report.name && report.name.toLowerCase().includes(searchLower)) ||
+                    (report.student_id && report.student_id.toLowerCase().includes(searchLower)) ||
+                    (report.discipline_description && report.discipline_description.toLowerCase().includes(searchLower))
+                );
+            }
+            
+            appState.filteredReports = filtered;
+            appState.totalPages = Math.max(1, Math.ceil(filtered.length / appState.pageSize));
+            
+            if (appState.currentPage > appState.totalPages) {
+                appState.currentPage = 1;
+            }
+            
+            updateDataSummary();
+            updateFilterBadges();
+            renderCurrentPage();
+            updatePagination();
+            updateStats();
+        }
+
+        function applyDateFilter(reports, filterType) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            switch(filterType) {
+                case 'today':
+                    const todayStr = today.toISOString().split('T')[0];
+                    return reports.filter(report => report.date === todayStr);
+                    
+                case 'today-tomorrow':
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const todayString = today.toISOString().split('T')[0];
+                    const tomorrowString = tomorrow.toISOString().split('T')[0];
+                    return reports.filter(report => 
+                        report.date === todayString || report.date === tomorrowString
+                    );
+                    
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayStr = yesterday.toISOString().split('T')[0];
+                    return reports.filter(report => report.date === yesterdayStr);
+                    
+                case 'week':
+                    const weekAgo = new Date(today);
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return reports.filter(report => {
+                        const reportDate = new Date(report.date);
+                        return reportDate >= weekAgo && reportDate <= today;
+                    });
+                    
+                case 'month':
+                    const monthAgo = new Date(today);
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    return reports.filter(report => {
+                        const reportDate = new Date(report.date);
+                        return reportDate >= monthAgo && reportDate <= today;
+                    });
+                    
+                case 'custom':
+                    const customDate = document.getElementById('custom-date')?.value;
+                    if (customDate) {
+                        return reports.filter(report => report.date === customDate);
+                    }
+                    return reports;
+                    
+                case 'date-range':
+                    const startDate = document.getElementById('start-date')?.value;
+                    const endDate = document.getElementById('end-date')?.value;
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        start.setHours(0, 0, 0, 0);
+                        end.setHours(23, 59, 59, 999);
+                        return reports.filter(report => {
+                            const reportDate = new Date(report.date);
+                            return reportDate >= start && reportDate <= end;
+                        });
+                    }
+                    return reports;
+                    
+                default:
+                    return reports;
+            }
+        }
+
+        function handleDateFilterChange() {
+            const dateFilter = document.getElementById('date-filter').value;
+            const customDateGroup = document.getElementById('custom-date-group');
+            const dateRangeStartGroup = document.getElementById('date-range-start-group');
+            const dateRangeEndGroup = document.getElementById('date-range-end-group');
+            
+            // Hide all date input groups first
+            customDateGroup.style.display = 'none';
+            dateRangeStartGroup.style.display = 'none';
+            dateRangeEndGroup.style.display = 'none';
+            
+            // Show the appropriate group
+            if (dateFilter === 'custom') {
+                customDateGroup.style.display = 'block';
+            } else if (dateFilter === 'date-range') {
+                dateRangeStartGroup.style.display = 'block';
+                dateRangeEndGroup.style.display = 'block';
+            }
+            
+            applyFiltersReal();
+        }
+
+        function handleSearchInput() {
+            const debouncedApplyFilters = debounce(() => applyFiltersReal(), CONFIG.DEBOUNCE_DELAY);
+            debouncedApplyFilters();
+        }
+
+        function removeFilter(type, value) {
+            switch(type) {
+                case 'search':
+                    document.getElementById('search-filter').value = '';
+                    appState.searchTerm = '';
+                    break;
+                case 'class':
+                    document.getElementById('class-filter').value = 'all';
+                    appState.classFilter = 'all';
+                    break;
+                case 'date':
+                    document.getElementById('date-filter').value = 'month';
+                    appState.dateFilter = 'month';
+                    break;
+            }
+            applyFiltersReal();
+        }
+
+        function clearAllFilters() {
+            document.getElementById('search-filter').value = '';
+            document.getElementById('class-filter').value = 'all';
+            document.getElementById('date-filter').value = 'month';
+            
+            appState.searchTerm = '';
+            appState.classFilter = 'all';
+            appState.dateFilter = 'month';
+            appState.currentPage = 1;
+            
+            applyFiltersReal();
+        }
+
+        // Pagination
+        function updatePagination() {
+            const container = document.getElementById('pagination-container');
+            if (!container) return;
+            
+            if (appState.totalPages <= 1 && appState.filteredReports.length <= appState.pageSize) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            
+            const currentPage = appState.currentPage;
+            const totalPages = appState.totalPages;
+            const maxPagesToShow = CONFIG.MAX_PAGES_TO_SHOW;
+            
+            let html = '';
+            
+            // Previous button
+            html += `<button class="pagination-button ${currentPage === 1 ? 'disabled' : ''}" 
+                     onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                     ← ក្រោយ</button>`;
+            
+            // Calculate page range
+            let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+            let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+            
+            if (endPage - startPage + 1 < maxPagesToShow) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+            }
+            
+            // First page
+            if (startPage > 1) {
+                html += `<button class="pagination-button" onclick="changePage(1)">1</button>`;
+                if (startPage > 2) {
+                    html += '<span style="padding: 0 5px;">...</span>';
+                }
+            }
+            
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-button ${i === currentPage ? 'active' : ''}" 
+                         onclick="changePage(${i})">${i}</button>`;
+            }
+            
+            // Last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += '<span style="padding: 0 5px;">...</span>';
+                }
+                html += `<button class="pagination-button" onclick="changePage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button class="pagination-button ${currentPage === totalPages ? 'disabled' : ''}" 
+                     onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                     បន្ទាប់ →</button>`;
+            
+            // Page info
+            const startItem = (currentPage - 1) * appState.pageSize + 1;
+            const endItem = Math.min(currentPage * appState.pageSize, appState.filteredReports.length);
+            
+            html += `
+                <div class="page-info">
+                    ទិន្នន័យ ${formatNumber(startItem)}-${formatNumber(endItem)} នៃ ${formatNumber(appState.filteredReports.length)}
+                </div>
+                <div class="page-size-selector">
+                    <span>បង្ហាញ:</span>
+                    <select onchange="changePageSize(this.value)" style="padding: 6px 10px; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="20" ${appState.pageSize === 20 ? 'selected' : ''}>20</option>
+                        <option value="50" ${appState.pageSize === 50 ? 'selected' : ''}>50</option>
+                        <option value="100" ${appState.pageSize === 100 ? 'selected' : ''}>100</option>
+                        <option value="200" ${appState.pageSize === 200 ? 'selected' : ''}>200</option>
+                    </select>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > appState.totalPages || page === appState.currentPage) return;
+            
+            appState.currentPage = page;
+            renderCurrentPage();
+            updatePagination();
+            
+            // Scroll to top of table
+            const tableSection = document.getElementById('table-section');
+            if (tableSection) {
+                tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function changePageSize(size) {
+            const newSize = parseInt(size);
+            if (newSize === appState.pageSize) return;
+            
+            appState.pageSize = newSize;
+            appState.currentPage = 1;
+            appState.totalPages = Math.ceil(appState.filteredReports.length / appState.pageSize);
+            
+            renderCurrentPage();
+            updatePagination();
+        }
+
+        // Rendering
+        function renderCurrentPage() {
+            const tableBody = document.getElementById('report-table-body');
+            if (!tableBody) return;
+            
+            if (appState.filteredReports.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            // Calculate pagination
+            const startIndex = (appState.currentPage - 1) * appState.pageSize;
+            const endIndex = Math.min(startIndex + appState.pageSize, appState.filteredReports.length);
+            const pageData = appState.filteredReports.slice(startIndex, endIndex);
+            
+            // Render table
+            let html = '';
+            pageData.forEach((report, index) => {
+                const actualIndex = startIndex + index;
+                const dateObj = new Date(report.date);
+                const displayDate = dateObj.toLocaleDateString('km-KH', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                // Get problem description
+                let problemText = '';
+                if (appState.currentReportType === 'discipline') {
+                    problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                } else {
+                    problemText = reportTypes[appState.currentReportType].problemType || 'N/A';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${actualIndex + 1}</td>
+                        <td>
+                            <div><strong>${report.name || 'N/A'}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">ID: ${report.student_id || 'N/A'}</div>
+                        </td>
+                        <td>${report.class || 'N/A'}</td>
+                        <td>${report.gender || 'មិនមាន'}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${problemText}</td>
+                        <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                        <td>${displayDate}</td>
+                    </tr>
                 `;
-                tableBody.appendChild(row);
             });
             
-            updateStatistics(studentList);
+            tableBody.innerHTML = html;
+            document.getElementById('table-section').style.display = 'block';
+            document.getElementById('table-empty').style.display = 'none';
         }
 
-        // Update statistics
-        function updateStatistics(studentList) {
-            document.getElementById('totalStudents').textContent = studentList.length;
-            
-            // Class statistics
-            const classStats = {};
-            studentList.forEach(student => {
-                if (!classStats[student.class]) {
-                    classStats[student.class] = 0;
-                }
-                classStats[student.class]++;
-            });
-            
-            let classStatsHTML = '';
-            for (const [className, count] of Object.entries(classStats)) {
-                classStatsHTML += `<div>Grade ${className}: ${count} students</div>`;
+        // Sorting
+        function sortTable(column) {
+            if (window.appInitialized && window.sortTableReal) {
+                window.sortTableReal(column);
             }
-            document.getElementById('classStats').innerHTML = classStatsHTML;
-            
-            // Gender statistics
-            const genderStats = {};
-            studentList.forEach(student => {
-                if (!genderStats[student.gender]) {
-                    genderStats[student.gender] = 0;
-                }
-                genderStats[student.gender]++;
-            });
-            
-            let genderStatsHTML = '';
-            for (const [gender, count] of Object.entries(genderStats)) {
-                genderStatsHTML += `<div>${gender}: ${count} students</div>`;
-            }
-            document.getElementById('genderStats').innerHTML = genderStatsHTML;
         }
 
-        // Generate Excel Report
-        document.getElementById('generateReport').addEventListener('click', function() {
-            // Get filter values
-            const selectedClass = document.getElementById('reportClass').value;
-            const selectedYear = document.getElementById('reportYear').value;
-            
-            // Filter students
-            let filteredStudents = students;
-            
-            if (selectedClass !== 'all') {
-                filteredStudents = filteredStudents.filter(student => student.class === selectedClass);
+        function sortTableReal(column) {
+            if (appState.filteredReports.length > CONFIG.MAX_RECORDS_FOR_CLIENT_SORT) {
+                alert('ទិន្នន័យមានច្រើនពេកសម្រាប់តម្រៀបនៅក្នុងកុំព្យូទ័រ។ សូមប្រើការស្វែងរកដើម្បីកាត់បន្ថយទិន្នន័យ។');
+                return;
             }
             
-            if (selectedYear !== 'all') {
-                filteredStudents = filteredStudents.filter(student => student.studyYear.toString() === selectedYear);
+            // Determine sort direction
+            if (appState.sortField === column) {
+                appState.sortDirection = appState.sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                appState.sortField = column;
+                appState.sortDirection = 'asc';
             }
             
-            // Get selected columns
-            const selectedColumns = [];
-            if (document.getElementById('colId').checked) selectedColumns.push('id');
-            if (document.getElementById('colName').checked) selectedColumns.push('name');
-            if (document.getElementById('colClass').checked) selectedColumns.push('class');
-            if (document.getElementById('colGender').checked) selectedColumns.push('gender');
-            if (document.getElementById('colDob').checked) selectedColumns.push('dob');
-            if (document.getElementById('colPhone').checked) selectedColumns.push('phone');
-            
-            // Prepare data for Excel
-            const excelData = filteredStudents.map(student => {
-                const row = {};
-                if (selectedColumns.includes('id')) row['Student ID'] = student.id;
-                if (selectedColumns.includes('name')) row['Full Name'] = student.name;
-                if (selectedColumns.includes('class')) row['Class'] = `Grade ${student.class}`;
-                if (selectedColumns.includes('gender')) row['Gender'] = student.gender;
-                if (selectedColumns.includes('dob')) row['Date of Birth'] = student.dob;
-                if (selectedColumns.includes('phone')) row['Phone'] = student.phone;
-                return row;
+            // Sort the filtered reports
+            appState.filteredReports.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(column) {
+                    case 0: // Index
+                        return appState.sortDirection === 'asc' ? 1 : -1;
+                    case 1: // Name
+                        aValue = a.name || '';
+                        bValue = b.name || '';
+                        break;
+                    case 2: // Class
+                        aValue = a.class || '';
+                        bValue = b.class || '';
+                        break;
+                    case 6: // Date
+                        aValue = new Date(a.date || 0);
+                        bValue = new Date(b.date || 0);
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (appState.sortDirection === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
             });
             
-            // Create worksheet
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            
-            // Create workbook
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-            
-            // Generate filename
-            const timestamp = new Date().toISOString().slice(0, 10);
-            let filename = `students_report_${timestamp}`;
-            if (selectedClass !== 'all') filename += `_grade${selectedClass}`;
-            if (selectedYear !== 'all') filename += `_${selectedYear}`;
-            filename += '.xlsx';
-            
-            // Export to Excel
-            XLSX.writeFile(workbook, filename);
-            
-            // Update the preview table
-            populateReportTable(filteredStudents);
-        });
+            // Reset to first page after sorting
+            appState.currentPage = 1;
+            renderCurrentPage();
+            updatePagination();
+            updateSortIcons('report-table', column, appState.sortDirection);
+        }
 
-        // Initialize the page
+        function updateSortIcons(tableId, column, direction) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const headers = table.querySelectorAll('th');
+            headers.forEach((header, index) => {
+                // Remove existing sort icons
+                const existingIcons = header.querySelectorAll('.sort-icon');
+                existingIcons.forEach(icon => icon.remove());
+                
+                if (index === column) {
+                    const sortIcon = document.createElement('span');
+                    sortIcon.className = 'sort-icon';
+                    sortIcon.textContent = direction === 'asc' ? '▴' : '▾';
+                    header.appendChild(sortIcon);
+                }
+            });
+        }
+
+        // Button sorting functions
+        function sortByClass() { sortTableReal(2); }
+        function sortByName() { sortTableReal(1); }
+        function sortByDate() { sortTableReal(6); }
+        function sortByTime() { sortTableReal(5); }
+
+        // Export functions
+        function exportToExcel() {
+            if (window.appInitialized && window.exportToExcelReal) {
+                window.exportToExcelReal();
+            }
+        }
+
+        function exportToExcelReal() {
+            if (appState.filteredReports.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                return;
+            }
+            
+            try {
+                const excelData = appState.filteredReports.map((report, index) => {
+                    const dateObj = new Date(report.date);
+                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let problemText = '';
+                    if (appState.currentReportType === 'discipline') {
+                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                    } else {
+                        problemText = reportTypes[appState.currentReportType].problemType || 'N/A';
+                    }
+                    
+                    return {
+                        'ល.រ': index + 1,
+                        'ឈ្មោះសិស្ស': report.name || 'N/A',
+                        'លេខសម្គាល់': report.student_id || 'N/A',
+                        'ថ្នាក់': report.class || 'N/A',
+                        'ភេទ': report.gender || 'មិនមាន',
+                        'បញ្ហា': problemText,
+                        'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
+                        'កាលបរិច្ឆេទ': displayDate
+                    };
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                
+                const sheetName = reportTypes[appState.currentReportType]?.title || 'ទិន្នន័យ';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `report_${appState.currentReportType}_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported ${appState.filteredReports.length} records to Excel`);
+                
+            } catch (error) {
+                console.error('❌ Error exporting to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            }
+        }
+
+        function exportCurrentPageToExcel() {
+            if (appState.filteredReports.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                return;
+            }
+            
+            // Calculate current page data
+            const startIndex = (appState.currentPage - 1) * appState.pageSize;
+            const endIndex = Math.min(startIndex + appState.pageSize, appState.filteredReports.length);
+            const pageData = appState.filteredReports.slice(startIndex, endIndex);
+            
+            try {
+                const excelData = pageData.map((report, index) => {
+                    const actualIndex = startIndex + index;
+                    const dateObj = new Date(report.date);
+                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let problemText = '';
+                    if (appState.currentReportType === 'discipline') {
+                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                    } else {
+                        problemText = reportTypes[appState.currentReportType].problemType || 'N/A';
+                    }
+                    
+                    return {
+                        'ល.រ': actualIndex + 1,
+                        'ឈ្មោះសិស្ស': report.name || 'N/A',
+                        'លេខសម្គាល់': report.student_id || 'N/A',
+                        'ថ្នាក់': report.class || 'N/A',
+                        'ភេទ': report.gender || 'មិនមាន',
+                        'បញ្ហា': problemText,
+                        'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
+                        'កាលបរិច្ឆេទ': displayDate
+                    };
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                
+                const sheetName = `ទំព័រ ${appState.currentPage} - ${reportTypes[appState.currentReportType]?.title || 'ទិន្នន័យ'}`;
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `report_page_${appState.currentPage}_${appState.currentReportType}_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported page ${appState.currentPage} with ${pageData.length} records to Excel`);
+                
+            } catch (error) {
+                console.error('❌ Error exporting page to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទំព័រ: ' + error.message);
+            }
+        }
+
+        function printReport() {
+            if (window.appInitialized && window.printReportReal) {
+                window.printReportReal();
+            }
+        }
+
+        function printReportReal() {
+            if (appState.filteredReports.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            const today = new Date().toLocaleDateString('km-KH');
+            const reportTitle = reportTypes[appState.currentReportType]?.title || 'ទិន្នន័យ';
+            
+            // Get current page data or all filtered data for printing
+            const dataToPrint = appState.filteredReports.length > 100 ? 
+                appState.filteredReports.slice(0, 100) : // Limit to 100 records for printing
+                appState.filteredReports;
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="km">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>របាយការណ៍${reportTitle}</title>
+                    <style>
+                        body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .header h1 { color: #333; margin-bottom: 10px; }
+                        .header .date { color: #666; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                        th { background-color: #f5f5f5; font-weight: bold; }
+                        .summary { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>របាយការណ៍${reportTitle}</h1>
+                        <div class="date">កាលបរិច្ឆេទបោះពុម្ព: ${today}</div>
+                        <div class="date">ចំនួនទិន្នន័យ: ${dataToPrint.length}</div>
+                        <div class="date">ទំព័រ: ${appState.currentPage}/${appState.totalPages}</div>
+                    </div>
+                    <div class="summary">
+                        <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                        - ទិន្នន័យសរុប: ${formatNumber(appState.totalRecords)}<br>
+                        - ទិន្នន័យបានស្វែងរក: ${formatNumber(appState.filteredReports.length)}<br>
+                        - សិស្សពិសេស: ${formatNumber(new Set(appState.allReports.map(r => r.student_id)).size)}
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ល.រ</th>
+                                <th>ឈ្មោះសិស្ស</th>
+                                <th>ថ្នាក់</th>
+                                <th>ភេទ</th>
+                                <th>បញ្ហា</th>
+                                <th>ពេលវេលា</th>
+                                <th>កាលបរិច្ឆេទ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dataToPrint.map((report, index) => {
+                                const dateObj = new Date(report.date);
+                                const displayDate = dateObj.toLocaleDateString('km-KH', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                });
+                                
+                                let problemText = '';
+                                if (appState.currentReportType === 'discipline') {
+                                    problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                                } else {
+                                    problemText = reportTypes[appState.currentReportType].problemType || 'N/A';
+                                }
+                                
+                                return `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${report.name || 'N/A'}<br><small>ID: ${report.student_id || 'N/A'}</small></td>
+                                        <td>${report.class || 'N/A'}</td>
+                                        <td>${report.gender || 'មិនមាន'}</td>
+                                        <td>${problemText}</td>
+                                        <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                                        <td>${displayDate}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    ${dataToPrint.length < appState.filteredReports.length ? 
+                        `<div class="footer"><em>ចំណាំ: បានបង្ហាញតែ ${dataToPrint.length} នៃទិន្នន័យសរុប ${formatNumber(appState.filteredReports.length)}</em></div>` : ''}
+                    <div class="footer">
+                        <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    </div>
+                    <div class="no-print" style="margin-top: 20px; text-align: center;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #4361ee; color: white; border: none; border-radius: 4px; cursor: pointer;">🖨️ បោះពុម្ព</button>
+                        <button onclick="window.close()" style="padding: 10px 20px; background: #f94144; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">✕ បិទ</button>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        }
+
+        // Helper functions
+        function updateClassFilter() {
+            const classFilter = document.getElementById('class-filter');
+            if (!classFilter) return;
+            
+            const classes = [...new Set(appState.allReports.map(report => report.class).filter(Boolean))].sort();
+            
+            classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
+            
+            classes.forEach(className => {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                classFilter.appendChild(option);
+            });
+            
+            // Restore previous selection
+            if (appState.classFilter && appState.classFilter !== 'all') {
+                classFilter.value = appState.classFilter;
+            }
+        }
+
+        function updateStats() {
+            const totalScans = appState.totalRecords;
+            
+            // Count today's scans
+            const today = new Date().toISOString().split('T')[0];
+            const todayScans = appState.allReports.filter(report => report.date === today).length;
+            
+            // Count unique students
+            const uniqueStudents = new Set(appState.allReports.map(report => report.student_id)).size;
+            
+            // Find most frequent student
+            const studentCounts = {};
+            appState.allReports.forEach(report => {
+                studentCounts[report.student_id] = (studentCounts[report.student_id] || 0) + 1;
+            });
+            
+            const mostFrequent = Math.max(...Object.values(studentCounts), 0);
+            
+            document.getElementById('total-scans').textContent = formatNumber(totalScans);
+            document.getElementById('today-scans').textContent = formatNumber(todayScans);
+            document.getElementById('unique-students').textContent = formatNumber(uniqueStudents);
+            document.getElementById('most-frequent').textContent = formatNumber(mostFrequent);
+            
+            document.getElementById('stats-section').style.display = 'grid';
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        async function initializeApp() {
+            console.log('🔄 Initializing application...');
+            
+            try {
+                // Create Supabase client
+                appState.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase client created successfully');
+                
+                // Initialize app
+                window.appInitialized = true;
+                
+                // Make functions available globally
+                window.selectReportTypeReal = selectReportTypeReal;
+                window.applyFiltersReal = applyFiltersReal;
+                window.sortTableReal = sortTableReal;
+                window.exportToExcelReal = exportToExcelReal;
+                window.printReportReal = printReportReal;
+                window.loadMoreData = loadMoreData;
+                
+                // Set default values
+                appState.pageSize = CONFIG.PAGE_SIZE;
+                
+                // Select default report type
+                setTimeout(() => selectReportTypeReal('discipline'), 100);
+                
+                console.log('✅ Application initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing application:', error);
+                alert('មានបញ្ហាក្នុងការចាប់ផ្ដើមកម្មវិធី។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត។');
+            }
+        }
+
+        // Start initialization when Supabase loads
+        if (typeof window.supabase === 'undefined') {
+            console.warn('⚠️ Supabase library not loaded yet, waiting...');
+            
+            const waitForSupabase = setInterval(() => {
+                if (typeof window.supabase !== 'undefined') {
+                    console.log('✅ Supabase library loaded');
+                    clearInterval(waitForSupabase);
+                    initializeApp();
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                clearInterval(waitForSupabase);
+                if (typeof window.supabase === 'undefined') {
+                    console.error('❌ Supabase library failed to load');
+                    alert('មិនអាចទាញយក Supabase library បានទេ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
+                }
+            }, 5000);
+        } else {
+            console.log('✅ Supabase library already loaded');
+            initializeApp();
+        }
+
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            populateReportTable();
+            console.log('📊 Report page loaded');
         });
     </script>
 </body>

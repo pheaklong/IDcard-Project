@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ការកំណត់ការស្កេន - ជ្រើសរើសប្រភេទសិស្ស</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="https://unpkg.com/jsQR@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .back-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 15px 25px;
+            background: var(--light);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content {
+            padding: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .scan-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .scan-type-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scan-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .scan-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .scan-type-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .scan-type-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .scan-type-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Sub-type Modal Styles */
+        .subtype-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .subtype-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .subtype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .subtype-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .subtype-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+            border-color: var(--warning);
+        }
+
+        .subtype-card.selected {
+            border-color: var(--warning);
+            background: rgba(247, 37, 133, 0.05);
+        }
+
+        .subtype-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .subtype-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        /* Other Description Input */
+        .other-description-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .other-description-container textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        #scanner-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .scanner-frame {
+            position: relative;
+            display: inline-block;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background: #000;
+        }
+
+        .scanner-line {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            top: 50%;
+            animation: scanLine 2s infinite ease-in-out;
+        }
+
+        @keyframes scanLine {
+            0%, 100% { top: 10%; }
+            50% { top: 90%; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
+        }
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+
+        .message {
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+        }
+
+        .message-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .message-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .message-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        #camera-permission {
+            text-align: center;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 20px 0;
+        }
+
+        .permission-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .current-scan-type {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .scan-count {
+            background: var(--light);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            display: inline-block;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .time-remaining {
+            background: var(--warning);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .scan-type-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .subtype-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🔍 ការកំណត់ការស្កេន</h1>
+            <p>ជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន</p>
+        </div>
+        
+        <div class="back-buttons">
+            <button class="btn btn-primary" onclick="goToHome()">🏠 ត្រឡប់ទៅទំព័រដើម</button>
+            <button class="btn btn-primary" onclick="goBack()">↩️ ត្រឡប់ក្រោយ</button>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h2>📋 ជ្រើសរើសប្រភេទសិស្ស</h2>
+                <div class="scan-type-grid">
+                    <div class="scan-type-card" data-type="late" onclick="selectScanType('late')">
+                        <div class="scan-type-icon">⏰</div>
+                        <div class="scan-type-title">សិស្សមកយឺត</div>
+                        <div class="scan-type-desc">សិស្សដែលមកយឺត មិនគោរពទង់ជាតិ</div>
+                    </div>
+                    <div class="scan-type-card" data-type="discipline" onclick="openDisciplineSubtypes()">
+                        <div class="scan-type-icon">⚠️</div>
+                        <div class="scan-type-title">មិនគោរពវិន័យ</div>
+                        <div class="scan-type-desc">សិស្សដែលមិនគោរពវិន័យសាលា</div>
+                    </div>
+                    <div class="scan-type-card" data-type="helpful" onclick="selectScanType('helpful')">
+                        <div class="scan-type-icon">🤝</div>
+                        <div class="scan-type-title">ជួយការងារ</div>
+                        <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
+                    </div>
+                    <!-- បន្ថែមកាតថ្មីសម្រាប់សិស្សមកគោរពទង់ជាតិ -->
+                    <div class="scan-type-card" data-type="flag" onclick="selectScanType('flag')">
+                        <div class="scan-type-icon">🇰🇭</div>
+                        <div class="scan-type-title">មកគោរពទង់ជាតិ</div>
+                        <div class="scan-type-desc">សិស្សដែលមកគោរពទង់ជាតិ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Discipline Subtypes Modal -->
+            <div id="disciplineSubtypesModal" class="subtype-modal">
+                <div class="subtype-content">
+                    <h3>⚠️ ជ្រើសរើសប្រភេទមិនគោរពវិន័យ</h3>
+                    <p>សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យដែលសិស្សបានប្រព្រឹត្ត</p>
+                    
+                    <div class="subtype-grid">
+                        <div class="subtype-card" data-subtype="shoes" onclick="selectDisciplineSubtype('shoes')">
+                            <div class="subtype-icon">👞</div>
+                            <div class="subtype-title">ស្បែកជើង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="uniform" onclick="selectDisciplineSubtype('uniform')">
+                            <div class="subtype-icon">👔</div>
+                            <div class="subtype-title">មិនទនុយ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="canteen" onclick="selectDisciplineSubtype('canteen')">
+                            <div class="subtype-icon">🍽️</div>
+                            <div class="subtype-title">នៅរោងបាយមិនចូលថ្នាក់</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fence" onclick="selectDisciplineSubtype('fence')">
+                            <div class="subtype-icon">🚧</div>
+                            <div class="subtype-title">ផ្លោះរបង</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="fight" onclick="selectDisciplineSubtype('fight')">
+                            <div class="subtype-icon">👊</div>
+                            <div class="subtype-title">វ៉ៃគ្នា</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="litter" onclick="selectDisciplineSubtype('litter')">
+                            <div class="subtype-icon">🗑️</div>
+                            <div class="subtype-title">ចោលសំរាម</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="phone" onclick="selectDisciplineSubtype('phone')">
+                            <div class="subtype-icon">📱</div>
+                            <div class="subtype-title">លេងទូរស័ព្ទ</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="cuthuir2" onclick="selectDisciplineSubtype('cuthuir2')">
+                            <div class="subtype-icon">💇</div>
+                            <div class="subtype-title">កាត់សក់</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="escape" onclick="selectDisciplineSubtype('escape')">
+                            <div class="subtype-icon">🏃</div>
+                            <div class="subtype-title">គេចម៉ោងរៀន</div>
+                        </div>
+                        <div class="subtype-card" data-subtype="other" onclick="selectDisciplineSubtype('other')">
+                            <div class="subtype-icon">📝</div>
+                            <div class="subtype-title">ផ្សេងៗ</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Other Description Input -->
+                    <div id="otherDescriptionContainer" class="other-description-container">
+                        <label for="otherDescription">សរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ:</label>
+                        <textarea id="otherDescription" placeholder="សរសេរបញ្ជាក់នៅទីនេះ..."></textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button class="btn btn-warning" onclick="confirmDisciplineSubtype()" style="flex: 1;">
+                            ✅ បញ្ជាក់
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeDisciplineSubtypes()" style="flex: 1;">
+                            ❌ បោះបង់
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="current-scan-type" class="current-scan-type" style="display: none;">
+                <h3 id="current-scan-title">កំពុងស្កេន</h3>
+                <p id="current-scan-description">ស្កេនសិស្ស</p>
+                <div id="time-limit-info" class="time-remaining" style="display: none;">
+                    សិស្សអាចស្កេនម្តងទៀតបន្ទាប់ពី ១០ នាទី
+                </div>
+            </div>
+
+            <div id="camera-permission">
+                <h3>ការអនុញ្ញាតប្រើកាមេរ៉ា</h3>
+                <p>ត្រូវការអនុញ្ញាតប្រើកាមេរ៉ាដើម្បីស្កេន QR Code</p>
+                <button class="permission-btn" onclick="requestCameraPermission()">អនុញ្ញាតកាមេរ៉ា</button>
+            </div>
+            
+            <div id="scanner-container" style="display: none;">
+                <div class="scanner-frame">
+                    <video id="camera" playsinline></video>
+                    <div class="scanner-line"></div>
+                </div>
+                <p>យកកាមេរ៉ាចង្អុលទៅរក QR code នៅលើកាតសិស្ស</p>
+                
+                <div id="scan-count" class="scan-count" style="display: none;">
+                    ស្កេនរួចរាល់: <span id="scanned-count">0</span> នាក់
+                </div>
+            </div>
+
+            <div id="result"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="today-scans">0</div>
+                    <div class="stat-label">ស្កេនថ្ងៃនេះ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-students">0</div>
+                    <div class="stat-label">សិស្សសរុប</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="selected-type-count">0</div>
+                    <div class="stat-label" id="selected-type-label">ប្រភេទដែលជ្រើស</div>
+                </div>
+            </div>
+
+            <div class="button-grid">
+                <button id="start-btn" class="btn btn-success" onclick="startCamera()" disabled>▶️ ចាប់ផ្ដើមស្កេន</button>
+                <button class="btn btn-primary" onclick="viewReports()">📊 មើលរបាយការណ៍</button>
+                <button id="stop-btn" class="btn btn-warning" onclick="stopCamera()" disabled>⏹️ បញ្ឈប់កាមេរ៉ា</button>
+                <button class="btn btn-info" onclick="openManualEntryModal()">📝 កត់ត្រាតាមអត្តលេខ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div id="manualEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1001;">
+        <div style="background: white; padding: 20px; border-radius: var(--border-radius); width: 90%; max-width: 500px;">
+            <h3>កត់ត្រាសិស្សតាមអត្តលេខ</h3>
+            <input type="text" id="studentSearch" placeholder="ស្វែងរកសិស្ស..." style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+            <div id="studentList" style="max-height: 300px; overflow-y: auto;"></div>
+            <button class="btn btn-primary" onclick="closeManualEntryModal()" style="margin-top: 10px;">បិទ</button>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+        
+        // DOM Elements
+        const video = document.getElementById('camera');
+        const resultDiv = document.getElementById('result');
+        const scannerContainer = document.getElementById('scanner-container');
+        const cameraPermissionDiv = document.getElementById('camera-permission');
+        const scanCountDiv = document.getElementById('scan-count');
+        const scannedCountSpan = document.getElementById('scanned-count');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const todayScansElement = document.getElementById('today-scans');
+        const totalStudentsElement = document.getElementById('total-students');
+        const selectedTypeCountElement = document.getElementById('selected-type-count');
+        const selectedTypeLabelElement = document.getElementById('selected-type-label');
+        const currentScanTypeDiv = document.getElementById('current-scan-type');
+        const currentScanTitle = document.getElementById('current-scan-title');
+        const currentScanDescription = document.getElementById('current-scan-description');
+        const timeLimitInfo = document.getElementById('time-limit-info');
+        const manualEntryModal = document.getElementById('manualEntryModal');
+        const studentList = document.getElementById('studentList');
+        const studentSearch = document.getElementById('studentSearch');
+        const disciplineSubtypesModal = document.getElementById('disciplineSubtypesModal');
+        const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
+        const otherDescription = document.getElementById('otherDescription');
+
+        // Global Variables
+        let supabaseClient = null;
+        let stream = null;
+        let isScanning = false;
+        let selectedScanType = null;
+        let selectedDisciplineSubtype = null;
+        let students = [];
+        let scanAnimationFrame = null;
+        const TIME_LIMIT_MINUTES = 10;
+        const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
+
+        // Scan Types Configuration - បន្ថែមប្រភេទ flag
+        const scanTypes = {
+            late: {
+                title: "សិស្សមកយឺត",
+                description: "ស្កេនសិស្សដែលមកយឺត មិនគោរពទង់ជាតិ",
+                table: "attendance_reports"
+            },
+            discipline: {
+                title: "សិស្សមិនគោរពវិន័យ",
+                description: "ស្កេនសិស្សដែលមិនគោរពវិន័យសាលា",
+                table: "discipline_reports"
+            },
+            helpful: {
+                title: "សិស្សជួយការងារ",
+                description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
+                table: "helpful_reports"
+            },
+            flag: {
+                title: "មកគោរពទង់ជាតិ",
+                description: "ស្កេនសិស្សដែលមកគោរពទង់ជាតិ",
+                table: "flag_ceremony_reports"
+            }
+        };
+
+        // Discipline Subtypes Configuration
+        const disciplineSubtypes = {
+            shoes: { title: "ស្បែកជើង", icon: "👞" },
+            uniform: { title: "មិនទនុយ", icon: "👔" },
+            canteen: { title: "នៅរោងបាយមិនចូលថ្នាក់", icon: "🍽️" },
+            fence: { title: "ផ្លោះរបង", icon: "🚧" },
+            fight: { title: "វ៉ៃគ្នា", icon: "👊" },
+            litter: { title: "ចោលសំរាម", icon: "🗑️" },
+            phone: { title: "លេងទូរស័ព្ទ", icon: "📱" },
+            cuthuir2:{ title: "កាត់សក់", icon: "💇"},
+            escape: { title: "គេចម៉ោងរៀន", icon: "🏃" },
+            other: { title: "ផ្សេងៗ", icon: "📝" }
+        };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded, initializing app...');
+            
+            try {
+                if (typeof supabase === 'undefined' && !window.supabase) {
+                    console.error('Supabase library not loaded');
+                    showError('⚠️ មិនអាចភ្ជាប់ទៅកាន់ Supabase. សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
+                    return;
+                }
+                
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase client initialized');
+                
+                await initApp();
+                
+                studentSearch.addEventListener('input', filterStudents);
+                
+            } catch (error) {
+                console.error('❌ Error initializing Supabase client:', error);
+                showError('❌ កំហុសក្នុងការចាប់ផ្តើម Supabase: ' + error.message);
+            }
+        });
+
+        // Initialize App
+        async function initApp() {
+            console.log('🚀 Starting app initialization...');
+            if (!supabaseClient) {
+                console.error('Supabase client not initialized');
+                return;
+            }
+            await fetchStudents();
+            await updateAllStats();
+            testSupabaseConnection();
+        }
+
+        // Select Scan Type
+        function selectScanType(type) {
+            console.log('Selected scan type:', type);
+            
+            document.querySelectorAll('.scan-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-type="${type}"]`).classList.add('selected');
+            
+            selectedScanType = type;
+            selectedDisciplineSubtype = null;
+            
+            updateCurrentScanDisplay();
+            startBtn.disabled = false;
+            updateSelectedTypeStats();
+        }
+
+        // Open Discipline Subtypes Modal
+        function openDisciplineSubtypes() {
+            selectedDisciplineSubtype = null;
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            otherDescriptionContainer.style.display = 'none';
+            otherDescription.value = '';
+            
+            disciplineSubtypesModal.style.display = 'flex';
+        }
+
+        // Close Discipline Subtypes Modal
+        function closeDisciplineSubtypes() {
+            disciplineSubtypesModal.style.display = 'none';
+            if (!selectedDisciplineSubtype) {
+                document.querySelectorAll('.scan-type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                selectedScanType = null;
+                startBtn.disabled = true;
+            }
+        }
+
+        // Select Discipline Subtype
+        function selectDisciplineSubtype(subtype) {
+            document.querySelectorAll('.subtype-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-subtype="${subtype}"]`).classList.add('selected');
+            
+            selectedDisciplineSubtype = subtype;
+            
+            if (subtype === 'other') {
+                otherDescriptionContainer.style.display = 'block';
+            } else {
+                otherDescriptionContainer.style.display = 'none';
+                otherDescription.value = '';
+            }
+        }
+
+        // Confirm Discipline Subtype Selection
+        function confirmDisciplineSubtype() {
+            if (!selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
+                showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
+                return;
+            }
+            
+            selectedScanType = 'discipline';
+            
+            document.querySelectorAll('.scan-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector('[data-type="discipline"]').classList.add('selected');
+            
+            updateCurrentScanDisplay();
+            startBtn.disabled = false;
+            disciplineSubtypesModal.style.display = 'none';
+            updateSelectedTypeStats();
+            
+            console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype} - ${disciplineSubtypes[selectedDisciplineSubtype].title}`);
+        }
+
+        // Update Current Scan Display
+        function updateCurrentScanDisplay() {
+            let displayTitle = scanTypes[selectedScanType].title;
+            let displayDescription = scanTypes[selectedScanType].description;
+            
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
+                
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    subtypeTitle = otherDescription.value.trim();
+                }
+                
+                displayTitle += ` - ${subtypeTitle}`;
+                displayDescription = `ស្កេនសិស្សដែល${subtypeTitle}`;
+            }
+            
+            currentScanTitle.textContent = `កំពុងស្កេន: ${displayTitle}`;
+            currentScanDescription.textContent = displayDescription;
+            currentScanTypeDiv.style.display = 'block';
+            timeLimitInfo.style.display = 'block';
+        }
+
+        // Request Camera Permission
+        async function requestCameraPermission() {
+            console.log('Requesting camera permission...');
+            
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Browser នេះមិនគាំទ្រកាមេរ៉ាទេ');
+                    return;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+
+                cameraPermissionDiv.style.display = 'none';
+                showSuccess('✅ បានអនុញ្ញាតកាមេរ៉ារួចរាល់');
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                showError('មិនអាចបើកកាមេរ៉ាបាន។ សូមពិនិត្យអនុញ្ញាតកាមេរ៉ា');
+            }
+        }
+
+        // Start Camera
+        function startCamera() {
+            if (!selectedScanType) {
+                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលស្កេន');
+                return;
+            }
+
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
+                return;
+            }
+
+            if (!stream) {
+                requestCameraPermission();
+                return;
+            }
+
+            video.srcObject = stream;
+            scannerContainer.style.display = 'block';
+            scanCountDiv.style.display = 'block';
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            video.play().then(() => {
+                startQRScanning();
+            }).catch(err => {
+                showError('មិនអាចបើកកាមេរ៉ាបាន: ' + err.message);
+            });
+        }
+
+        // Start QR Scanning
+        function startQRScanning() {
+            isScanning = true;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}...</div>`;
+            scanFrame();
+        }
+
+        // Scan Frame Function
+        function scanFrame() {
+            if (!isScanning) return;
+
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    handleScannedQR(code.data);
+                    return;
+                }
+            }
+
+            if (isScanning) {
+                scanAnimationFrame = requestAnimationFrame(scanFrame);
+            }
+        }
+
+        // Handle Scanned QR
+        async function handleScannedQR(qrData) {
+            console.log('QR Scanned:', qrData);
+            
+            isScanning = false;
+            if (scanAnimationFrame) {
+                cancelAnimationFrame(scanAnimationFrame);
+            }
+            
+            let studentId = qrData;
+            if (qrData.includes('?')) {
+                try {
+                    const url = new URL(qrData);
+                    studentId = url.searchParams.get('id') || qrData;
+                } catch (e) {
+                }
+            }
+
+            const student = students.find(s => s.id === studentId || s.qr_code === qrData);
+            
+            if (student) {
+                const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+                if (timeCheckResult.withinLimit) {
+                    const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                    showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+                    setTimeout(() => restartScanning(), 3000);
+                } else {
+                    await recordStudent(student);
+                }
+            } else {
+                showError('❌ មិនមានសិស្សនៅក្នុងប្រព័ន្ធ: ' + studentId);
+                setTimeout(() => restartScanning(), 2000);
+            }
+        }
+
+        // Check if student was scanned within time limit
+        async function checkStudentScanTimeLimit(studentId) {
+            try {
+                const tableName = scanTypes[selectedScanType].table;
+                
+                console.log(`🔍 Checking ${selectedScanType} scan in table ${tableName} for student ${studentId}`);
+                
+                const { data, error } = await supabaseClient
+                    .from(tableName)
+                    .select('timestamp')
+                    .eq('student_id', studentId)
+                    .order('timestamp', { ascending: false })
+                    .limit(1);
+
+                if (error) {
+                    console.error('Error checking scan time:', error);
+                    return { withinLimit: false, remainingTime: 0 };
+                }
+
+                if (!data || data.length === 0) {
+                    console.log('No previous scan found for student');
+                    return { withinLimit: false, remainingTime: 0 };
+                }
+
+                const lastScanTime = new Date(data[0].timestamp).getTime();
+                const currentTime = new Date().getTime();
+                const timeDiff = currentTime - lastScanTime;
+                const remainingTime = TIME_LIMIT_MS - timeDiff;
+
+                console.log(`Time since last scan: ${Math.floor(timeDiff/1000/60)} minutes, Remaining: ${Math.ceil(remainingTime/1000/60)} minutes`);
+
+                return {
+                    withinLimit: timeDiff < TIME_LIMIT_MS,
+                    remainingTime: remainingTime > 0 ? remainingTime : 0
+                };
+
+            } catch (error) {
+                console.error('Error checking student scan time limit:', error);
+                return { withinLimit: false, remainingTime: 0 };
+            }
+        }
+
+        // Restart Scanning
+        function restartScanning() {
+            isScanning = true;
+            let scanTypeText = scanTypes[selectedScanType].title;
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                scanTypeText += ` - ${disciplineSubtypes[selectedDisciplineSubtype].title}`;
+            }
+            resultDiv.innerHTML = `<div class="message message-info">🔍 កំពុងស្កេន QR code សម្រាប់ ${scanTypeText}... ស្កេនសិស្សបន្ទាប់</div>`;
+            scanAnimationFrame = requestAnimationFrame(scanFrame);
+        }
+
+        // Record Student
+        async function recordStudent(student) {
+            const now = new Date();
+            const record = {
+                student_id: student.id,
+                name: student.name,
+                class: student.class,
+                gender: student.gender || 'មិនមានទិន្នន័យ',
+                scan_time: now.toTimeString().split(' ')[0],
+                date: now.toISOString().split('T')[0],
+                timestamp: now.toISOString(),
+                scan_type: selectedScanType
+            };
+
+            if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                record.discipline_subtype = selectedDisciplineSubtype;
+                
+                if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
+                    record.discipline_description = otherDescription.value.trim();
+                } else {
+                    record.discipline_description = disciplineSubtypes[selectedDisciplineSubtype].title;
+                }
+            }
+
+            try {
+                console.log(`💾 Saving to Supabase table: ${scanTypes[selectedScanType].table}`, record);
+                
+                const tableName = scanTypes[selectedScanType].table;
+                const { data, error } = await supabaseClient
+                    .from(tableName)
+                    .insert([record])
+                    .select();
+
+                if (error) {
+                    console.error('❌ Supabase error:', error);
+                    
+                    if (error.message.includes('row-level security policy')) {
+                        showError('កំហុសសុវត្ថិភាព៖ មិនមានសិទ្ធិកត់ត្រាទិន្នន័យក្នុងតារាងនេះ');
+                        await tryAlternativeTable(record);
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    console.log('✅ Successfully saved to Supabase:', data);
+
+                    saveToLocalStorage(record);
+                    
+                    let successMessage = `
+                        ✅ កត់ត្រាបានជោគ!<br>
+                        <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                        <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                        <strong>ថ្នាក់:</strong> ${student.class}<br>
+                        <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                    `;
+                    
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                    }
+                    
+                    successMessage += `<strong>តារាង:</strong> ${tableName}<br>`;
+                    successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងប្រព័ន្ធ!</em>`;
+                    
+                    showSuccess(successMessage);
+                    await updateAllStats();
+                }
+
+            } catch (error) {
+                console.error('❌ Error saving to Supabase:', error);
+                
+                saveToLocalStorage(record);
+                
+                let successMessage = `
+                    ✅ កត់ត្រាបានជោគ! (Local)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${student.name}<br>
+                    <strong>ថ្នាក់:</strong> ${student.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                `;
+                
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                }
+                
+                successMessage += `<p class="message message-warning">⚠️ ទិន្នន័យត្រូវបានរក្សាទុកតែក្នុងឧបករណ៍ប៉ុណ្ណោះ</p>`;
+                successMessage += `<small>កំហុស: ${error.message}</small>`;
+                
+                showSuccess(successMessage);
+                await updateAllStats();
+            }
+
+            setTimeout(() => restartScanning(), 2000);
+        }
+
+        // Try alternative table if RLS policy fails
+        async function tryAlternativeTable(record) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('student_reports')
+                    .insert([record])
+                    .select();
+
+                if (error) throw error;
+                
+                console.log('✅ Successfully saved to alternative table:', data);
+                
+                let successMessage = `
+                    ✅ កត់ត្រាបានជោគ! (Alternative Table)<br>
+                    <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
+                    <strong>ឈ្មោះ:</strong> ${record.name}<br>
+                    <strong>ថ្នាក់:</strong> ${record.class}<br>
+                    <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
+                `;
+                
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
+                }
+                
+                successMessage += `<em>ទិន្នន័យត្រូវបានរក្សាទុកក្នុងតារាងជំនួស!</em>`;
+                
+                showSuccess(successMessage);
+                await updateAllStats();
+            } catch (altError) {
+                console.error('❌ Error saving to alternative table:', altError);
+                throw altError;
+            }
+        }
+
+        // Save to localStorage
+        function saveToLocalStorage(record) {
+            const key = `${selectedScanType}Reports`;
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const localRecord = {
+                ...record,
+                date: new Date().toDateString(),
+                timestamp: new Date().getTime()
+            };
+            existing.push(localRecord);
+            localStorage.setItem(key, JSON.stringify(existing));
+            console.log(`💾 Saved to localStorage with key: ${key}`);
+        }
+
+        // Fetch Students
+        async function fetchStudents() {
+            try {
+                console.log('Fetching students...');
+                
+                let allStudents = [];
+                let page = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    
+                    const { data, error } = await supabaseClient
+                        .from('students')
+                        .select('*')
+                        .range(from, to);
+
+                    if (error) throw error;
+
+                    if (data && data.length > 0) {
+                        allStudents = allStudents.concat(data);
+                        
+                        if (data.length < pageSize) {
+                            hasMore = false;
+                        } else {
+                            page++;
+                        }
+                    } else {
+                        hasMore = false;
+                    }
+                }
+                
+                students = allStudents;
+                totalStudentsElement.textContent = students.length;
+                console.log(`Fetched ${students.length} students`);
+                
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                students = [];
+                showError('⚠️ មិនអាចទាញយកទិន្នន័យសិស្សបាន');
+            }
+        }
+
+        // Update All Stats
+        async function updateAllStats() {
+            await updateScanCount();
+            await updateSelectedTypeStats();
+            updateScannedCount();
+        }
+
+        // Update Scan Count
+        async function updateScanCount() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                let totalScans = 0;
+
+                for (const type in scanTypes) {
+                    const tableName = scanTypes[type].table;
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from(tableName)
+                            .select('*', { count: 'exact' })
+                            .eq('date', today);
+
+                        if (!error && data) {
+                            totalScans += data.length;
+                            console.log(`📊 Table ${tableName}: ${data.length} scans today`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`⚠️ Could not access table ${tableName}:`, tableError);
+                    }
+                }
+
+                todayScansElement.textContent = totalScans;
+                console.log(`📈 Total scans today: ${totalScans}`);
+                
+            } catch (error) {
+                console.error('Error updating scan count:', error);
+                let totalScans = 0;
+                for (const type in scanTypes) {
+                    const key = `${type}Reports`;
+                    const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                    const today = new Date().toDateString();
+                    const todayScans = reports.filter(report => report.date === today);
+                    totalScans += todayScans.length;
+                }
+                todayScansElement.textContent = totalScans;
+            }
+        }
+
+        // Update Selected Type Stats
+        async function updateSelectedTypeStats() {
+            if (!selectedScanType) return;
+
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const tableName = scanTypes[selectedScanType].table;
+                
+                console.log(`📊 Updating stats for ${selectedScanType} from table ${tableName}`);
+                
+                const { data, error } = await supabaseClient
+                    .from(tableName)
+                    .select('*', { count: 'exact' })
+                    .eq('date', today);
+
+                if (!error) {
+                    selectedTypeCountElement.textContent = data.length;
+                    let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                    if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                        label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                    }
+                    selectedTypeLabelElement.textContent = label;
+                    console.log(`📈 ${selectedScanType} scans today: ${data.length}`);
+                } else {
+                    console.error('Error fetching selected type stats:', error);
+                }
+            } catch (error) {
+                console.error('Error updating selected type stats:', error);
+                const key = `${selectedScanType}Reports`;
+                const reports = JSON.parse(localStorage.getItem(key) || '[]');
+                const today = new Date().toDateString();
+                const todayScans = reports.filter(report => report.date === today);
+                selectedTypeCountElement.textContent = todayScans.length;
+                let label = scanTypes[selectedScanType].title + ' ថ្ងៃនេះ';
+                if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
+                    label = disciplineSubtypes[selectedDisciplineSubtype].title + ' ថ្ងៃនេះ';
+                }
+                selectedTypeLabelElement.textContent = label;
+            }
+        }
+
+        // Update Scanned Count Display
+        function updateScannedCount() {
+            if (!selectedScanType) return;
+            
+            const key = `${selectedScanType}Reports`;
+            const reports = JSON.parse(localStorage.getItem(key) || '[]');
+            const today = new Date().toDateString();
+            const todayScans = reports.filter(report => report.date === today);
+            scannedCountSpan.textContent = todayScans.length;
+        }
+
+        // Stop Camera
+        function stopCamera() {
+            isScanning = false;
+            if (scanAnimationFrame) {
+                cancelAnimationFrame(scanAnimationFrame);
+            }
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            scannerContainer.style.display = 'none';
+            scanCountDiv.style.display = 'none';
+            cameraPermissionDiv.style.display = 'block';
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            
+            resultDiv.innerHTML = '<div class="message message-info">កាមេរ៉ាត្រូវបានបិទ។ ចុច "ចាប់ផ្ដើមស្កេន" ដើម្បីបើកម្តងទៀត</div>';
+        }
+
+        // Manual Entry Functions
+        function openManualEntryModal() {
+            if (!selectedScanType) {
+                showError('❗ សូមជ្រើសរើសប្រភេទសិស្សមុនពេលកត់ត្រាតាមអត្តលេខ');
+                return;
+            }
+            
+            if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
+                showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
+                openDisciplineSubtypes();
+                return;
+            }
+            
+            populateStudentList();
+            manualEntryModal.style.display = 'flex';
+        }
+
+        function closeManualEntryModal() {
+            manualEntryModal.style.display = 'none';
+            studentSearch.value = '';
+        }
+
+        function populateStudentList() {
+            studentList.innerHTML = '';
+            
+            if (students.length === 0) {
+                studentList.innerHTML = '<div>មិនមានទិន្នន័យសិស្ស</div>';
+                return;
+            }
+            
+            students.forEach(student => {
+                const studentItem = document.createElement('div');
+                studentItem.className = 'student-item';
+                studentItem.style.padding = '10px';
+                studentItem.style.borderBottom = '1px solid #eee';
+                studentItem.style.cursor = 'pointer';
+                studentItem.onclick = () => selectStudent(student);
+                
+                studentItem.innerHTML = `
+                    <strong>${student.name}</strong><br>
+                    <small>អត្តលេខ: ${student.id} | ថ្នាក់: ${student.class}</small>
+                `;
+                
+                studentList.appendChild(studentItem);
+            });
+        }
+
+        function filterStudents() {
+            const searchTerm = studentSearch.value.toLowerCase();
+            const studentItems = studentList.getElementsByClassName('student-item');
+            
+            for (let i = 0; i < studentItems.length; i++) {
+                const studentText = studentItems[i].textContent.toLowerCase();
+                if (studentText.includes(searchTerm)) {
+                    studentItems[i].style.display = 'block';
+                } else {
+                    studentItems[i].style.display = 'none';
+                }
+            }
+        }
+
+        async function selectStudent(student) {
+            closeManualEntryModal();
+            
+            const timeCheckResult = await checkStudentScanTimeLimit(student.id);
+            if (timeCheckResult.withinLimit) {
+                const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
+                showWarning(`⚠️ សិស្ស ${student.name} បានស្កេន${scanTypes[selectedScanType].title}រួចរាល់\n\nសូមរង់ចាំ ${remainingMinutes} នាទីទៀតមុនពេលស្កេនម្តងទៀត`);
+            } else {
+                await recordStudent(student);
+            }
+        }
+
+        // Test Supabase Connection and Tables
+        async function testSupabaseConnection() {
+            try {
+                console.log('🔗 Testing Supabase connection and tables...');
+                
+                const { data: studentsData, error: studentsError } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .limit(1);
+
+                if (studentsError) {
+                    console.warn('❌ Students table connection failed:', studentsError);
+                } else {
+                    console.log('✅ Students table connection successful');
+                }
+
+                // បន្ថែម 'flag_ceremony_reports' នៅក្នុងតារាងដែលត្រូវធ្វើតេស្ត
+                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'flag_ceremony_reports'];
+                
+                for (const tableName of tablesToTest) {
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from(tableName)
+                            .select('*')
+                            .limit(1);
+
+                        if (error) {
+                            console.warn(`❌ Table ${tableName} connection failed:`, error);
+                        } else {
+                            console.log(`✅ Table ${tableName} connection successful`);
+                        }
+                    } catch (tableError) {
+                        console.warn(`❌ Table ${tableName} test failed:`, tableError);
+                    }
+                }
+
+            } catch (error) {
+                console.warn('Supabase connection test failed:', error);
+            }
+        }
+
+        // Utility Functions
+        function showSuccess(message) {
+            resultDiv.innerHTML = `<div class="message message-success">${message}</div>`;
+        }
+
+        function showError(message) {
+            resultDiv.innerHTML = `<div class="message message-error">${message}</div>`;
+        }
+
+        function showWarning(message) {
+            resultDiv.innerHTML = `<div class="message message-warning">${message}</div>`;
+        }
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function viewReports() {
+            window.location.href = 'list.html';
+        }
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && isScanning) {
+                stopCamera();
+            }
+        });
+    </script>
+</body>
+</html>

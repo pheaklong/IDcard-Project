@@ -13,7 +13,7 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js for statistics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <!-- SheetJS for Excel export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -966,7 +966,7 @@
                                 <th class="sortable-header" onclick="sortFlagTable(6)">ពុធ</th>
                                 <th class="sortable-header" onclick="sortFlagTable(7)">ព្រហស្បតិ៍</th>
                                 <th class="sortable-header" onclick="sortFlagTable(8)">សុក្រ</th>
-                                <th class="sortable-header" onclick="sortFlagTable(9)">សប្តាហ៍</th>
+                                <th class="sortable-header" onclick="sortFlagTable(9)">សៅរ៍</th>
                                 <th class="sortable-header" onclick="sortFlagTable(10)">ស្ថានភាពសរុប</th>
                             </tr>
                         </thead>
@@ -1150,15 +1150,22 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing application...');
             
+            // Check if all required libraries are loaded
+            if (typeof XLSX === 'undefined') {
+                console.error('SheetJS (XLSX) not loaded');
+                showErrorMessage('SheetJS (XLSX) library failed to load. Please refresh the page.');
+                return;
+            }
+            
+            if (typeof supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                showErrorMessage('Supabase library failed to load. Please check your internet connection and refresh the page.');
+                return;
+            }
+            
             // Initialize Supabase client
             try {
-                if (typeof window.supabase === 'undefined') {
-                    console.error('Supabase library not loaded');
-                    alert('⚠️ មិនអាចភ្ជាប់ទៅកាន់ Supabase. សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
-                    return;
-                }
-                
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('✅ Supabase client initialized');
                 
                 // Initialize application
@@ -1166,9 +1173,24 @@
                 
             } catch (error) {
                 console.error('❌ Error initializing Supabase client:', error);
-                alert('❌ កំហុសក្នុងការចាប់ផ្តើម: ' + error.message);
+                showErrorMessage('កំហុសក្នុងការចាប់ផ្តើម: ' + error.message);
             }
         });
+
+        function showErrorMessage(message) {
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.innerHTML = `
+                    <div style="padding: 40px; text-align: center; background: white; border-radius: 16px;">
+                        <h2 style="color: #dc3545; margin-bottom: 20px;">⚠️ កំហុសក្នុងការផ្ទុកកម្មវិធី</h2>
+                        <p style="margin-bottom: 30px; color: #666;">${message}</p>
+                        <button onclick="window.location.reload()" class="btn btn-primary" style="padding: 12px 24px;">
+                            🔄 ពន្លឺទំព័រឡើងវិញ
+                        </button>
+                    </div>
+                `;
+            }
+        }
 
         // ============================================
         // NAVIGATION FUNCTIONS
@@ -1189,13 +1211,18 @@
         async function initializeApp() {
             console.log('🚀 Starting app initialization...');
             
-            // Load all students
-            await loadAllStudents();
-            
-            // Populate week selector
-            populateWeekSelector();
-            
-            console.log('✅ Application initialized successfully');
+            try {
+                // Load all students
+                await loadAllStudents();
+                
+                // Populate week selector
+                populateWeekSelector();
+                
+                console.log('✅ Application initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing app:', error);
+                showErrorMessage('កំហុសក្នុងការចាប់ផ្តើមកម្មវិធី: ' + error.message);
+            }
         }
 
         async function loadAllStudents() {
@@ -1210,13 +1237,13 @@
                 
                 if (error) {
                     console.error('❌ Error loading students:', error);
-                    // Try localStorage as fallback
-                    allStudents = JSON.parse(localStorage.getItem('allStudents') || '[]');
-                } else {
-                    allStudents = data || [];
-                    // Save to localStorage as backup
-                    localStorage.setItem('allStudents', JSON.stringify(allStudents));
+                    throw error;
                 }
+                
+                allStudents = data || [];
+                
+                // Save to localStorage as backup
+                localStorage.setItem('allStudents', JSON.stringify(allStudents));
                 
                 console.log(`✅ Loaded ${allStudents.length} students`);
                 
@@ -1225,7 +1252,17 @@
                 
             } catch (error) {
                 console.error('❌ Error loading students:', error);
-                allStudents = JSON.parse(localStorage.getItem('allStudents') || '[]');
+                // Try to load from localStorage as fallback
+                try {
+                    allStudents = JSON.parse(localStorage.getItem('allStudents') || '[]');
+                    console.log(`⚠️ Loaded ${allStudents.length} students from localStorage backup`);
+                    
+                    // Still populate class filter even with cached data
+                    populateClassFilter();
+                } catch (localStorageError) {
+                    console.error('❌ Error loading from localStorage:', localStorageError);
+                    allStudents = [];
+                }
             }
         }
 
@@ -1382,12 +1419,10 @@
                 
                 if (flagError) {
                     console.error('❌ Error loading flag ceremony reports:', flagError);
-                    flagReports = JSON.parse(localStorage.getItem('flagReports') || '[]');
-                } else {
-                    flagReports = flagData || [];
-                    // Save to localStorage as backup
-                    localStorage.setItem('flagReports', JSON.stringify(flagReports));
+                    throw flagError;
                 }
+                
+                flagReports = flagData || [];
                 
                 console.log(`✅ Loaded ${flagReports.length} flag ceremony reports for the week`);
                 
@@ -1453,6 +1488,14 @@
                 console.error('❌ Error loading flag report data:', error);
                 document.getElementById('flag-report-loading').style.display = 'none';
                 document.getElementById('flag-report-empty').style.display = 'block';
+                document.getElementById('flag-report-empty').innerHTML = `
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</h3>
+                    <p>សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក</p>
+                    <button onclick="loadFlagReportData()" class="btn btn-primary" style="margin-top: 20px;">
+                        🔄 ព្យាយាមម្តងទៀត
+                    </button>
+                `;
             }
         }
 
@@ -1555,6 +1598,11 @@
             if (filteredData.length === 0) {
                 tableBody.innerHTML = '';
                 emptyElement.style.display = 'block';
+                emptyElement.innerHTML = `
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>មិនមានលទ្ធផល</h3>
+                    <p>គ្មានទិន្នន័យសិស្សដែលត្រូវនឹងការស្វែងរក "${searchTerm}"</p>
+                `;
                 return;
             }
             
@@ -1602,9 +1650,6 @@
         function sortFlagTable(column) {
             if (flagReportData.length === 0) return;
             
-            const tableBody = document.getElementById('flag-report-table-body');
-            const rows = Array.from(tableBody.querySelectorAll('tr'));
-            
             // Update sort direction
             if (flagSortColumn === column) {
                 flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
@@ -1640,10 +1685,20 @@
                         return 0;
                 }
                 
-                if (flagSortDirection === 'asc') {
-                    return aValue.localeCompare(bValue, 'km');
+                if (column === 10) {
+                    // Numeric sort for attendance
+                    if (flagSortDirection === 'asc') {
+                        return aValue - bValue;
+                    } else {
+                        return bValue - aValue;
+                    }
                 } else {
-                    return bValue.localeCompare(aValue, 'km');
+                    // String sort for other columns
+                    if (flagSortDirection === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
                 }
             });
             
@@ -1886,10 +1941,10 @@
                 
                 if (flagError) {
                     console.error('❌ Error loading flag ceremony reports:', flagError);
-                    flagReports = JSON.parse(localStorage.getItem('flagReports') || '[]');
-                } else {
-                    flagReports = flagData || [];
+                    throw flagError;
                 }
+                
+                flagReports = flagData || [];
                 
                 console.log(`✅ Loaded ${flagReports.length} flag ceremony reports for summary`);
                 
@@ -1949,6 +2004,14 @@
                 console.error('❌ Error loading flag summary report:', error);
                 document.getElementById('flag-summary-loading').style.display = 'none';
                 document.getElementById('flag-summary-empty').style.display = 'block';
+                document.getElementById('flag-summary-empty').innerHTML = `
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</h3>
+                    <p>សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក</p>
+                    <button onclick="loadFlagSummaryReport()" class="btn btn-primary" style="margin-top: 20px;">
+                        🔄 ព្យាយាមម្តងទៀត
+                    </button>
+                `;
             }
         }
 

@@ -429,6 +429,12 @@
                         <div class="scan-type-title">ជួយការងារ</div>
                         <div class="scan-type-desc">សិស្សដែលបានជួយការងារសាលា</div>
                     </div>
+                    <!-- បន្ថែមកាតថ្មីសម្រាប់សិស្សមកគោរពទង់ជាតិ -->
+                    <div class="scan-type-card" data-type="flag" onclick="selectScanType('flag')">
+                        <div class="scan-type-icon">🇰🇭</div>
+                        <div class="scan-type-title">មកគោរពទង់ជាតិ</div>
+                        <div class="scan-type-desc">សិស្សដែលមកគោរពទង់ជាតិ</div>
+                    </div>
                 </div>
             </div>
 
@@ -561,7 +567,7 @@
     </div>
 
     <script>
-        // Supabase Configuration - ប្រើឈ្មោះផ្សេងគ្នាដើម្បីជៀសវាងការប៉ះទង្គិច
+        // Supabase Configuration
         const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
         
@@ -589,7 +595,7 @@
         const otherDescriptionContainer = document.getElementById('otherDescriptionContainer');
         const otherDescription = document.getElementById('otherDescription');
 
-        // Global Variables - ប្រើឈ្មោះអថេរផ្សេង
+        // Global Variables
         let supabaseClient = null;
         let stream = null;
         let isScanning = false;
@@ -600,7 +606,7 @@
         const TIME_LIMIT_MINUTES = 10;
         const TIME_LIMIT_MS = TIME_LIMIT_MINUTES * 60 * 1000;
 
-        // Scan Types Configuration
+        // Scan Types Configuration - បន្ថែមប្រភេទ flag
         const scanTypes = {
             late: {
                 title: "សិស្សមកយឺត",
@@ -617,10 +623,10 @@
                 description: "ស្កេនសិស្សដែលបានជួយការងារសាលា",
                 table: "helpful_reports"
             },
-            haircut: {
-                title: "សិស្សត្រូវកាត់សក់",
-                description: "ស្កេនសិស្សដែលត្រូវកាត់សក់តាមវិន័យ",
-                table: "haircut_reports"
+            flag: {
+                title: "មកគោរពទង់ជាតិ",
+                description: "ស្កេនសិស្សដែលមកគោរពទង់ជាតិ",
+                table: "flag_ceremony_reports"
             }
         };
 
@@ -642,23 +648,18 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('DOM loaded, initializing app...');
             
-            // Initialize Supabase client
             try {
-                // Check if supabase is loaded
                 if (typeof supabase === 'undefined' && !window.supabase) {
                     console.error('Supabase library not loaded');
                     showError('⚠️ មិនអាចភ្ជាប់ទៅកាន់ Supabase. សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
                     return;
                 }
                 
-                // Create client - use a different variable name
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                 console.log('✅ Supabase client initialized');
                 
-                // Initialize the rest of the app
                 await initApp();
                 
-                // Add event listener for student search
                 studentSearch.addEventListener('input', filterStudents);
                 
             } catch (error) {
@@ -683,35 +684,26 @@
         function selectScanType(type) {
             console.log('Selected scan type:', type);
             
-            // Update UI
             document.querySelectorAll('.scan-type-card').forEach(card => {
                 card.classList.remove('selected');
             });
             document.querySelector(`[data-type="${type}"]`).classList.add('selected');
             
-            // Set selected type
             selectedScanType = type;
-            selectedDisciplineSubtype = null; // Reset discipline subtype
+            selectedDisciplineSubtype = null;
             
-            // Update current scan type display
             updateCurrentScanDisplay();
-            
-            // Enable start button
             startBtn.disabled = false;
-            
-            // Update stats
             updateSelectedTypeStats();
         }
 
         // Open Discipline Subtypes Modal
         function openDisciplineSubtypes() {
-            // Reset any previously selected subtype
             selectedDisciplineSubtype = null;
             document.querySelectorAll('.subtype-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            // Hide other description input
             otherDescriptionContainer.style.display = 'none';
             otherDescription.value = '';
             
@@ -721,7 +713,6 @@
         // Close Discipline Subtypes Modal
         function closeDisciplineSubtypes() {
             disciplineSubtypesModal.style.display = 'none';
-            // Reset main selection if no subtype was chosen
             if (!selectedDisciplineSubtype) {
                 document.querySelectorAll('.scan-type-card').forEach(card => {
                     card.classList.remove('selected');
@@ -733,7 +724,6 @@
 
         // Select Discipline Subtype
         function selectDisciplineSubtype(subtype) {
-            // Update UI
             document.querySelectorAll('.subtype-card').forEach(card => {
                 card.classList.remove('selected');
             });
@@ -741,7 +731,6 @@
             
             selectedDisciplineSubtype = subtype;
             
-            // Show/hide other description input
             if (subtype === 'other') {
                 otherDescriptionContainer.style.display = 'block';
             } else {
@@ -757,31 +746,21 @@
                 return;
             }
             
-            // For "other" subtype, check if description is provided
             if (selectedDisciplineSubtype === 'other' && !otherDescription.value.trim()) {
                 showError('❗ សូមសរសេរបញ្ជាក់ប្រភេទមិនគោរពវិន័យ');
                 return;
             }
             
-            // Set main scan type to discipline
             selectedScanType = 'discipline';
             
-            // Update main UI
             document.querySelectorAll('.scan-type-card').forEach(card => {
                 card.classList.remove('selected');
             });
             document.querySelector('[data-type="discipline"]').classList.add('selected');
             
-            // Update current scan display
             updateCurrentScanDisplay();
-            
-            // Enable start button
             startBtn.disabled = false;
-            
-            // Close modal
             disciplineSubtypesModal.style.display = 'none';
-            
-            // Update stats
             updateSelectedTypeStats();
             
             console.log(`✅ Selected discipline subtype: ${selectedDisciplineSubtype} - ${disciplineSubtypes[selectedDisciplineSubtype].title}`);
@@ -792,11 +771,9 @@
             let displayTitle = scanTypes[selectedScanType].title;
             let displayDescription = scanTypes[selectedScanType].description;
             
-            // Add discipline subtype info if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 let subtypeTitle = disciplineSubtypes[selectedDisciplineSubtype].title;
                 
-                // For "other" subtype, use the custom description
                 if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
                     subtypeTitle = otherDescription.value.trim();
                 }
@@ -845,7 +822,6 @@
                 return;
             }
 
-            // For discipline type, check if subtype is selected
             if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
                 openDisciplineSubtypes();
@@ -910,28 +886,23 @@
         async function handleScannedQR(qrData) {
             console.log('QR Scanned:', qrData);
             
-            // Stop scanning temporarily
             isScanning = false;
             if (scanAnimationFrame) {
                 cancelAnimationFrame(scanAnimationFrame);
             }
             
-            // Extract student ID
             let studentId = qrData;
             if (qrData.includes('?')) {
                 try {
                     const url = new URL(qrData);
                     studentId = url.searchParams.get('id') || qrData;
                 } catch (e) {
-                    // Not a URL, use raw data
                 }
             }
 
-            // Find student
             const student = students.find(s => s.id === studentId || s.qr_code === qrData);
             
             if (student) {
-                // Check if scanned within time limit (10 minutes)
                 const timeCheckResult = await checkStudentScanTimeLimit(student.id);
                 if (timeCheckResult.withinLimit) {
                     const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
@@ -1013,11 +984,9 @@
                 scan_type: selectedScanType
             };
 
-            // Add discipline subtype if applicable
             if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                 record.discipline_subtype = selectedDisciplineSubtype;
                 
-                // For "other" subtype, use custom description
                 if (selectedDisciplineSubtype === 'other' && otherDescription.value.trim()) {
                     record.discipline_description = otherDescription.value.trim();
                 } else {
@@ -1046,10 +1015,8 @@
                 } else {
                     console.log('✅ Successfully saved to Supabase:', data);
 
-                    // Save to localStorage as backup
                     saveToLocalStorage(record);
                     
-                    // Prepare success message
                     let successMessage = `
                         ✅ កត់ត្រាបានជោគ!<br>
                         <strong>ប្រភេទ:</strong> ${scanTypes[selectedScanType].title}<br>
@@ -1058,7 +1025,6 @@
                         <strong>ពេលវេលា:</strong> ${record.scan_time}<br>
                     `;
                     
-                    // Add discipline subtype info if applicable
                     if (selectedScanType === 'discipline' && selectedDisciplineSubtype) {
                         successMessage += `<strong>ប្រភេទមិនគោរពវិន័យ:</strong> ${record.discipline_description}<br>`;
                     }
@@ -1073,7 +1039,6 @@
             } catch (error) {
                 console.error('❌ Error saving to Supabase:', error);
                 
-                // Fallback to localStorage
                 saveToLocalStorage(record);
                 
                 let successMessage = `
@@ -1226,7 +1191,6 @@
                 
             } catch (error) {
                 console.error('Error updating scan count:', error);
-                // Fallback to localStorage
                 let totalScans = 0;
                 for (const type in scanTypes) {
                     const key = `${type}Reports`;
@@ -1267,7 +1231,6 @@
                 }
             } catch (error) {
                 console.error('Error updating selected type stats:', error);
-                // Fallback to localStorage
                 const key = `${selectedScanType}Reports`;
                 const reports = JSON.parse(localStorage.getItem(key) || '[]');
                 const today = new Date().toDateString();
@@ -1320,7 +1283,6 @@
                 return;
             }
             
-            // For discipline type, check if subtype is selected
             if (selectedScanType === 'discipline' && !selectedDisciplineSubtype) {
                 showError('❗ សូមជ្រើសរើសប្រភេទមិនគោរពវិន័យ');
                 openDisciplineSubtypes();
@@ -1378,7 +1340,6 @@
         async function selectStudent(student) {
             closeManualEntryModal();
             
-            // Check if scanned within time limit (10 minutes)
             const timeCheckResult = await checkStudentScanTimeLimit(student.id);
             if (timeCheckResult.withinLimit) {
                 const remainingMinutes = Math.ceil(timeCheckResult.remainingTime / 60000);
@@ -1393,7 +1354,6 @@
             try {
                 console.log('🔗 Testing Supabase connection and tables...');
                 
-                // Test connection to students table
                 const { data: studentsData, error: studentsError } = await supabaseClient
                     .from('students')
                     .select('*')
@@ -1405,8 +1365,8 @@
                     console.log('✅ Students table connection successful');
                 }
 
-                // Test all report tables
-                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'haircut_reports'];
+                // បន្ថែម 'flag_ceremony_reports' នៅក្នុងតារាងដែលត្រូវធ្វើតេស្ត
+                const tablesToTest = ['attendance_reports', 'discipline_reports', 'helpful_reports', 'flag_ceremony_reports'];
                 
                 for (const tableName of tablesToTest) {
                     try {

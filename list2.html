@@ -1,0 +1,3133 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍សិស្សមកយឺត និងគោរពទង់ជាតិ</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js for statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --success-dark: #2fb5e0;
+            --warning: #f72585;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 18px 25px;
+            background: var(--light);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content {
+            padding: 30px 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Report Type Selection */
+        .report-type-selection {
+            margin-bottom: 25px;
+        }
+
+        .report-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .report-type-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .report-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .report-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .report-type-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .report-type-desc {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Button Styles */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        .btn-success:hover:not(:disabled) {
+            background: var(--success-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
+        }
+
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        .btn-warning:hover:not(:disabled) {
+            background: #e51775;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
+        }
+
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
+        }
+        .btn-info:hover:not(:disabled) {
+            background: #65199e;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(114, 9, 183, 0.3);
+        }
+
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 65, 68, 0.3);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: auto;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--transition);
+            padding-right: 30px;
+        }
+
+        .data-table th:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            line-height: 1.4;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Sort Icon Styles */
+        .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sortable-header {
+            position: relative;
+            padding-right: 30px !important;
+        }
+
+        /* Additional styles for discipline description */
+        .discipline-description {
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        /* កំណត់ទទឹងជួរឈរ */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            min-width: 60px;
+            max-width: 60px;
+        }
+
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            min-width: 200px;
+            max-width: 200px;
+        }
+
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) {
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) {
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) {
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        /* បង្ហាញអត្ថបទពេញលេញ */
+        .data-table td,
+        .data-table th {
+            text-overflow: clip;
+        }
+
+        /* Flag ceremony specific styles */
+        .flag-presence {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .flag-absent {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .flag-not-scanned {
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .flag-late {
+            color: #ffc107;
+            font-weight: 600;
+        }
+
+        /* Class summary table */
+        .class-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .class-summary-table th {
+            background: #4361ee;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .class-summary-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .class-summary-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .class-cell {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .present-cell {
+            background: rgba(40, 167, 69, 0.1);
+            text-align: center;
+        }
+
+        .absent-cell {
+            background: rgba(220, 53, 69, 0.1);
+            text-align: center;
+        }
+
+        .not-scanned-cell {
+            background: rgba(108, 117, 125, 0.1);
+            text-align: center;
+        }
+
+        .late-cell {
+            background: rgba(255, 193, 7, 0.1);
+            text-align: center;
+        }
+
+        .total-cell {
+            background: #e9ecef;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* ការធ្វើឱ្យសមរម្យសម្រាប់ទូរស័ព្ទ */
+        @media (max-width: 768px) {
+            .data-table th,
+            .data-table td {
+                font-size: 0.8rem;
+                padding: 10px 8px;
+                white-space: nowrap;
+                overflow: visible;
+            }
+            
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                min-width: 50px;
+                max-width: 50px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                min-width: 150px;
+                max-width: 150px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) {
+                min-width: 80px;
+                max-width: 80px;
+            }
+            
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .data-table th:nth-child(7),
+            .data-table td:nth-child(7) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sort-icon {
+                right: 5px;
+                font-size: 10px;
+            }
+
+            .sortable-header {
+                padding-right: 25px !important;
+            }
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .badge-late {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-discipline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-helpful {
+            background: #d1edff;
+            color: #004085;
+        }
+
+        .badge-flag {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-haircut {
+            background: #e6e6fa;
+            color: #4b0082;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Summary Report Styles */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: var(--border-radius);
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Sort Button Styles */
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sort-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .sort-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Weekly Report Styles */
+        .weekly-report-container {
+            margin: 25px 0;
+        }
+
+        .day-column {
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .present-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 2px;
+        }
+
+        .present-true {
+            background-color: #28a745;
+        }
+
+        .present-false {
+            background-color: #dc3545;
+        }
+
+        .present-null {
+            background-color: #6c757d;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .report-type-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 14px 18px;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sort-buttons {
+                gap: 8px;
+            }
+
+            .sort-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .day-column {
+                min-width: 80px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .back-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .sort-buttons {
+                flex-direction: column;
+            }
+
+            .sort-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 របាយការណ៍សិស្សមកយឺត និងគោរពទង់ជាតិ</h1>
+            <p>ព័ត៌មានលម្អិតអំពីទិន្នន័យសិស្សមកយឺត និងមកគោរពទង់ជាតិ</p>
+        </div>
+        
+        <!-- Back Buttons -->
+        <div class="back-buttons">
+            <button class="btn btn-primary" onclick="goToHome()">
+                🏠 ត្រឡប់ទៅផ្ទះវិញ
+            </button>
+            <button class="btn btn-secondary" onclick="goToScanner()">
+                📱 ស្កេនសិស្ស
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Report Type Selection -->
+            <div class="report-type-selection">
+                <div class="card">
+                    <h2 class="card-title">📊 ជ្រើសរើសប្រភេទរបាយការណ៍</h2>
+                    <div class="report-type-grid">
+                        <div class="report-type-card" data-type="late" onclick="selectReportType('late')">
+                            <div class="report-type-icon">⏰</div>
+                            <div class="report-type-title">ទិន្នន័យយឺត</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន</div>
+                        </div>
+                        <div class="report-type-card" data-type="discipline" onclick="selectReportType('discipline')">
+                            <div class="report-type-icon">⚠️</div>
+                            <div class="report-type-title">ទិន្នន័យវិន័យ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ</div>
+                        </div>
+                        <div class="report-type-card" data-type="helpful" onclick="selectReportType('helpful')">
+                            <div class="report-type-icon">🤝</div>
+                            <div class="report-type-title">ទិន្នន័យជំនួយ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ</div>
+                        </div>
+                        <!-- បន្ថែមរបាយការណ៍សិស្សមកគោរពទង់ជាតិ -->
+                        <div class="report-type-card" data-type="flag" onclick="selectReportType('flag')">
+                            <div class="report-type-icon">🇰🇭</div>
+                            <div class="report-type-title">ទិន្នន័យមកគោរពទង់ជាតិ</div>
+                            <div class="report-type-desc">របាយការណ៍សិស្សមកគោរពទង់ជាតិ ដែលអាចមើលឃើញចំនួនដងសិស្សមកយឺត</div>
+                        </div>
+                        <div class="report-type-card" data-type="flag-summary" onclick="selectReportType('flag-summary')">
+                            <div class="report-type-icon">📊</div>
+                            <div class="report-type-title">សង្ខេបទិន្នន័យគោរពទង់ជាតិ</div>
+                            <div class="report-type-desc">របាយការណ៍សង្ខេបសិស្សមកគោរពទង់ជាតិតាមថ្នាក់</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flag Ceremony Report Section -->
+            <div id="flag-report-section" class="card" style="display: none;">
+                <h2 class="card-title">🇰🇭 របាយការណ៍សិស្សមកគោរពទង់ជាតិ</h2>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <h3 style="margin-bottom: 20px; color: var(--primary);">🔍 ស្វែងរកទិន្នន័យ</h3>
+                    
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="flag-week-selector">សប្តាហ៍</label>
+                            <select id="flag-week-selector" class="form-control" onchange="loadFlagReportData()">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="flag-class-filter">ថ្នាក់</label>
+                            <select id="flag-class-filter" class="form-control" onchange="loadFlagReportData()">
+                                <option value="all">ទាំងអស់</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="flag-presence-filter">ស្ថានភាព</label>
+                            <select id="flag-presence-filter" class="form-control" onchange="loadFlagReportData()">
+                                <option value="all">ទាំងអស់</option>
+                                <option value="present">មកគោរពទង់ជាតិ</option>
+                                <option value="absent">មិនបានមកគោរពទង់ជាតិ</option>
+                                <option value="late">មកយឺត</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="flag-search">ស្វែងរក</label>
+                            <input type="text" id="flag-search" class="form-control" placeholder="ឈ្មោះសិស្ស..." onkeyup="filterFlagReportData()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-flag-students">0</div>
+                        <div class="stat-label">សិស្សសរុប</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-flag-present">0</div>
+                        <div class="stat-label">មកគោរពទង់ជាតិ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-flag-absent">0</div>
+                        <div class="stat-label">មិនមកគោរពទង់ជាតិ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-late-count">0</div>
+                        <div class="stat-label">ចំនួនដងមកយឺតសរុប</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="flag-attendance-rate">0%</div>
+                        <div class="stat-label">អត្រាមកគោរពទង់ជាតិ</div>
+                    </div>
+                </div>
+
+                <!-- Sort Buttons -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortFlagTableByLateCount()">
+                        <span>🔢</span>តម្រៀបតាមចំនួនដងមកយឺត
+                    </button>
+                    <button class="sort-btn" onclick="sortFlagTableByAttendance()">
+                        <span>📊</span>តម្រៀបតាមអត្រាមកគោរពទង់ជាតិ
+                    </button>
+                    <button class="sort-btn" onclick="sortFlagTableByName()">
+                        <span>🔤</span>តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortFlagTableByClass()">
+                        <span>🏫</span>តម្រៀបតាមថ្នាក់
+                    </button>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table class="data-table" id="flag-report-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" onclick="sortFlagTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortFlagTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortFlagTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(4)">ច័ន្ទ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(5)">អង្គារ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(6)">ពុធ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(7)">ព្រហស្បតិ៍</th>
+                                <th class="sortable-header" onclick="sortFlagTable(8)">សុក្រ</th>
+                                <th class="sortable-header" onclick="sortFlagTable(9)">សៅរ៍</th>
+                                <th class="sortable-header" onclick="sortFlagTable(10)">ចំនួនដងមកយឺត</th>
+                                <th class="sortable-header" onclick="sortFlagTable(11)">ស្ថានភាពសរុប</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flag-report-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="flag-report-empty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📄</div>
+                    <h3>មិនមានទិន្នន័យ</h3>
+                    <p>មិនមានទិន្នន័យសិស្សមកគោរពទង់ជាតិក្នុងសប្តាហ៍នេះ</p>
+                </div>
+                <div id="flag-report-loading" class="empty-state">
+                    <div class="loading"></div>
+                    <p>កំពុងទាញយកទិន្នន័យ...</p>
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportFlagReportToExcel()">
+                        📊 Export to Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="printFlagReport()">
+                        🖨️ Print Report
+                    </button>
+                    <button class="btn btn-warning" onclick="exportFlagLateReport()">
+                        ⏰ Export Late Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Flag Summary Report Section (តារាងតាមថ្នាក់) -->
+            <div id="flag-summary-section" class="card" style="display: none;">
+                <h2 class="card-title">📊 សង្ខេបទិន្នន័យគោរពទង់ជាតិតាមថ្នាក់</h2>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="flag-summary-week">សប្តាហ៍</label>
+                            <select id="flag-summary-week" class="form-control" onchange="loadFlagSummaryReport()">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="flag-summary-day">ថ្ងៃ</label>
+                            <select id="flag-summary-day" class="form-control" onchange="loadFlagSummaryReport()">
+                                <option value="all">ទាំងសប្តាហ៍</option>
+                                <option value="monday">ច័ន្ទ</option>
+                                <option value="tuesday">អង្គារ</option>
+                                <option value="wednesday">ពុធ</option>
+                                <option value="thursday">ព្រហស្បតិ៍</option>
+                                <option value="friday">សុក្រ</option>
+                                <option value="saturday">សៅរ៍</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="summary-card">
+                    <div class="summary-title">
+                        📊 សង្ខេបទិន្នន័យគោរពទង់ជាតិ
+                    </div>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <div class="summary-number" id="summary-total-classes">0</div>
+                            <div class="summary-label">ថ្នាក់សរុប</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="summary-total-students">0</div>
+                            <div class="summary-label">សិស្សសរុប</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="summary-total-present">0</div>
+                            <div class="summary-label">មកគោរពទង់ជាតិ</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="summary-total-late">0</div>
+                            <div class="summary-label">ចំនួនដងមកយឺត</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="summary-attendance-rate">0%</div>
+                            <div class="summary-label">អត្រាមកគោរពទង់ជាតិ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Class Summary Table -->
+                <div class="table-container">
+                    <table class="class-summary-table" id="flag-class-summary-table">
+                        <thead>
+                            <tr>
+                                <th>ថ្នាក់</th>
+                                <th>សិស្សសរុប</th>
+                                <th>មកគោរពទង់ជាតិ</th>
+                                <th>មិនមកគោរពទង់ជាតិ</th>
+                                <th>មិនទាន់ស្កេន</th>
+                                <th>ចំនួនដងមកយឺត</th>
+                                <th>អត្រាមកគោរពទង់ជាតិ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="flag-class-summary-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="flag-summary-empty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📄</div>
+                    <h3>មិនមានទិន្នន័យ</h3>
+                    <p>មិនមានទិន្នន័យសិស្សមកគោរពទង់ជាតិក្នុងសប្តាហ៍នេះ</p>
+                </div>
+                <div id="flag-summary-loading" class="empty-state">
+                    <div class="loading"></div>
+                    <p>កំពុងទាញយកទិន្នន័យ...</p>
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportFlagSummaryToExcel()">
+                        📊 Export Summary to Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="printFlagSummaryReport()">
+                        🖨️ Print Summary
+                    </button>
+                </div>
+            </div>
+
+            <!-- Late Report Section -->
+            <div id="late-report-section" class="card" style="display: none;">
+                <h2 class="card-title">⏰ របាយការណ៍សិស្សមកយឺត</h2>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="late-week-selector">សប្តាហ៍</label>
+                            <select id="late-week-selector" class="form-control" onchange="loadLateReportData()">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="late-class-filter">ថ្នាក់</label>
+                            <select id="late-class-filter" class="form-control" onchange="loadLateReportData()">
+                                <option value="all">ទាំងអស់</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="late-search">ស្វែងរក</label>
+                            <input type="text" id="late-search" class="form-control" placeholder="ឈ្មោះសិស្ស..." onkeyup="filterLateReportData()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-late-students">0</div>
+                        <div class="stat-label">សិស្សមកយឺតសរុប</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-late-count-week">0</div>
+                        <div class="stat-label">ចំនួនដងមកយឺតសរុប</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="avg-late-per-student">0</div>
+                        <div class="stat-label">ចំនួនដងមកយឺតជាមធ្យមក្នុងមួយសិស្ស</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="most-late-class">-</div>
+                        <div class="stat-label">ថ្នាក់មានសិស្សមកយឺតច្រើនជាងគេ</div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table class="data-table" id="late-report-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" onclick="sortLateTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortLateTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortLateTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortLateTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortLateTable(4)">ចំនួនដងមកយឺត</th>
+                                <th class="sortable-header" onclick="sortLateTable(5)">ថ្ងៃចុងក្រោយមកយឺត</th>
+                                <th class="sortable-header" onclick="sortLateTable(6)">មកគោរពទង់ជាតិ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="late-report-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="late-report-empty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">⏰</div>
+                    <h3>គ្មានសិស្សមកយឺត</h3>
+                    <p>មិនមានទិន្នន័យសិស្សមកយឺតក្នុងសប្តាហ៍នេះ</p>
+                </div>
+                <div id="late-report-loading" class="empty-state">
+                    <div class="loading"></div>
+                    <p>កំពុងទាញយកទិន្នន័យ...</p>
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportLateReportToExcel()">
+                        📊 Export Late Report to Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="printLateReport()">
+                        🖨️ Print Late Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GLOBAL VARIABLES
+        // ============================================
+
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+
+        // Global variables
+        let supabaseClient = null;
+        let currentReportType = null;
+        let flagReportData = [];
+        let flagSummaryData = [];
+        let lateReportData = [];
+        let allStudents = [];
+        let flagReports = [];
+        let lateReports = [];
+        let currentFlagWeek = null;
+        let flagSortColumn = null;
+        let flagSortDirection = 'asc';
+        let lateSortColumn = null;
+        let lateSortDirection = 'asc';
+
+        // Report type definitions
+        const reportTypes = {
+            late: {
+                title: "ទិន្នន័យយឺត",
+                description: "របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន",
+                table: "attendance_reports"
+            },
+            discipline: {
+                title: "ទិន្នន័យវិន័យ",
+                description: "របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ",
+                table: "discipline_reports"
+            },
+            helpful: {
+                title: "ទិន្នន័យជំនួយ",
+                description: "របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ",
+                table: "helpful_reports"
+            },
+            flag: {
+                title: "ទិន្នន័យមកគោរពទង់ជាតិ",
+                description: "របាយការណ៍សិស្សមកគោរពទង់ជាតិតាមសប្តាហ៍",
+                table: "flag_ceremony_reports"
+            },
+            'flag-summary': {
+                title: "សង្ខេបទិន្នន័យគោរពទង់ជាតិ",
+                description: "របាយការណ៍សង្ខេបសិស្សមកគោរពទង់ជាតិតាមថ្នាក់",
+                table: "flag_ceremony_reports"
+            }
+        };
+
+        // Days of the week
+        const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const daysOfWeekKh = ['ច័ន្ទ', 'អង្គារ', 'ពុធ', 'ព្រហស្បតិ៍', 'សុក្រ', 'សៅរ៍'];
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing application...');
+            
+            // Check if all required libraries are loaded
+            if (typeof XLSX === 'undefined') {
+                console.error('SheetJS (XLSX) not loaded');
+                showErrorMessage('SheetJS (XLSX) library failed to load. Please refresh the page.');
+                return;
+            }
+            
+            if (typeof supabase === 'undefined') {
+                console.error('Supabase library not loaded');
+                showErrorMessage('Supabase library failed to load. Please check your internet connection and refresh the page.');
+                return;
+            }
+            
+            // Initialize Supabase client
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase client initialized');
+                
+                // Initialize application
+                initializeApp();
+                
+            } catch (error) {
+                console.error('❌ Error initializing Supabase client:', error);
+                showErrorMessage('កំហុសក្នុងការចាប់ផ្តើម: ' + error.message);
+            }
+        });
+
+        function showErrorMessage(message) {
+            const appContainer = document.querySelector('.app-container');
+            if (appContainer) {
+                appContainer.innerHTML = `
+                    <div style="padding: 40px; text-align: center; background: white; border-radius: 16px;">
+                        <h2 style="color: #dc3545; margin-bottom: 20px;">⚠️ កំហុសក្នុងការផ្ទុកកម្មវិធី</h2>
+                        <p style="margin-bottom: 30px; color: #666;">${message}</p>
+                        <button onclick="window.location.reload()" class="btn btn-primary" style="padding: 12px 24px;">
+                            🔄 ពន្លឺទំព័រឡើងវិញ
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // ============================================
+        // NAVIGATION FUNCTIONS
+        // ============================================
+
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        function goToScanner() {
+            window.location.href = 'scan.html';
+        }
+
+        // ============================================
+        // MAIN APPLICATION FUNCTIONS
+        // ============================================
+
+        async function initializeApp() {
+            console.log('🚀 Starting app initialization...');
+            
+            try {
+                // Load all students
+                await loadAllStudents();
+                
+                // Populate week selector
+                populateWeekSelector();
+                
+                console.log('✅ Application initialized successfully');
+            } catch (error) {
+                console.error('❌ Error initializing app:', error);
+                showErrorMessage('កំហុសក្នុងការចាប់ផ្តើមកម្មវិធី: ' + error.message);
+            }
+        }
+
+        async function loadAllStudents() {
+            try {
+                console.log('🔍 Loading all students...');
+                
+                const { data, error } = await supabaseClient
+                    .from('students')
+                    .select('*')
+                    .order('class', { ascending: true })
+                    .order('name', { ascending: true });
+                
+                if (error) {
+                    console.error('❌ Error loading students:', error);
+                    throw error;
+                }
+                
+                allStudents = data || [];
+                
+                // Save to localStorage as backup
+                localStorage.setItem('allStudents', JSON.stringify(allStudents));
+                
+                console.log(`✅ Loaded ${allStudents.length} students`);
+                
+                // Populate class filter
+                populateClassFilter();
+                
+            } catch (error) {
+                console.error('❌ Error loading students:', error);
+                // Try to load from localStorage as fallback
+                try {
+                    allStudents = JSON.parse(localStorage.getItem('allStudents') || '[]');
+                    console.log(`⚠️ Loaded ${allStudents.length} students from localStorage backup`);
+                    
+                    // Still populate class filter even with cached data
+                    populateClassFilter();
+                } catch (localStorageError) {
+                    console.error('❌ Error loading from localStorage:', localStorageError);
+                    allStudents = [];
+                }
+            }
+        }
+
+        function populateClassFilter() {
+            const flagClassFilter = document.getElementById('flag-class-filter');
+            const lateClassFilter = document.getElementById('late-class-filter');
+            
+            const classes = [...new Set(allStudents.map(student => student.class))].sort();
+            
+            const populateSelector = (selector) => {
+                if (!selector) return;
+                
+                selector.innerHTML = '<option value="all">ទាំងអស់</option>';
+                
+                classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    selector.appendChild(option);
+                });
+            };
+            
+            populateSelector(flagClassFilter);
+            populateSelector(lateClassFilter);
+        }
+
+        function populateWeekSelector() {
+            const weekSelector = document.getElementById('flag-week-selector');
+            const summaryWeekSelector = document.getElementById('flag-summary-week');
+            const lateWeekSelector = document.getElementById('late-week-selector');
+            
+            // Get current week
+            const today = new Date();
+            const currentWeek = getWeekNumber(today);
+            const currentYear = today.getFullYear();
+            
+            // Generate options for last 4 weeks
+            const options = [];
+            for (let i = 0; i < 4; i++) {
+                const weekDate = new Date(today);
+                weekDate.setDate(today.getDate() - (i * 7));
+                const weekNum = getWeekNumber(weekDate);
+                const year = weekDate.getFullYear();
+                
+                // Get start and end date of the week
+                const weekStart = getStartOfWeek(weekDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                
+                const weekLabel = `សប្តាហ៍ទី ${weekNum} ឆ្នាំ ${year} (${formatDate(weekStart)} - ${formatDate(weekEnd)})`;
+                const weekValue = `${year}-W${weekNum.toString().padStart(2, '0')}`;
+                
+                options.push({ label: weekLabel, value: weekValue, weekNum, year });
+            }
+            
+            // Function to populate selector
+            const populateSelector = (selector) => {
+                if (!selector) return;
+                
+                selector.innerHTML = '';
+                
+                options.forEach((option, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.label;
+                    if (index === 0) {
+                        opt.selected = true;
+                        currentFlagWeek = option.value;
+                    }
+                    selector.appendChild(opt);
+                });
+            };
+            
+            // Populate all selectors
+            populateSelector(weekSelector);
+            populateSelector(summaryWeekSelector);
+            populateSelector(lateWeekSelector);
+        }
+
+        // ============================================
+        // REPORT TYPE SELECTION
+        // ============================================
+
+        function selectReportType(type) {
+            console.log('Selected report type:', type);
+            
+            // Hide all report sections
+            document.getElementById('flag-report-section').style.display = 'none';
+            document.getElementById('flag-summary-section').style.display = 'none';
+            document.getElementById('late-report-section').style.display = 'none';
+            
+            // Remove selected class from all cards
+            document.querySelectorAll('.report-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to current card
+            const currentCard = document.querySelector(`.report-type-card[data-type="${type}"]`);
+            if (currentCard) {
+                currentCard.classList.add('selected');
+            }
+            
+            currentReportType = type;
+            
+            // Show the appropriate section
+            if (type === 'flag') {
+                document.getElementById('flag-report-section').style.display = 'block';
+                loadFlagReportData();
+            } else if (type === 'flag-summary') {
+                document.getElementById('flag-summary-section').style.display = 'block';
+                loadFlagSummaryReport();
+            } else if (type === 'late') {
+                document.getElementById('late-report-section').style.display = 'block';
+                loadLateReportData();
+            } else {
+                alert('អនុញ្ញាតសម្រាប់ប្រភេទរបាយការណ៍ផ្សេងទៀតនឹងបានអភិវឌ្ឍន៍នៅពេលក្រោយ');
+            }
+        }
+
+        // ============================================
+        // FLAG CEREMONY REPORT FUNCTIONS
+        // ============================================
+
+        async function loadFlagReportData() {
+            const weekSelector = document.getElementById('flag-week-selector');
+            const classFilter = document.getElementById('flag-class-filter');
+            const presenceFilter = document.getElementById('flag-presence-filter');
+            
+            if (!weekSelector || !classFilter) return;
+            
+            const selectedWeek = weekSelector.value;
+            const selectedClass = classFilter.value;
+            const selectedPresence = presenceFilter ? presenceFilter.value : 'all';
+            
+            document.getElementById('flag-report-loading').style.display = 'block';
+            document.getElementById('flag-report-empty').style.display = 'none';
+            document.getElementById('flag-report-table-body').innerHTML = '';
+            
+            try {
+                // Parse week information
+                const [year, week] = selectedWeek.split('-W');
+                const weekNum = parseInt(week);
+                const yearNum = parseInt(year);
+                
+                // Get start date of the week (Monday)
+                const weekStartDate = getDateFromWeek(yearNum, weekNum);
+                
+                // Generate dates for each day of the week
+                const weekDates = [];
+                for (let i = 0; i < 6; i++) {
+                    const date = new Date(weekStartDate);
+                    date.setDate(weekStartDate.getDate() + i);
+                    weekDates.push(date.toISOString().split('T')[0]);
+                }
+                
+                console.log(`📅 Loading flag ceremony data for week ${weekNum}, year ${yearNum}`);
+                console.log(`📅 Week dates:`, weekDates);
+                
+                // Load flag ceremony reports for this week
+                const { data: flagData, error: flagError } = await supabaseClient
+                    .from('flag_ceremony_reports')
+                    .select('*')
+                    .gte('date', weekDates[0])
+                    .lte('date', weekDates[5]);
+                
+                if (flagError) {
+                    console.error('❌ Error loading flag ceremony reports:', flagError);
+                    throw flagError;
+                }
+                
+                flagReports = flagData || [];
+                
+                console.log(`✅ Loaded ${flagReports.length} flag ceremony reports for the week`);
+                
+                // Load late data for this week
+                const lateData = await loadLateDataForWeek(weekDates);
+                
+                // Filter students by class if needed
+                let filteredStudents = [...allStudents];
+                if (selectedClass !== 'all') {
+                    filteredStudents = filteredStudents.filter(student => student.class === selectedClass);
+                }
+                
+                // Generate report data for each student
+                flagReportData = filteredStudents.map(student => {
+                    const studentReports = flagReports.filter(report => report.student_id === student.id);
+                    const studentLateReports = lateData.filter(report => report.student_id === student.id);
+                    
+                    // Create attendance record for each day
+                    const attendance = {};
+                    daysOfWeek.forEach((day, index) => {
+                        const reportForDay = studentReports.find(report => report.date === weekDates[index]);
+                        attendance[day] = reportForDay ? true : false;
+                    });
+                    
+                    // Calculate total attendance
+                    const presentDays = Object.values(attendance).filter(Boolean).length;
+                    const totalDays = 6; // Monday to Saturday
+                    const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
+                    
+                    // Calculate late count
+                    const lateCount = studentLateReports.length;
+                    
+                    // Determine overall status
+                    let overallStatus = 'មិនទាន់ស្កេន';
+                    if (presentDays > 0 && presentDays < totalDays) {
+                        overallStatus = `មក ${presentDays}/${totalDays} ថ្ងៃ`;
+                    } else if (presentDays === totalDays) {
+                        overallStatus = 'មកគ្រប់ថ្ងៃ';
+                    }
+                    
+                    return {
+                        ...student,
+                        attendance,
+                        presentDays,
+                        totalDays,
+                        attendanceRate,
+                        lateCount,
+                        overallStatus,
+                        weekDates
+                    };
+                });
+                
+                // Filter by presence status if needed
+                if (selectedPresence === 'present') {
+                    flagReportData = flagReportData.filter(student => student.presentDays > 0);
+                } else if (selectedPresence === 'absent') {
+                    flagReportData = flagReportData.filter(student => student.presentDays === 0);
+                } else if (selectedPresence === 'late') {
+                    flagReportData = flagReportData.filter(student => student.lateCount > 0);
+                }
+                
+                // Sort by class and name by default
+                flagReportData.sort((a, b) => {
+                    if (a.class < b.class) return -1;
+                    if (a.class > b.class) return 1;
+                    return a.name.localeCompare(b.name, 'km');
+                });
+                
+                renderFlagReportTable();
+                updateFlagReportStats();
+                
+            } catch (error) {
+                console.error('❌ Error loading flag report data:', error);
+                document.getElementById('flag-report-loading').style.display = 'none';
+                document.getElementById('flag-report-empty').style.display = 'block';
+                document.getElementById('flag-report-empty').innerHTML = `
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</h3>
+                    <p>សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក</p>
+                    <button onclick="loadFlagReportData()" class="btn btn-primary" style="margin-top: 20px;">
+                        🔄 ព្យាយាមម្តងទៀត
+                    </button>
+                `;
+            }
+        }
+
+        async function loadLateDataForWeek(weekDates) {
+            try {
+                const { data: lateData, error } = await supabaseClient
+                    .from('attendance_reports')
+                    .select('*')
+                    .eq('type', 'late')
+                    .gte('date', weekDates[0])
+                    .lte('date', weekDates[5]);
+                
+                if (error) throw error;
+                return lateData || [];
+            } catch (error) {
+                console.error('❌ Error loading late data:', error);
+                return [];
+            }
+        }
+
+        function renderFlagReportTable() {
+            const tableBody = document.getElementById('flag-report-table-body');
+            const loadingElement = document.getElementById('flag-report-loading');
+            const emptyElement = document.getElementById('flag-report-empty');
+            
+            loadingElement.style.display = 'none';
+            
+            if (flagReportData.length === 0) {
+                emptyElement.style.display = 'block';
+                tableBody.innerHTML = '';
+                return;
+            }
+            
+            emptyElement.style.display = 'none';
+            
+            let html = '';
+            flagReportData.forEach((student, index) => {
+                const attendanceCells = daysOfWeek.map(day => {
+                    const isPresent = student.attendance[day];
+                    if (isPresent === true) {
+                        return '<td class="flag-presence">✓</td>';
+                    } else if (isPresent === false) {
+                        // Check if there are any reports at all for this student
+                        const hasAnyReport = student.presentDays > 0;
+                        return hasAnyReport ? '<td class="flag-absent">✗</td>' : '<td class="flag-not-scanned">-</td>';
+                    } else {
+                        return '<td class="flag-not-scanned">-</td>';
+                    }
+                }).join('');
+                
+                // Determine status badge class
+                let statusClass = 'badge-flag';
+                if (student.presentDays === 0) {
+                    statusClass = 'badge-discipline';
+                } else if (student.presentDays < student.totalDays) {
+                    statusClass = 'badge-warning';
+                }
+                
+                // Determine late badge color
+                let lateBadgeClass = 'badge-late';
+                if (student.lateCount === 0) {
+                    lateBadgeClass = 'badge-flag';
+                } else if (student.lateCount > 3) {
+                    lateBadgeClass = 'badge-discipline';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div><strong>${student.name}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.id}</div>
+                        </td>
+                        <td>${student.class}</td>
+                        <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                        ${attendanceCells}
+                        <td><span class="badge ${lateBadgeClass}">${student.lateCount || 0} ដង</span></td>
+                        <td><span class="badge ${statusClass}">${student.overallStatus}</span></td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+            
+            // Update sort icons
+            updateSortIcons('flag-report-table', flagSortColumn, flagSortDirection);
+        }
+
+        function updateFlagReportStats() {
+            if (flagReportData.length === 0) {
+                document.getElementById('total-flag-students').textContent = '0';
+                document.getElementById('total-flag-present').textContent = '0';
+                document.getElementById('total-flag-absent').textContent = '0';
+                document.getElementById('total-late-count').textContent = '0';
+                document.getElementById('flag-attendance-rate').textContent = '0%';
+                return;
+            }
+            
+            const totalStudents = flagReportData.length;
+            const totalPresent = flagReportData.filter(student => student.presentDays > 0).length;
+            const totalAbsent = flagReportData.filter(student => student.presentDays === 0).length;
+            const totalLateCount = flagReportData.reduce((sum, student) => sum + (student.lateCount || 0), 0);
+            const attendanceRate = Math.round((totalPresent / totalStudents) * 100);
+            
+            document.getElementById('total-flag-students').textContent = totalStudents;
+            document.getElementById('total-flag-present').textContent = totalPresent;
+            document.getElementById('total-flag-absent').textContent = totalAbsent;
+            document.getElementById('total-late-count').textContent = totalLateCount;
+            document.getElementById('flag-attendance-rate').textContent = `${attendanceRate}%`;
+        }
+
+        function filterFlagReportData() {
+            const searchInput = document.getElementById('flag-search');
+            if (!searchInput) return;
+            
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderFlagReportTable();
+                return;
+            }
+            
+            const filteredData = flagReportData.filter(student => 
+                student.name.toLowerCase().includes(searchTerm) ||
+                student.class.toLowerCase().includes(searchTerm) ||
+                (student.id && student.id.toLowerCase().includes(searchTerm))
+            );
+            
+            const tableBody = document.getElementById('flag-report-table-body');
+            const emptyElement = document.getElementById('flag-report-empty');
+            
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = '';
+                emptyElement.style.display = 'block';
+                emptyElement.innerHTML = `
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>មិនមានលទ្ធផល</h3>
+                    <p>គ្មានទិន្នន័យសិស្សដែលត្រូវនឹងការស្វែងរក "${searchTerm}"</p>
+                `;
+                return;
+            }
+            
+            emptyElement.style.display = 'none';
+            
+            let html = '';
+            filteredData.forEach((student, index) => {
+                const attendanceCells = daysOfWeek.map(day => {
+                    const isPresent = student.attendance[day];
+                    if (isPresent === true) {
+                        return '<td class="flag-presence">✓</td>';
+                    } else if (isPresent === false) {
+                        const hasAnyReport = student.presentDays > 0;
+                        return hasAnyReport ? '<td class="flag-absent">✗</td>' : '<td class="flag-not-scanned">-</td>';
+                    } else {
+                        return '<td class="flag-not-scanned">-</td>';
+                    }
+                }).join('');
+                
+                let statusClass = 'badge-flag';
+                if (student.presentDays === 0) {
+                    statusClass = 'badge-discipline';
+                } else if (student.presentDays < student.totalDays) {
+                    statusClass = 'badge-warning';
+                }
+                
+                let lateBadgeClass = 'badge-late';
+                if (student.lateCount === 0) {
+                    lateBadgeClass = 'badge-flag';
+                } else if (student.lateCount > 3) {
+                    lateBadgeClass = 'badge-discipline';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div><strong>${student.name}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.id}</div>
+                        </td>
+                        <td>${student.class}</td>
+                        <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                        ${attendanceCells}
+                        <td><span class="badge ${lateBadgeClass}">${student.lateCount || 0} ដង</span></td>
+                        <td><span class="badge ${statusClass}">${student.overallStatus}</span></td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        function sortFlagTable(column) {
+            if (flagReportData.length === 0) return;
+            
+            // Update sort direction
+            if (flagSortColumn === column) {
+                flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                flagSortColumn = column;
+                flagSortDirection = 'asc';
+            }
+            
+            // Sort the data
+            flagReportData.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(column) {
+                    case 0: // ល.រ (already sorted by original order)
+                        return flagSortDirection === 'asc' ? 0 : 0;
+                    case 1: // ឈ្មោះ
+                        aValue = a.name;
+                        bValue = b.name;
+                        break;
+                    case 2: // ថ្នាក់
+                        aValue = a.class;
+                        bValue = b.class;
+                        break;
+                    case 3: // ភេទ
+                        aValue = a.gender || '';
+                        bValue = b.gender || '';
+                        break;
+                    case 10: // ចំនួនដងមកយឺត
+                        aValue = a.lateCount || 0;
+                        bValue = b.lateCount || 0;
+                        break;
+                    case 11: // ស្ថានភាពសរុប
+                        aValue = a.presentDays;
+                        bValue = b.presentDays;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (column === 10 || column === 11) {
+                    // Numeric sort for late count and attendance
+                    if (flagSortDirection === 'asc') {
+                        return aValue - bValue;
+                    } else {
+                        return bValue - aValue;
+                    }
+                } else {
+                    // String sort for other columns
+                    if (flagSortDirection === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
+                }
+            });
+            
+            // Re-render the table
+            renderFlagReportTable();
+        }
+
+        function sortFlagTableByLateCount() {
+            flagSortColumn = 10;
+            flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
+            
+            flagReportData.sort((a, b) => {
+                const aLate = a.lateCount || 0;
+                const bLate = b.lateCount || 0;
+                
+                if (flagSortDirection === 'asc') {
+                    return aLate - bLate;
+                } else {
+                    return bLate - aLate;
+                }
+            });
+            
+            renderFlagReportTable();
+        }
+
+        function sortFlagTableByAttendance() {
+            flagSortColumn = 11;
+            flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
+            
+            flagReportData.sort((a, b) => {
+                const aAtt = a.presentDays || 0;
+                const bAtt = b.presentDays || 0;
+                
+                if (flagSortDirection === 'asc') {
+                    return aAtt - bAtt;
+                } else {
+                    return bAtt - aAtt;
+                }
+            });
+            
+            renderFlagReportTable();
+        }
+
+        function sortFlagTableByName() {
+            flagSortColumn = 1;
+            flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
+            
+            flagReportData.sort((a, b) => {
+                if (flagSortDirection === 'asc') {
+                    return a.name.localeCompare(b.name, 'km');
+                } else {
+                    return b.name.localeCompare(a.name, 'km');
+                }
+            });
+            
+            renderFlagReportTable();
+        }
+
+        function sortFlagTableByClass() {
+            flagSortColumn = 2;
+            flagSortDirection = flagSortDirection === 'asc' ? 'desc' : 'asc';
+            
+            flagReportData.sort((a, b) => {
+                if (flagSortDirection === 'asc') {
+                    return a.class.localeCompare(b.class, 'km');
+                } else {
+                    return b.class.localeCompare(a.class, 'km');
+                }
+            });
+            
+            renderFlagReportTable();
+        }
+
+        function updateSortIcons(tableId, currentColumn, direction) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const headers = table.querySelectorAll('th');
+            
+            headers.forEach((header, index) => {
+                // Remove existing sort icons
+                const existingIcons = header.querySelectorAll('.sort-icon');
+                existingIcons.forEach(icon => icon.remove());
+                
+                if (index === currentColumn) {
+                    const sortIcon = document.createElement('span');
+                    sortIcon.className = 'sort-icon';
+                    sortIcon.textContent = direction === 'asc' ? '▴' : '▾';
+                    header.appendChild(sortIcon);
+                }
+            });
+        }
+
+        function exportFlagReportToExcel() {
+            if (flagReportData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                return;
+            }
+            
+            try {
+                const weekSelector = document.getElementById('flag-week-selector');
+                const selectedOption = weekSelector ? weekSelector.options[weekSelector.selectedIndex] : null;
+                const weekLabel = selectedOption ? selectedOption.text : 'Unknown Week';
+                
+                const excelData = flagReportData.map((student, index) => {
+                    const attendanceValues = daysOfWeek.map(day => {
+                        const isPresent = student.attendance[day];
+                        if (isPresent === true) return 'មកគោរពទង់ជាតិ';
+                        if (isPresent === false) return 'មិនមកគោរពទង់ជាតិ';
+                        return 'មិនទាន់ស្កេន';
+                    });
+                    
+                    return {
+                        'ល.រ': index + 1,
+                        'ឈ្មោះសិស្ស': student.name,
+                        'លេខសម្គាល់': student.id,
+                        'ថ្នាក់': student.class,
+                        'ភេទ': student.gender || 'មិនមានទិន្នន័យ',
+                        'ច័ន្ទ': attendanceValues[0],
+                        'អង្គារ': attendanceValues[1],
+                        'ពុធ': attendanceValues[2],
+                        'ព្រហស្បតិ៍': attendanceValues[3],
+                        'សុក្រ': attendanceValues[4],
+                        'សៅរ៍': attendanceValues[5],
+                        'ចំនួនដងមកយឺត': student.lateCount || 0,
+                        'ស្ថានភាពសរុប': student.overallStatus,
+                        'ចំនួនថ្ងៃមក': student.presentDays,
+                        'ចំនួនថ្ងៃសរុប': student.totalDays,
+                        'អត្រាមកគោរពទង់ជាតិ': `${student.attendanceRate}%`
+                    };
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                const sheetName = 'ទិន្នន័យគោរពទង់ជាតិ';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `flag_ceremony_report_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported ${flagReportData.length} flag ceremony records to Excel`);
+            } catch (error) {
+                console.error('❌ Error exporting flag report to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            }
+        }
+
+        function exportFlagLateReport() {
+            if (flagReportData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                return;
+            }
+            
+            // Filter students who are late
+            const lateStudents = flagReportData.filter(student => student.lateCount > 0);
+            
+            if (lateStudents.length === 0) {
+                alert('⚠️ មិនមានសិស្សមកយឺតក្នុងសប្តាហ៍នេះ');
+                return;
+            }
+            
+            try {
+                const weekSelector = document.getElementById('flag-week-selector');
+                const selectedOption = weekSelector ? weekSelector.options[weekSelector.selectedIndex] : null;
+                const weekLabel = selectedOption ? selectedOption.text : 'Unknown Week';
+                
+                const excelData = lateStudents.map((student, index) => {
+                    return {
+                        'ល.រ': index + 1,
+                        'ឈ្មោះសិស្ស': student.name,
+                        'លេខសម្គាល់': student.id,
+                        'ថ្នាក់': student.class,
+                        'ភេទ': student.gender || 'មិនមានទិន្នន័យ',
+                        'ចំនួនដងមកយឺត': student.lateCount || 0,
+                        'ថ្ងៃមកគោរពទង់ជាតិ': student.presentDays,
+                        'ស្ថានភាពសរុប': student.overallStatus,
+                        'អត្រាមកគោរពទង់ជាតិ': `${student.attendanceRate}%`
+                    };
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                const sheetName = 'សិស្សមកយឺត';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `late_students_report_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported ${lateStudents.length} late student records to Excel`);
+            } catch (error) {
+                console.error('❌ Error exporting flag late report to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            }
+        }
+
+        function printFlagReport() {
+            if (flagReportData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                return;
+            }
+            
+            const weekSelector = document.getElementById('flag-week-selector');
+            const selectedOption = weekSelector ? weekSelector.options[weekSelector.selectedIndex] : null;
+            const weekLabel = selectedOption ? selectedOption.text : 'Unknown Week';
+            const today = new Date().toLocaleDateString('km-KH');
+            
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="km">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>របាយការណ៍សិស្សមកគោរពទង់ជាតិ</title>
+                    <style>
+                        body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .header h1 { color: #333; margin-bottom: 10px; }
+                        .header .date { color: #666; }
+                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th { background-color: #f5f5f5; font-weight: bold; }
+                        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                        .present { color: #28a745; }
+                        .absent { color: #dc3545; }
+                        .not-scanned { color: #6c757d; }
+                        .late { color: #ffc107; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>របាយការណ៍សិស្សមកគោរពទង់ជាតិ</h1>
+                        <div class="date">${weekLabel}</div>
+                        <div class="date">កាលបរិច្ឆេទបោះពុម្ព: ${today}</div>
+                        <div class="date">ចំនួនសិស្សសរុប: ${flagReportData.length}</div>
+                    </div>
+                    <div class="summary-info">
+                        <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                        - សិស្សមកគោរពទង់ជាតិ: ${flagReportData.filter(s => s.presentDays > 0).length} នាក់<br>
+                        - សិស្សមិនមកគោរពទង់ជាតិ: ${flagReportData.filter(s => s.presentDays === 0).length} នាក់<br>
+                        - ចំនួនដងមកយឺតសរុប: ${flagReportData.reduce((sum, s) => sum + (s.lateCount || 0), 0)} ដង<br>
+                        - អត្រាមកគោរពទង់ជាតិ: ${Math.round((flagReportData.filter(s => s.presentDays > 0).length / flagReportData.length) * 100)}%
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ល.រ</th>
+                                <th>ឈ្មោះសិស្ស</th>
+                                <th>ថ្នាក់</th>
+                                <th>ភេទ</th>
+                                <th>ច័ន្ទ</th>
+                                <th>អង្គារ</th>
+                                <th>ពុធ</th>
+                                <th>ព្រហស្បតិ៍</th>
+                                <th>សុក្រ</th>
+                                <th>សៅរ៍</th>
+                                <th>ចំនួនដងមកយឺត</th>
+                                <th>ស្ថានភាពសរុប</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${flagReportData.map((student, index) => {
+                                const attendanceCells = daysOfWeek.map(day => {
+                                    const isPresent = student.attendance[day];
+                                    if (isPresent === true) return '<td class="present">✓</td>';
+                                    if (isPresent === false) {
+                                        const hasAnyReport = student.presentDays > 0;
+                                        return hasAnyReport ? '<td class="absent">✗</td>' : '<td class="not-scanned">-</td>';
+                                    }
+                                    return '<td class="not-scanned">-</td>';
+                                }).join('');
+                                
+                                const lateCell = student.lateCount > 0 ? 
+                                    `<td class="late">${student.lateCount} ដង</td>` : 
+                                    `<td>${student.lateCount || 0} ដង</td>`;
+                                
+                                return `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${student.name}<br><small>ID: ${student.id}</small></td>
+                                        <td>${student.class}</td>
+                                        <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                                        ${attendanceCells}
+                                        ${lateCell}
+                                        <td>${student.overallStatus}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+
+        // ============================================
+        // FLAG SUMMARY REPORT FUNCTIONS (តារាងតាមថ្នាក់)
+        // ============================================
+
+        async function loadFlagSummaryReport() {
+            const weekSelector = document.getElementById('flag-summary-week');
+            const daySelector = document.getElementById('flag-summary-day');
+            
+            if (!weekSelector || !daySelector) return;
+            
+            const selectedWeek = weekSelector.value;
+            const selectedDay = daySelector.value;
+            
+            document.getElementById('flag-summary-loading').style.display = 'block';
+            document.getElementById('flag-summary-empty').style.display = 'none';
+            document.getElementById('flag-class-summary-table-body').innerHTML = '';
+            
+            try {
+                // Parse week information
+                const [year, week] = selectedWeek.split('-W');
+                const weekNum = parseInt(week);
+                const yearNum = parseInt(year);
+                
+                // Get start date of the week (Monday)
+                const weekStartDate = getDateFromWeek(yearNum, weekNum);
+                
+                // Generate dates for each day of the week
+                const weekDates = [];
+                for (let i = 0; i < 6; i++) {
+                    const date = new Date(weekStartDate);
+                    date.setDate(weekStartDate.getDate() + i);
+                    weekDates.push(date.toISOString().split('T')[0]);
+                }
+                
+                // Determine which dates to include based on selected day
+                let targetDates = [];
+                if (selectedDay === 'all') {
+                    targetDates = weekDates;
+                } else {
+                    const dayIndex = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(selectedDay);
+                    if (dayIndex !== -1) {
+                        targetDates = [weekDates[dayIndex]];
+                    }
+                }
+                
+                console.log(`📊 Loading flag ceremony summary for ${selectedDay}, week ${weekNum}`);
+                
+                // Load flag ceremony reports for the target dates
+                const { data: flagData, error: flagError } = await supabaseClient
+                    .from('flag_ceremony_reports')
+                    .select('*')
+                    .in('date', targetDates);
+                
+                if (flagError) {
+                    console.error('❌ Error loading flag ceremony reports:', flagError);
+                    throw flagError;
+                }
+                
+                flagReports = flagData || [];
+                
+                // Load late data for this week
+                const lateData = await loadLateDataForWeek(weekDates);
+                
+                console.log(`✅ Loaded ${flagReports.length} flag ceremony reports for summary`);
+                
+                // Group students by class
+                const classGroups = {};
+                
+                // Initialize class groups with all students
+                allStudents.forEach(student => {
+                    if (!classGroups[student.class]) {
+                        classGroups[student.class] = {
+                            students: [],
+                            presentCount: 0,
+                            absentCount: 0,
+                            notScannedCount: 0,
+                            lateCount: 0
+                        };
+                    }
+                    classGroups[student.class].students.push(student);
+                });
+                
+                // Process flag reports to update counts
+                flagReports.forEach(report => {
+                    const student = allStudents.find(s => s.id === report.student_id);
+                    if (student && classGroups[student.class]) {
+                        classGroups[student.class].presentCount++;
+                    }
+                });
+                
+                // Process late reports to update late counts
+                lateData.forEach(report => {
+                    const student = allStudents.find(s => s.id === report.student_id);
+                    if (student && classGroups[student.class]) {
+                        classGroups[student.class].lateCount++;
+                    }
+                });
+                
+                // Calculate summary for each class
+                flagSummaryData = Object.keys(classGroups).map(className => {
+                    const group = classGroups[className];
+                    const totalStudents = group.students.length;
+                    const present = group.presentCount;
+                    const notScanned = totalStudents - present;
+                    
+                    // For daily report, students without report are considered absent
+                    const absent = notScanned;
+                    const late = group.lateCount;
+                    
+                    const attendanceRate = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
+                    
+                    return {
+                        className,
+                        totalStudents,
+                        present,
+                        absent,
+                        notScanned,
+                        late,
+                        attendanceRate
+                    };
+                });
+                
+                // Sort classes alphabetically
+                flagSummaryData.sort((a, b) => a.className.localeCompare(b.className, 'km'));
+                
+                renderFlagSummaryTable();
+                updateFlagSummaryStats();
+                
+            } catch (error) {
+                console.error('❌ Error loading flag summary report:', error);
+                document.getElementById('flag-summary-loading').style.display = 'none';
+                document.getElementById('flag-summary-empty').style.display = 'block';
+                document.getElementById('flag-summary-empty').innerHTML = `
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</h3>
+                    <p>សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក</p>
+                    <button onclick="loadFlagSummaryReport()" class="btn btn-primary" style="margin-top: 20px;">
+                        🔄 ព្យាយាមម្តងទៀត
+                    </button>
+                `;
+            }
+        }
+
+        function renderFlagSummaryTable() {
+            const tableBody = document.getElementById('flag-class-summary-table-body');
+            const loadingElement = document.getElementById('flag-summary-loading');
+            const emptyElement = document.getElementById('flag-summary-empty');
+            
+            loadingElement.style.display = 'none';
+            
+            if (flagSummaryData.length === 0) {
+                emptyElement.style.display = 'block';
+                tableBody.innerHTML = '';
+                return;
+            }
+            
+            emptyElement.style.display = 'none';
+            
+            let html = '';
+            let totalAllStudents = 0;
+            let totalAllPresent = 0;
+            let totalAllAbsent = 0;
+            let totalAllNotScanned = 0;
+            let totalAllLate = 0;
+            
+            flagSummaryData.forEach(classSummary => {
+                totalAllStudents += classSummary.totalStudents;
+                totalAllPresent += classSummary.present;
+                totalAllAbsent += classSummary.absent;
+                totalAllNotScanned += classSummary.notScanned;
+                totalAllLate += classSummary.late;
+                
+                html += `
+                    <tr>
+                        <td class="class-cell">${classSummary.className}</td>
+                        <td class="total-cell">${classSummary.totalStudents}</td>
+                        <td class="present-cell">${classSummary.present}</td>
+                        <td class="absent-cell">${classSummary.absent}</td>
+                        <td class="not-scanned-cell">${classSummary.notScanned}</td>
+                        <td class="late-cell">${classSummary.late}</td>
+                        <td class="total-cell">${classSummary.attendanceRate}%</td>
+                    </tr>
+                `;
+            });
+            
+            // Add total row
+            const overallAttendanceRate = totalAllStudents > 0 ? Math.round((totalAllPresent / totalAllStudents) * 100) : 0;
+            
+            html += `
+                <tr style="background: #e9ecef; font-weight: bold;">
+                    <td>សរុប</td>
+                    <td>${totalAllStudents}</td>
+                    <td>${totalAllPresent}</td>
+                    <td>${totalAllAbsent}</td>
+                    <td>${totalAllNotScanned}</td>
+                    <td>${totalAllLate}</td>
+                    <td>${overallAttendanceRate}%</td>
+                </tr>
+            `;
+            
+            tableBody.innerHTML = html;
+        }
+
+        function updateFlagSummaryStats() {
+            if (flagSummaryData.length === 0) {
+                document.getElementById('summary-total-classes').textContent = '0';
+                document.getElementById('summary-total-students').textContent = '0';
+                document.getElementById('summary-total-present').textContent = '0';
+                document.getElementById('summary-total-late').textContent = '0';
+                document.getElementById('summary-attendance-rate').textContent = '0%';
+                return;
+            }
+            
+            const totalClasses = flagSummaryData.length;
+            const totalStudents = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.totalStudents, 0);
+            const totalPresent = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.present, 0);
+            const totalLate = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.late, 0);
+            const attendanceRate = totalStudents > 0 ? Math.round((totalPresent / totalStudents) * 100) : 0;
+            
+            document.getElementById('summary-total-classes').textContent = totalClasses;
+            document.getElementById('summary-total-students').textContent = totalStudents;
+            document.getElementById('summary-total-present').textContent = totalPresent;
+            document.getElementById('summary-total-late').textContent = totalLate;
+            document.getElementById('summary-attendance-rate').textContent = `${attendanceRate}%`;
+        }
+
+        function exportFlagSummaryToExcel() {
+            if (flagSummaryData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                return;
+            }
+            
+            try {
+                const weekSelector = document.getElementById('flag-summary-week');
+                const daySelector = document.getElementById('flag-summary-day');
+                const selectedWeek = weekSelector ? weekSelector.options[weekSelector.selectedIndex].text : 'Unknown Week';
+                const selectedDay = daySelector ? daySelector.options[daySelector.selectedIndex].text : 'ទាំងសប្តាហ៍';
+                
+                // Calculate totals
+                const totalStudents = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.totalStudents, 0);
+                const totalPresent = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.present, 0);
+                const totalAbsent = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.absent, 0);
+                const totalNotScanned = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.notScanned, 0);
+                const totalLate = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.late, 0);
+                const overallAttendanceRate = totalStudents > 0 ? Math.round((totalPresent / totalStudents) * 100) : 0;
+                
+                // Prepare data for export
+                const excelData = flagSummaryData.map(classSummary => ({
+                    'ថ្នាក់': classSummary.className,
+                    'សិស្សសរុប': classSummary.totalStudents,
+                    'មកគោរពទង់ជាតិ': classSummary.present,
+                    'មិនមកគោរពទង់ជាតិ': classSummary.absent,
+                    'មិនទាន់ស្កេន': classSummary.notScanned,
+                    'ចំនួនដងមកយឺត': classSummary.late,
+                    'អត្រាមកគោរពទង់ជាតិ': `${classSummary.attendanceRate}%`
+                }));
+                
+                // Add total row
+                excelData.push({
+                    'ថ្នាក់': 'សរុប',
+                    'សិស្សសរុប': totalStudents,
+                    'មកគោរពទង់ជាតិ': totalPresent,
+                    'មិនមកគោរពទង់ជាតិ': totalAbsent,
+                    'មិនទាន់ស្កេន': totalNotScanned,
+                    'ចំនួនដងមកយឺត': totalLate,
+                    'អត្រាមកគោរពទង់ជាតិ': `${overallAttendanceRate}%`
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                const sheetName = 'សង្ខេបទិន្នន័យគោរពទង់ជាតិ';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                // Add metadata
+                const metadata = [
+                    ['របាយការណ៍សង្ខេបទិន្នន័យគោរពទង់ជាតិ'],
+                    [`សប្តាហ៍: ${selectedWeek}`],
+                    [`ថ្ងៃ: ${selectedDay}`],
+                    [`កាលបរិច្ឆេទបង្កើត: ${new Date().toLocaleDateString('km-KH')}`],
+                    []
+                ];
+                
+                const ws2 = XLSX.utils.aoa_to_sheet(metadata);
+                XLSX.utils.book_append_sheet(wb, ws2, 'ព័ត៌មាន');
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `flag_summary_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported ${flagSummaryData.length} class summaries to Excel`);
+            } catch (error) {
+                console.error('❌ Error exporting flag summary to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            }
+        }
+
+        function printFlagSummaryReport() {
+            if (flagSummaryData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                return;
+            }
+            
+            const weekSelector = document.getElementById('flag-summary-week');
+            const daySelector = document.getElementById('flag-summary-day');
+            const selectedWeek = weekSelector ? weekSelector.options[weekSelector.selectedIndex].text : 'Unknown Week';
+            const selectedDay = daySelector ? daySelector.options[daySelector.selectedIndex].text : 'ទាំងសប្តាហ៍';
+            const today = new Date().toLocaleDateString('km-KH');
+            
+            // Calculate totals
+            const totalStudents = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.totalStudents, 0);
+            const totalPresent = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.present, 0);
+            const totalAbsent = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.absent, 0);
+            const totalNotScanned = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.notScanned, 0);
+            const totalLate = flagSummaryData.reduce((sum, classSummary) => sum + classSummary.late, 0);
+            const overallAttendanceRate = totalStudents > 0 ? Math.round((totalPresent / totalStudents) * 100) : 0;
+            
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="km">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>របាយការណ៍សង្ខេបទិន្នន័យគោរពទង់ជាតិ</title>
+                    <style>
+                        body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .header h1 { color: #333; margin-bottom: 10px; }
+                        .header .date { color: #666; }
+                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+                        th { background-color: #f5f5f5; font-weight: bold; }
+                        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                        .class-row { background: #f8f9fa; }
+                        .total-row { background: #e9ecef; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>របាយការណ៍សង្ខេបទិន្នន័យគោរពទង់ជាតិតាមថ្នាក់</h1>
+                        <div class="date">${selectedWeek}</div>
+                        <div class="date">ថ្ងៃ: ${selectedDay}</div>
+                        <div class="date">កាលបរិច្ឆេទបោះពុម្ព: ${today}</div>
+                    </div>
+                    <div class="summary-info">
+                        <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                        - ថ្នាក់សរុប: ${flagSummaryData.length} ថ្នាក់<br>
+                        - សិស្សសរុប: ${totalStudents} នាក់<br>
+                        - សិស្សមកគោរពទង់ជាតិ: ${totalPresent} នាក់<br>
+                        - សិស្សមិនមកគោរពទង់ជាតិ: ${totalAbsent} នាក់<br>
+                        - ចំនួនដងមកយឺតសរុប: ${totalLate} ដង<br>
+                        - អត្រាមកគោរពទង់ជាតិ: ${overallAttendanceRate}%
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ថ្នាក់</th>
+                                <th>សិស្សសរុប</th>
+                                <th>មកគោរពទង់ជាតិ</th>
+                                <th>មិនមកគោរពទង់ជាតិ</th>
+                                <th>មិនទាន់ស្កេន</th>
+                                <th>ចំនួនដងមកយឺត</th>
+                                <th>អត្រាមកគោរពទង់ជាតិ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${flagSummaryData.map(classSummary => `
+                                <tr class="class-row">
+                                    <td>${classSummary.className}</td>
+                                    <td>${classSummary.totalStudents}</td>
+                                    <td>${classSummary.present}</td>
+                                    <td>${classSummary.absent}</td>
+                                    <td>${classSummary.notScanned}</td>
+                                    <td>${classSummary.late}</td>
+                                    <td>${classSummary.attendanceRate}%</td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td>សរុប</td>
+                                <td>${totalStudents}</td>
+                                <td>${totalPresent}</td>
+                                <td>${totalAbsent}</td>
+                                <td>${totalNotScanned}</td>
+                                <td>${totalLate}</td>
+                                <td>${overallAttendanceRate}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+
+        // ============================================
+        // LATE REPORT FUNCTIONS
+        // ============================================
+
+        async function loadLateReportData() {
+            const weekSelector = document.getElementById('late-week-selector');
+            const classFilter = document.getElementById('late-class-filter');
+            
+            if (!weekSelector || !classFilter) return;
+            
+            const selectedWeek = weekSelector.value;
+            const selectedClass = classFilter.value;
+            
+            document.getElementById('late-report-loading').style.display = 'block';
+            document.getElementById('late-report-empty').style.display = 'none';
+            document.getElementById('late-report-table-body').innerHTML = '';
+            
+            try {
+                // Parse week information
+                const [year, week] = selectedWeek.split('-W');
+                const weekNum = parseInt(week);
+                const yearNum = parseInt(year);
+                
+                // Get start date of the week (Monday)
+                const weekStartDate = getDateFromWeek(yearNum, weekNum);
+                
+                // Generate dates for each day of the week
+                const weekDates = [];
+                for (let i = 0; i < 6; i++) {
+                    const date = new Date(weekStartDate);
+                    date.setDate(weekStartDate.getDate() + i);
+                    weekDates.push(date.toISOString().split('T')[0]);
+                }
+                
+                console.log(`⏰ Loading late data for week ${weekNum}, year ${yearNum}`);
+                
+                // Load late reports for this week
+                const { data: lateData, error: lateError } = await supabaseClient
+                    .from('attendance_reports')
+                    .select('*')
+                    .eq('type', 'late')
+                    .gte('date', weekDates[0])
+                    .lte('date', weekDates[5]);
+                
+                if (lateError) {
+                    console.error('❌ Error loading late reports:', lateError);
+                    throw lateError;
+                }
+                
+                lateReports = lateData || [];
+                
+                console.log(`✅ Loaded ${lateReports.length} late reports for the week`);
+                
+                // Load flag ceremony reports to check attendance
+                const { data: flagData } = await supabaseClient
+                    .from('flag_ceremony_reports')
+                    .select('*')
+                    .gte('date', weekDates[0])
+                    .lte('date', weekDates[5]);
+                
+                const flagReports = flagData || [];
+                
+                // Group late reports by student
+                const lateByStudent = {};
+                const lastLateDateByStudent = {};
+                
+                lateReports.forEach(report => {
+                    if (!lateByStudent[report.student_id]) {
+                        lateByStudent[report.student_id] = 0;
+                    }
+                    lateByStudent[report.student_id]++;
+                    
+                    // Track last late date
+                    if (!lastLateDateByStudent[report.student_id] || 
+                        new Date(report.date) > new Date(lastLateDateByStudent[report.student_id])) {
+                        lastLateDateByStudent[report.student_id] = report.date;
+                    }
+                });
+                
+                // Filter students by class if needed
+                let filteredStudents = [...allStudents];
+                if (selectedClass !== 'all') {
+                    filteredStudents = filteredStudents.filter(student => student.class === selectedClass);
+                }
+                
+                // Generate report data for each student who is late
+                lateReportData = filteredStudents
+                    .filter(student => lateByStudent[student.id] > 0)
+                    .map(student => {
+                        const lateCount = lateByStudent[student.id] || 0;
+                        const lastLateDate = lastLateDateByStudent[student.id] || '';
+                        
+                        // Check flag ceremony attendance for this student
+                        const studentFlagReports = flagReports.filter(report => report.student_id === student.id);
+                        const presentDays = studentFlagReports.length;
+                        const totalDays = 6; // Monday to Saturday
+                        const attendanceRate = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
+                        const flagAttendanceStatus = presentDays > 0 ? 'មក' : 'មិនមក';
+                        
+                        return {
+                            ...student,
+                            lateCount,
+                            lastLateDate: formatDate(new Date(lastLateDate)),
+                            flagAttendanceStatus,
+                            attendanceRate
+                        };
+                    });
+                
+                // Sort by late count descending by default
+                lateReportData.sort((a, b) => b.lateCount - a.lateCount);
+                
+                renderLateReportTable();
+                updateLateReportStats();
+                
+            } catch (error) {
+                console.error('❌ Error loading late report data:', error);
+                document.getElementById('late-report-loading').style.display = 'none';
+                document.getElementById('late-report-empty').style.display = 'block';
+                document.getElementById('late-report-empty').innerHTML = `
+                    <div class="empty-state-icon">⚠️</div>
+                    <h3>មានបញ្ហាក្នុងការទាញយកទិន្នន័យ</h3>
+                    <p>សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក</p>
+                    <button onclick="loadLateReportData()" class="btn btn-primary" style="margin-top: 20px;">
+                        🔄 ព្យាយាមម្តងទៀត
+                    </button>
+                `;
+            }
+        }
+
+        function renderLateReportTable() {
+            const tableBody = document.getElementById('late-report-table-body');
+            const loadingElement = document.getElementById('late-report-loading');
+            const emptyElement = document.getElementById('late-report-empty');
+            
+            loadingElement.style.display = 'none';
+            
+            if (lateReportData.length === 0) {
+                emptyElement.style.display = 'block';
+                tableBody.innerHTML = '';
+                return;
+            }
+            
+            emptyElement.style.display = 'none';
+            
+            let html = '';
+            lateReportData.forEach((student, index) => {
+                // Determine badge color based on late count
+                let lateBadgeClass = 'badge-late';
+                if (student.lateCount === 1) {
+                    lateBadgeClass = 'badge-warning';
+                } else if (student.lateCount > 3) {
+                    lateBadgeClass = 'badge-discipline';
+                }
+                
+                // Determine flag attendance badge
+                let flagBadgeClass = student.flagAttendanceStatus === 'មក' ? 'badge-flag' : 'badge-discipline';
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div><strong>${student.name}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.id}</div>
+                        </td>
+                        <td>${student.class}</td>
+                        <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                        <td><span class="badge ${lateBadgeClass}">${student.lateCount || 0} ដង</span></td>
+                        <td>${student.lastLateDate || 'មិនមានទិន្នន័យ'}</td>
+                        <td>
+                            <span class="badge ${flagBadgeClass}">${student.flagAttendanceStatus}</span>
+                            <div style="font-size: 0.8rem; color: var(--gray);">${student.attendanceRate}%</div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+            
+            // Update sort icons
+            updateSortIcons('late-report-table', lateSortColumn, lateSortDirection);
+        }
+
+        function updateLateReportStats() {
+            if (lateReportData.length === 0) {
+                document.getElementById('total-late-students').textContent = '0';
+                document.getElementById('total-late-count-week').textContent = '0';
+                document.getElementById('avg-late-per-student').textContent = '0';
+                document.getElementById('most-late-class').textContent = '-';
+                return;
+            }
+            
+            const totalLateStudents = lateReportData.length;
+            const totalLateCount = lateReportData.reduce((sum, student) => sum + student.lateCount, 0);
+            const avgLatePerStudent = totalLateStudents > 0 ? (totalLateCount / totalLateStudents).toFixed(1) : 0;
+            
+            // Find class with most late students
+            const classLateCounts = {};
+            lateReportData.forEach(student => {
+                if (!classLateCounts[student.class]) {
+                    classLateCounts[student.class] = 0;
+                }
+                classLateCounts[student.class] += student.lateCount;
+            });
+            
+            let mostLateClass = '-';
+            let maxLateCount = 0;
+            for (const className in classLateCounts) {
+                if (classLateCounts[className] > maxLateCount) {
+                    maxLateCount = classLateCounts[className];
+                    mostLateClass = className;
+                }
+            }
+            
+            document.getElementById('total-late-students').textContent = totalLateStudents;
+            document.getElementById('total-late-count-week').textContent = totalLateCount;
+            document.getElementById('avg-late-per-student').textContent = avgLatePerStudent;
+            document.getElementById('most-late-class').textContent = mostLateClass;
+        }
+
+        function filterLateReportData() {
+            const searchInput = document.getElementById('late-search');
+            if (!searchInput) return;
+            
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                renderLateReportTable();
+                return;
+            }
+            
+            const filteredData = lateReportData.filter(student => 
+                student.name.toLowerCase().includes(searchTerm) ||
+                student.class.toLowerCase().includes(searchTerm) ||
+                (student.id && student.id.toLowerCase().includes(searchTerm))
+            );
+            
+            const tableBody = document.getElementById('late-report-table-body');
+            const emptyElement = document.getElementById('late-report-empty');
+            
+            if (filteredData.length === 0) {
+                tableBody.innerHTML = '';
+                emptyElement.style.display = 'block';
+                emptyElement.innerHTML = `
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>មិនមានលទ្ធផល</h3>
+                    <p>គ្មានទិន្នន័យសិស្សដែលត្រូវនឹងការស្វែងរក "${searchTerm}"</p>
+                `;
+                return;
+            }
+            
+            emptyElement.style.display = 'none';
+            
+            let html = '';
+            filteredData.forEach((student, index) => {
+                let lateBadgeClass = 'badge-late';
+                if (student.lateCount === 1) {
+                    lateBadgeClass = 'badge-warning';
+                } else if (student.lateCount > 3) {
+                    lateBadgeClass = 'badge-discipline';
+                }
+                
+                let flagBadgeClass = student.flagAttendanceStatus === 'មក' ? 'badge-flag' : 'badge-discipline';
+                
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div><strong>${student.name}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.id}</div>
+                        </td>
+                        <td>${student.class}</td>
+                        <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                        <td><span class="badge ${lateBadgeClass}">${student.lateCount || 0} ដង</span></td>
+                        <td>${student.lastLateDate || 'មិនមានទិន្នន័យ'}</td>
+                        <td>
+                            <span class="badge ${flagBadgeClass}">${student.flagAttendanceStatus}</span>
+                            <div style="font-size: 0.8rem; color: var(--gray);">${student.attendanceRate}%</div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        function sortLateTable(column) {
+            if (lateReportData.length === 0) return;
+            
+            // Update sort direction
+            if (lateSortColumn === column) {
+                lateSortDirection = lateSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                lateSortColumn = column;
+                lateSortDirection = 'asc';
+            }
+            
+            // Sort the data
+            lateReportData.sort((a, b) => {
+                let aValue, bValue;
+                
+                switch(column) {
+                    case 0: // ល.រ
+                        return lateSortDirection === 'asc' ? 0 : 0;
+                    case 1: // ឈ្មោះ
+                        aValue = a.name;
+                        bValue = b.name;
+                        break;
+                    case 2: // ថ្នាក់
+                        aValue = a.class;
+                        bValue = b.class;
+                        break;
+                    case 3: // ភេទ
+                        aValue = a.gender || '';
+                        bValue = b.gender || '';
+                        break;
+                    case 4: // ចំនួនដងមកយឺត
+                        aValue = a.lateCount || 0;
+                        bValue = b.lateCount || 0;
+                        break;
+                    case 5: // ថ្ងៃចុងក្រោយមកយឺត
+                        aValue = a.lastLateDate || '';
+                        bValue = b.lastLateDate || '';
+                        break;
+                    case 6: // មកគោរពទង់ជាតិ
+                        aValue = a.attendanceRate || 0;
+                        bValue = b.attendanceRate || 0;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                if (column === 4 || column === 6) {
+                    // Numeric sort for late count and attendance rate
+                    if (lateSortDirection === 'asc') {
+                        return aValue - bValue;
+                    } else {
+                        return bValue - aValue;
+                    }
+                } else {
+                    // String sort for other columns
+                    if (lateSortDirection === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
+                }
+            });
+            
+            // Re-render the table
+            renderLateReportTable();
+        }
+
+        function exportLateReportToExcel() {
+            if (lateReportData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យសិស្សមកយឺតដើម្បីទាញយក');
+                return;
+            }
+            
+            try {
+                const weekSelector = document.getElementById('late-week-selector');
+                const selectedOption = weekSelector ? weekSelector.options[weekSelector.selectedIndex] : null;
+                const weekLabel = selectedOption ? selectedOption.text : 'Unknown Week';
+                
+                const excelData = lateReportData.map((student, index) => {
+                    return {
+                        'ល.រ': index + 1,
+                        'ឈ្មោះសិស្ស': student.name,
+                        'លេខសម្គាល់': student.id,
+                        'ថ្នាក់': student.class,
+                        'ភេទ': student.gender || 'មិនមានទិន្នន័យ',
+                        'ចំនួនដងមកយឺត': student.lateCount || 0,
+                        'ថ្ងៃចុងក្រោយមកយឺត': student.lastLateDate || 'មិនមានទិន្នន័យ',
+                        'ស្ថានភាពមកគោរពទង់ជាតិ': student.flagAttendanceStatus,
+                        'អត្រាមកគោរពទង់ជាតិ': `${student.attendanceRate}%`
+                    };
+                });
+                
+                const ws = XLSX.utils.json_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                const sheetName = 'សិស្សមកយឺត';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                
+                const today = new Date().toISOString().split('T')[0];
+                const filename = `late_students_report_${today}.xlsx`;
+                
+                XLSX.writeFile(wb, filename);
+                
+                console.log(`✅ Exported ${lateReportData.length} late student records to Excel`);
+            } catch (error) {
+                console.error('❌ Error exporting late report to Excel:', error);
+                alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            }
+        }
+
+        function printLateReport() {
+            if (lateReportData.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                return;
+            }
+            
+            const weekSelector = document.getElementById('late-week-selector');
+            const selectedOption = weekSelector ? weekSelector.options[weekSelector.selectedIndex] : null;
+            const weekLabel = selectedOption ? selectedOption.text : 'Unknown Week';
+            const today = new Date().toLocaleDateString('km-KH');
+            
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="km">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>របាយការណ៍សិស្សមកយឺត</title>
+                    <style>
+                        body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .header h1 { color: #333; margin-bottom: 10px; }
+                        .header .date { color: #666; }
+                        .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th { background-color: #f5f5f5; font-weight: bold; }
+                        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>របាយការណ៍សិស្សមកយឺត</h1>
+                        <div class="date">${weekLabel}</div>
+                        <div class="date">កាលបរិច្ឆេទបោះពុម្ព: ${today}</div>
+                        <div class="date">ចំនួនសិស្សមកយឺត: ${lateReportData.length}</div>
+                    </div>
+                    <div class="summary-info">
+                        <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                        - សិស្សមកយឺតសរុប: ${lateReportData.length} នាក់<br>
+                        - ចំនួនដងមកយឺតសរុប: ${lateReportData.reduce((sum, s) => sum + s.lateCount, 0)} ដង<br>
+                        - ចំនួនដងមកយឺតជាមធ្យមក្នុងមួយសិស្ស: ${(lateReportData.reduce((sum, s) => sum + s.lateCount, 0) / lateReportData.length).toFixed(1)} ដង<br>
+                        - សិស្សមកគោរពទង់ជាតិ: ${lateReportData.filter(s => s.flagAttendanceStatus === 'មក').length} នាក់
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ល.រ</th>
+                                <th>ឈ្មោះសិស្ស</th>
+                                <th>ថ្នាក់</th>
+                                <th>ភេទ</th>
+                                <th>ចំនួនដងមកយឺត</th>
+                                <th>ថ្ងៃចុងក្រោយមកយឺត</th>
+                                <th>មកគោរពទង់ជាតិ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${lateReportData.map((student, index) => `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${student.name}<br><small>ID: ${student.id}</small></td>
+                                    <td>${student.class}</td>
+                                    <td>${student.gender || 'មិនមានទិន្នន័យ'}</td>
+                                    <td>${student.lateCount} ដង</td>
+                                    <td>${student.lastLateDate || 'មិនមានទិន្នន័យ'}</td>
+                                    <td>${student.flagAttendanceStatus} (${student.attendanceRate}%)</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+            }, 500);
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            return new Date(d.setDate(diff));
+        }
+
+        function getDateFromWeek(year, week) {
+            const simple = new Date(year, 0, 1 + (week - 1) * 7);
+            const dow = simple.getDay();
+            const ISOweekStart = simple;
+            if (dow <= 4)
+                ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else
+                ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+            return ISOweekStart;
+        }
+
+        function formatDate(date) {
+            if (!date || !(date instanceof Date) || isNaN(date)) {
+                return 'មិនមានទិន្នន័យ';
+            }
+            
+            return date.toLocaleDateString('km-KH', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+</html>

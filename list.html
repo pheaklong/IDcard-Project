@@ -665,6 +665,41 @@
             color: white;
         }
 
+        /* Batch Loading Progress */
+        .batch-loading {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+        }
+
+        .batch-loading p {
+            margin: 5px 0;
+            color: var(--gray);
+        }
+
+        .batch-progress {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .batch-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-progress {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .button-grid {
@@ -1652,6 +1687,168 @@
                 }
             };
 
+            // ========== NEW: BATCH LOADING FUNCTIONS ==========
+
+            // Function to fetch all data from a table with batch loading
+            async function fetchAllData(tableName, batchSize = 1000) {
+                console.log(`🔍 Fetching ALL data from ${tableName}...`);
+                
+                let allData = [];
+                let start = 0;
+                let hasMore = true;
+                let batchCount = 0;
+                let totalRecords = 0;
+                
+                try {
+                    // First, try to get count to show progress
+                    try {
+                        const { count, error: countError } = await supabase
+                            .from(tableName)
+                            .select('*', { count: 'exact', head: true });
+                        
+                        if (!countError && count !== null) {
+                            totalRecords = count;
+                            console.log(`📊 Total records in ${tableName}: ${totalRecords}`);
+                        }
+                    } catch (countErr) {
+                        console.log('⚠️ Could not get record count:', countErr);
+                    }
+                    
+                    // Show batch loading progress
+                    showBatchLoadingProgress(tableName, batchCount, 0, totalRecords);
+                    
+                    // Load data in batches
+                    while (hasMore) {
+                        batchCount++;
+                        console.log(`📦 Loading batch ${batchCount} (records ${start} to ${start + batchSize - 1})`);
+                        
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*')
+                            .range(start, start + batchSize - 1);
+                        
+                        if (error) {
+                            console.error(`❌ Error loading batch ${batchCount}:`, error);
+                            
+                            // Try without range if range fails
+                            console.log('🔄 Trying without range...');
+                            const { data: fallbackData, error: fallbackError } = await supabase
+                                .from(tableName)
+                                .select('*')
+                                .limit(batchSize * 10); // Try larger limit
+                            
+                            if (fallbackError) {
+                                throw fallbackError;
+                            }
+                            
+                            data = fallbackData;
+                        }
+                        
+                        if (data && data.length > 0) {
+                            allData = allData.concat(data);
+                            start += batchSize;
+                            
+                            // Update progress
+                            showBatchLoadingProgress(tableName, batchCount, allData.length, totalRecords);
+                            
+                            // If we got less than batchSize, we've reached the end
+                            if (data.length < batchSize) {
+                                hasMore = false;
+                                console.log(`✅ Reached end of data. Last batch: ${data.length} records`);
+                            }
+                            
+                            console.log(`✅ Batch ${batchCount}: ${data.length} records, total: ${allData.length}`);
+                        } else {
+                            hasMore = false;
+                            console.log(`✅ No more data at batch ${batchCount}`);
+                        }
+                    }
+                    
+                    console.log(`🎉 Successfully loaded ${allData.length} total records from ${tableName}`);
+                    hideBatchLoadingProgress();
+                    return allData;
+                    
+                } catch (error) {
+                    console.error('❌ Error in fetchAllData:', error);
+                    hideBatchLoadingProgress();
+                    
+                    // Final fallback: try simple select
+                    console.log('🔄 Trying final fallback with simple select...');
+                    try {
+                        const { data, error: finalError } = await supabase
+                            .from(tableName)
+                            .select('*');
+                        
+                        if (finalError) {
+                            console.error('❌ Final fallback also failed:', finalError);
+                            throw finalError;
+                        }
+                        
+                        console.log(`✅ Final fallback loaded ${data?.length || 0} records`);
+                        return data || [];
+                    } catch (finalErr) {
+                        console.error('❌ All methods failed:', finalErr);
+                        return [];
+                    }
+                }
+            }
+
+            // Show batch loading progress
+            function showBatchLoadingProgress(tableName, batchNumber, loadedCount, totalCount) {
+                // Find appropriate loading element
+                let loadingElement;
+                if (currentReportType === 'summary') {
+                    loadingElement = document.getElementById('summary-loading');
+                } else if (currentReportType === 'discipline-summary') {
+                    loadingElement = document.getElementById('discipline-summary-loading');
+                } else {
+                    loadingElement = document.getElementById('table-loading');
+                }
+                
+                if (loadingElement) {
+                    const percentage = totalCount > 0 ? Math.round((loadedCount / totalCount) * 100) : 0;
+                    loadingElement.innerHTML = `
+                        <div class="loading"></div>
+                        <p>កំពុងទាញយកទិន្នន័យ...</p>
+                        <div class="batch-loading">
+                            <p>ទាញយកពី: ${tableName}</p>
+                            <p>កញ្ចប់: ${batchNumber} | ទាញយកបាន: ${loadedCount} ${totalCount > 0 ? `/ ${totalCount}` : ''}</p>
+                            ${totalCount > 0 ? `
+                                <div class="batch-progress">
+                                    <div class="batch-progress-bar" style="width: ${percentage}%"></div>
+                                </div>
+                                <p>ភាគរយ: ${percentage}%</p>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            // Hide batch loading progress
+            function hideBatchLoadingProgress() {
+                // Reset loading elements to default
+                const loadingElements = [
+                    document.getElementById('summary-loading'),
+                    document.getElementById('discipline-summary-loading'),
+                    document.getElementById('table-loading')
+                ];
+                
+                loadingElements.forEach(element => {
+                    if (element) {
+                        element.innerHTML = `
+                            <div class="loading"></div>
+                            <p>កំពុងទាញយកទិន្នន័យ...</p>
+                        `;
+                    }
+                });
+            }
+
+            // Function to load all data for any report type
+            async function loadAllDataForReport(tableName) {
+                console.log(`🔄 Loading ALL data for ${tableName}...`);
+                return await fetchAllData(tableName);
+            }
+
             // ========== DATE FILTER HANDLING ==========
 
             // Handle date filter change for regular reports
@@ -1881,27 +2078,22 @@
                 
                 try {
                     const tableName = "discipline_reports";
-                    console.log(`🔍 Loading discipline summary data from ${tableName}...`);
+                    console.log(`🔍 Loading ALL discipline summary data from ${tableName}...`);
                     
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .select('*');
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
                     
-                    if (error) {
-                        console.error('❌ Error loading discipline summary:', error);
-                        allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
-                    } else {
-                        allReports = data || [];
-                    }
-                    
-                    console.log(`✅ Loaded ${allReports.length} discipline records for summary`);
+                    console.log(`✅ Loaded ${allReports.length} total discipline records for summary`);
                     
                     updateDisciplineSummaryReportReal();
                     
                 } catch (error) {
-                    console.error('❌ Error loading discipline summary data:', error);
+                    console.error('❌ Error loading discipline summary:', error);
+                    
+                    // Fallback to localStorage
                     allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} discipline records`);
+                    
                     updateDisciplineSummaryReportReal();
                 }
             }
@@ -2280,27 +2472,22 @@
                 
                 try {
                     const tableName = "attendance_reports";
-                    console.log(`🔍 Loading summary data from ${tableName}...`);
+                    console.log(`🔍 Loading ALL summary data from ${tableName}...`);
                     
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .select('*');
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
                     
-                    if (error) {
-                        console.error('❌ Error loading summary:', error);
-                        allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                    } else {
-                        allReports = data || [];
-                    }
-                    
-                    console.log(`✅ Loaded ${allReports.length} records for summary`);
+                    console.log(`✅ Loaded ${allReports.length} total records for summary`);
                     
                     updateSummaryReportReal();
                     
                 } catch (error) {
                     console.error('❌ Error loading summary data:', error);
+                    
+                    // Fallback to localStorage
                     allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
+                    
                     updateSummaryReportReal();
                 }
             }
@@ -2708,20 +2895,12 @@
                 
                 try {
                     const tableName = reportTypes[currentReportType].table;
-                    console.log(`🔍 Loading data from ${tableName}...`);
+                    console.log(`🔍 Loading ALL data from ${tableName}...`);
                     
-                    const { data, error } = await supabase
-                        .from(tableName)
-                        .select('*');
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
                     
-                    if (error) {
-                        console.error('❌ Error loading report data:', error);
-                        allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
-                    } else {
-                        allReports = data || [];
-                    }
-                    
-                    console.log(`✅ Loaded ${allReports.length} records`);
+                    console.log(`✅ Loaded ${allReports.length} total records`);
                     
                     applyFiltersReal();
                     updateStats();
@@ -2729,8 +2908,11 @@
                     
                 } catch (error) {
                     console.error('❌ Error loading report data:', error);
+                    
+                    // Fallback to localStorage
                     allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
                     console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
+                    
                     applyFiltersReal();
                     updateStats();
                     populateClassFilter();

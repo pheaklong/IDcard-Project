@@ -113,7 +113,6 @@
             gap: 12px;
         }
 
-        /* Report Type Selection */
         .report-type-selection {
             margin-bottom: 25px;
         }
@@ -166,7 +165,6 @@
             line-height: 1.4;
         }
 
-        /* Filter Section */
         .filter-section {
             background: #f8f9fa;
             padding: 20px;
@@ -209,7 +207,6 @@
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
         }
 
-        /* Stats Section */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -243,7 +240,6 @@
             opacity: 0.9;
         }
 
-        /* Button Styles */
         .button-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -333,7 +329,6 @@
             transform: translateY(-3px);
         }
 
-        /* Table Styles */
         .table-container {
             overflow-x: auto;
             margin: 25px 0;
@@ -385,7 +380,6 @@
             border-bottom: none;
         }
 
-        /* Sort Icon Styles */
         .sort-icon {
             position: absolute;
             right: 10px;
@@ -400,7 +394,6 @@
             padding-right: 30px !important;
         }
 
-        /* Additional styles for discipline description */
         .discipline-description {
             max-width: 300px;
             white-space: normal;
@@ -453,7 +446,6 @@
             color: #856404;
         }
 
-        /* Loading Animation */
         .loading {
             display: inline-block;
             width: 20px;
@@ -469,7 +461,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 50px 20px;
@@ -482,7 +473,6 @@
             opacity: 0.5;
         }
 
-        /* Summary Report Styles */
         .summary-card {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -525,7 +515,6 @@
             opacity: 0.9;
         }
 
-        /* Sort Buttons */
         .sort-buttons {
             display: flex;
             gap: 10px;
@@ -560,7 +549,6 @@
             color: white;
         }
 
-        /* Batch Loading Progress */
         .batch-loading {
             text-align: center;
             padding: 20px;
@@ -595,7 +583,6 @@
             color: var(--primary);
         }
 
-        /* Print Styles */
         @media print {
             body {
                 background: white;
@@ -645,7 +632,6 @@
             }
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .button-grid {
                 grid-template-columns: 1fr;
@@ -790,7 +776,6 @@
                             <div class="report-type-title">សង្ខេបទិន្នន័យវិន័យ</div>
                             <div class="report-type-desc">របាយការណ៍សង្ខេបទិន្នន័យសិស្សវិន័យតាមសប្តាហ៍/ខែ</div>
                         </div>
-                        <!-- បន្ថែមប្រភេទរបាយការណ៍សង្ខេបកម្មវិធី -->
                         <div class="report-type-card" data-type="event-summary" onclick="selectReportType('event-summary')">
                             <div class="report-type-icon">🎯</div>
                             <div class="report-type-title">សង្ខេបចូលរួមកម្មវិធី</div>
@@ -806,24 +791,15 @@
                 <p id="current-report-description">ព័ត៌មានលម្អិត</p>
             </div>
 
-            <!-- ==================== EVENT SUMMARY SECTION ==================== -->
+            <!-- Event Summary Section -->
             <div id="event-summary-section" class="card" style="display: none;">
                 <h2 class="card-title">🎯 របាយការណ៍សង្ខេបចូលរួមកម្មវិធី</h2>
                 
-                <!-- Sort Buttons -->
                 <div class="sort-buttons">
-                    <button class="sort-btn" onclick="sortEventSummaryByClass()">
-                        🏫 តម្រៀបតាមថ្នាក់
-                    </button>
-                    <button class="sort-btn" onclick="sortEventSummaryByName()">
-                        👤 តម្រៀបតាមឈ្មោះ
-                    </button>
-                    <button class="sort-btn" onclick="sortEventSummaryByCount()">
-                        🔢 តម្រៀបតាមចំនួន
-                    </button>
-                    <button class="sort-btn" onclick="sortEventSummaryByDate()">
-                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
-                    </button>
+                    <button class="sort-btn" onclick="sortEventSummaryByClass()">🏫 តម្រៀបតាមថ្នាក់</button>
+                    <button class="sort-btn" onclick="sortEventSummaryByName()">👤 តម្រៀបតាមឈ្មោះ</button>
+                    <button class="sort-btn" onclick="sortEventSummaryByCount()">🔢 តម្រៀបតាមចំនួន</button>
+                    <button class="sort-btn" onclick="sortEventSummaryByDate()">📅 តម្រៀបតាមកាលបរិច្ឆេទ</button>
                 </div>
                 
                 <div class="filter-section">
@@ -862,11 +838,8 @@
                     </div>
                 </div>
 
-                <!-- Summary Stats -->
                 <div class="summary-card">
-                    <div class="summary-title">
-                        📊 សង្ខេបការចូលរួមកម្មវិធី
-                    </div>
+                    <div class="summary-title">📊 សង្ខេបការចូលរួមកម្មវិធី</div>
                     <div class="summary-stats">
                         <div class="summary-stat">
                             <div class="summary-number" id="total-students-event">0</div>
@@ -891,7 +864,6 @@
                     </div>
                 </div>
 
-                <!-- Summary Table -->
                 <div class="table-container">
                     <table class="data-table" id="event-summary-table">
                         <thead>
@@ -902,13 +874,11 @@
                                 <th class="sortable-header" onclick="sortEventSummaryTable(3)">ភេទ</th>
                                 <th class="sortable-header" onclick="sortEventSummaryTable(4)">ចំនួនចូលរួម</th>
                                 <th class="sortable-header" onclick="sortEventSummaryTable(5)">កម្មវិធីចុងក្រោយ</th>
-                                <th class="sortable-header" onclick="sortEventSummaryTable(6)">កាលបរិច្ឆេទចូលរួមចុងក្រោយ</th>
+                                <th class="sortable-header" onclick="sortEventSummaryTable(6)">កាលបរិច្ឆេទចុងក្រោយ</th>
                                 <th class="sortable-header" onclick="sortEventSummaryTable(7)">ស្ថានភាព</th>
                             </tr>
                         </thead>
-                        <tbody id="event-summary-table-body">
-                            <!-- Data will be populated here -->
-                        </tbody>
+                        <tbody id="event-summary-table-body"></tbody>
                     </table>
                 </div>
                 <div id="event-summary-empty" class="empty-state" style="display: none;">
@@ -921,35 +891,21 @@
                     <p>កំពុងទាញយកទិន្នន័យ...</p>
                 </div>
 
-                <!-- Export Buttons -->
                 <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn btn-success" onclick="exportEventSummaryToExcel()">
-                        📊 Export Summary to Excel
-                    </button>
-                    <button class="btn btn-primary" onclick="printEventSummaryReport()">
-                        🖨️ Print Summary
-                    </button>
+                    <button class="btn btn-success" onclick="exportEventSummaryToExcel()">📊 Export Summary to Excel</button>
+                    <button class="btn btn-primary" onclick="printEventSummaryReport()">🖨️ Print Summary</button>
                 </div>
             </div>
 
-            <!-- ==================== DISCIPLINE SUMMARY SECTION ==================== -->
+            <!-- Discipline Summary Section -->
             <div id="discipline-summary-section" class="card" style="display: none;">
                 <h2 class="card-title">📊 របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</h2>
                 
-                <!-- Sort Buttons -->
                 <div class="sort-buttons">
-                    <button class="sort-btn" onclick="sortDisciplineSummaryByClass()">
-                        🏫 តម្រៀបតាមថ្នាក់
-                    </button>
-                    <button class="sort-btn" onclick="sortDisciplineSummaryByName()">
-                        👤 តម្រៀបតាមឈ្មោះ
-                    </button>
-                    <button class="sort-btn" onclick="sortDisciplineSummaryByCount()">
-                        🔢 តម្រៀបតាមចំនួន
-                    </button>
-                    <button class="sort-btn" onclick="sortDisciplineSummaryByDate()">
-                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
-                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByClass()">🏫 តម្រៀបតាមថ្នាក់</button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByName()">👤 តម្រៀបតាមឈ្មោះ</button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByCount()">🔢 តម្រៀបតាមចំនួន</button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByDate()">📅 តម្រៀបតាមកាលបរិច្ឆេទ</button>
                 </div>
                 
                 <div class="filter-section">
@@ -988,11 +944,8 @@
                     </div>
                 </div>
 
-                <!-- Summary Stats -->
                 <div class="summary-card">
-                    <div class="summary-title">
-                        📊 សង្ខេបទិន្នន័យវិន័យ
-                    </div>
+                    <div class="summary-title">📊 សង្ខេបទិន្នន័យវិន័យ</div>
                     <div class="summary-stats">
                         <div class="summary-stat">
                             <div class="summary-number" id="total-students-discipline">0</div>
@@ -1013,7 +966,6 @@
                     </div>
                 </div>
 
-                <!-- Summary Table -->
                 <div class="table-container">
                     <table class="data-table" id="discipline-summary-table">
                         <thead>
@@ -1024,13 +976,11 @@
                                 <th class="sortable-header" onclick="sortDisciplineSummaryTable(3)">ភេទ</th>
                                 <th class="sortable-header" onclick="sortDisciplineSummaryTable(4)">ចំនួនវិន័យ</th>
                                 <th class="sortable-header" onclick="sortDisciplineSummaryTable(5)">បញ្ហាចម្បង</th>
-                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(6)">កាលបរិច្ឆេទវិន័យចុងក្រោយ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(6)">កាលបរិច្ឆេទចុងក្រោយ</th>
                                 <th class="sortable-header" onclick="sortDisciplineSummaryTable(7)">ស្ថានភាព</th>
                             </tr>
                         </thead>
-                        <tbody id="discipline-summary-table-body">
-                            <!-- Data will be populated here -->
-                        </tbody>
+                        <tbody id="discipline-summary-table-body"></tbody>
                     </table>
                 </div>
                 <div id="discipline-summary-empty" class="empty-state" style="display: none;">
@@ -1043,35 +993,21 @@
                     <p>កំពុងទាញយកទិន្នន័យ...</p>
                 </div>
 
-                <!-- Export Buttons -->
                 <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn btn-success" onclick="exportDisciplineSummaryToExcel()">
-                        📊 Export Summary to Excel
-                    </button>
-                    <button class="btn btn-primary" onclick="printDisciplineSummaryReport()">
-                        🖨️ Print Summary
-                    </button>
+                    <button class="btn btn-success" onclick="exportDisciplineSummaryToExcel()">📊 Export Summary to Excel</button>
+                    <button class="btn btn-primary" onclick="printDisciplineSummaryReport()">🖨️ Print Summary</button>
                 </div>
             </div>
 
-            <!-- ==================== LATE STUDENTS SUMMARY SECTION ==================== -->
+            <!-- Late Summary Section -->
             <div id="summary-section" class="card" style="display: none;">
                 <h2 class="card-title">📈 របាយការណ៍សង្ខេបទិន្នន័យយឺត</h2>
                 
-                <!-- Sort Buttons -->
                 <div class="sort-buttons">
-                    <button class="sort-btn" onclick="sortSummaryByClass()">
-                        🏫 តម្រៀបតាមថ្នាក់
-                    </button>
-                    <button class="sort-btn" onclick="sortSummaryByName()">
-                        👤 តម្រៀបតាមឈ្មោះ
-                    </button>
-                    <button class="sort-btn" onclick="sortSummaryByCount()">
-                        🔢 តម្រៀបតាមចំនួន
-                    </button>
-                    <button class="sort-btn" onclick="sortSummaryByDate()">
-                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
-                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByClass()">🏫 តម្រៀបតាមថ្នាក់</button>
+                    <button class="sort-btn" onclick="sortSummaryByName()">👤 តម្រៀបតាមឈ្មោះ</button>
+                    <button class="sort-btn" onclick="sortSummaryByCount()">🔢 តម្រៀបតាមចំនួន</button>
+                    <button class="sort-btn" onclick="sortSummaryByDate()">📅 តម្រៀបតាមកាលបរិច្ឆេទ</button>
                 </div>
                 
                 <div class="filter-section">
@@ -1110,11 +1046,8 @@
                     </div>
                 </div>
 
-                <!-- Summary Stats -->
                 <div class="summary-card">
-                    <div class="summary-title">
-                        📊 សង្ខេបទិន្នន័យ
-                    </div>
+                    <div class="summary-title">📊 សង្ខេបទិន្នន័យ</div>
                     <div class="summary-stats">
                         <div class="summary-stat">
                             <div class="summary-number" id="total-students-late">0</div>
@@ -1135,7 +1068,6 @@
                     </div>
                 </div>
 
-                <!-- Summary Table -->
                 <div class="table-container">
                     <table class="data-table" id="summary-table">
                         <thead>
@@ -1145,13 +1077,11 @@
                                 <th class="sortable-header" onclick="sortSummaryTable(2)">ថ្នាក់</th>
                                 <th class="sortable-header" onclick="sortSummaryTable(3)">ភេទ</th>
                                 <th class="sortable-header" onclick="sortSummaryTable(4)">ចំនួនយឺត</th>
-                                <th class="sortable-header" onclick="sortSummaryTable(5)">កាលបរិច្ឆេទយឺតចុងក្រោយ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(5)">កាលបរិច្ឆេទចុងក្រោយ</th>
                                 <th class="sortable-header" onclick="sortSummaryTable(6)">ស្ថានភាព</th>
                             </tr>
                         </thead>
-                        <tbody id="summary-table-body">
-                            <!-- Data will be populated here -->
-                        </tbody>
+                        <tbody id="summary-table-body"></tbody>
                     </table>
                 </div>
                 <div id="summary-empty" class="empty-state" style="display: none;">
@@ -1164,34 +1094,21 @@
                     <p>កំពុងទាញយកទិន្នន័យ...</p>
                 </div>
 
-                <!-- Export Buttons -->
                 <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: flex-end;">
-                    <button class="btn btn-success" onclick="exportSummaryToExcel()">
-                        📊 Export Summary to Excel
-                    </button>
-                    <button class="btn btn-primary" onclick="printSummaryReport()">
-                        🖨️ Print Summary
-                    </button>
+                    <button class="btn btn-success" onclick="exportSummaryToExcel()">📊 Export Summary to Excel</button>
+                    <button class="btn btn-primary" onclick="printSummaryReport()">🖨️ Print Summary</button>
                 </div>
             </div>
 
-            <!-- ==================== FILTER SECTION FOR REGULAR REPORTS ==================== -->
+            <!-- Filter Section for Regular Reports -->
             <div id="filter-section" class="filter-section" style="display: none;">
                 <h3 style="margin-bottom: 20px; color: var(--primary);">🔍 ស្វែងរកទិន្នន័យ</h3>
                 
                 <div class="sort-buttons">
-                    <button class="sort-btn" onclick="sortByClass()">
-                        🏫 តម្រៀបតាមថ្នាក់
-                    </button>
-                    <button class="sort-btn" onclick="sortByName()">
-                        👤 តម្រៀបតាមឈ្មោះ
-                    </button>
-                    <button class="sort-btn" onclick="sortByDate()">
-                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
-                    </button>
-                    <button class="sort-btn" onclick="sortByTime()">
-                        ⏰ តម្រៀបតាមពេលវេលា
-                    </button>
+                    <button class="sort-btn" onclick="sortByClass()">🏫 តម្រៀបតាមថ្នាក់</button>
+                    <button class="sort-btn" onclick="sortByName()">👤 តម្រៀបតាមឈ្មោះ</button>
+                    <button class="sort-btn" onclick="sortByDate()">📅 តម្រៀបតាមកាលបរិច្ឆេទ</button>
+                    <button class="sort-btn" onclick="sortByTime()">⏰ តម្រៀបតាមពេលវេលា</button>
                 </div>
                 
                 <div class="filter-grid">
@@ -1232,7 +1149,7 @@
                 </div>
             </div>
 
-            <!-- ==================== STATS SECTION ==================== -->
+            <!-- Stats Section -->
             <div id="stats-section" class="stats-grid" style="display: none;">
                 <div class="stat-card">
                     <div class="stat-number" id="total-scans">0</div>
@@ -1252,18 +1169,14 @@
                 </div>
             </div>
 
-            <!-- ==================== REGULAR REPORT TABLE ==================== -->
+            <!-- Regular Report Table -->
             <div id="table-section" style="display: none;">
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                         <h2 class="card-title" id="table-title">📊 ទិន្នន័យ</h2>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-success" onclick="exportToExcel()">
-                                📊 Export to Excel
-                            </button>
-                            <button class="btn btn-primary" onclick="printReport()">
-                                🖨️ Print
-                            </button>
+                            <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+                            <button class="btn btn-primary" onclick="printReport()">🖨️ Print</button>
                         </div>
                     </div>
                     <div class="table-container">
@@ -1279,9 +1192,7 @@
                                     <th class="sortable-header" onclick="sortTable(6)">កាលបរិច្ឆេទ</th>
                                 </tr>
                             </thead>
-                            <tbody id="report-table-body">
-                                <!-- Data will be populated here -->
-                            </tbody>
+                            <tbody id="report-table-body"></tbody>
                         </table>
                     </div>
                     <div id="table-empty" class="empty-state" style="display: none;">
@@ -1300,10 +1211,9 @@
 
     <script>
         // ============================================
-        // GLOBAL FUNCTIONS
+        // GLOBAL FUNCTIONS FOR HTML EVENT HANDLERS
         // ============================================
 
-        // Navigation functions
         function goToHome() {
             window.location.href = 'index.html';
         }
@@ -1312,7 +1222,6 @@
             window.location.href = 'scan.html';
         }
 
-        // Temporary placeholder for selectReportType
         function selectReportType(type) {
             console.log('Report type selected:', type);
             if (window.appInitialized && window.selectReportTypeReal) {
@@ -1322,34 +1231,32 @@
             }
         }
 
-        // ============================================
-        // GLOBAL FUNCTIONS FOR HTML EVENT HANDLERS
-        // ============================================
-
         function applyFilters() {
-            console.log('applyFilters called');
             if (window.appInitialized && window.applyFiltersReal) {
                 window.applyFiltersReal();
             }
         }
 
+        function handleDateFilterChange() {
+            if (window.appInitialized && window.handleDateFilterChangeReal) {
+                window.handleDateFilterChangeReal();
+            }
+        }
+
         // Event summary functions
         function handleEventSummaryPeriodChange() {
-            console.log('handleEventSummaryPeriodChange called');
             if (window.appInitialized && window.handleEventSummaryPeriodChangeReal) {
                 window.handleEventSummaryPeriodChangeReal();
             }
         }
 
         function updateEventSummaryReport() {
-            console.log('updateEventSummaryReport called');
             if (window.appInitialized && window.updateEventSummaryReportReal) {
                 window.updateEventSummaryReportReal();
             }
         }
 
         function exportEventSummaryToExcel() {
-            console.log('exportEventSummaryToExcel called');
             if (window.appInitialized && window.exportEventSummaryToExcelReal) {
                 window.exportEventSummaryToExcelReal();
             } else {
@@ -1358,7 +1265,6 @@
         }
 
         function printEventSummaryReport() {
-            console.log('printEventSummaryReport called');
             if (window.appInitialized && window.printEventSummaryReportReal) {
                 window.printEventSummaryReportReal();
             } else {
@@ -1366,7 +1272,6 @@
             }
         }
 
-        // Event summary sorting functions
         function sortEventSummaryByClass() {
             if (window.appInitialized && window.sortEventSummaryByClassReal) {
                 window.sortEventSummaryByClassReal();
@@ -1397,7 +1302,19 @@
             }
         }
 
-        // Discipline summary functions (existing)
+        // Discipline summary functions
+        function handleDisciplineSummaryPeriodChange() {
+            if (window.appInitialized && window.handleDisciplineSummaryPeriodChangeReal) {
+                window.handleDisciplineSummaryPeriodChangeReal();
+            }
+        }
+
+        function updateDisciplineSummaryReport() {
+            if (window.appInitialized && window.updateDisciplineSummaryReportReal) {
+                window.updateDisciplineSummaryReportReal();
+            }
+        }
+
         function exportDisciplineSummaryToExcel() {
             if (window.appInitialized && window.exportDisciplineSummaryToExcelReal) {
                 window.exportDisciplineSummaryToExcelReal();
@@ -1414,19 +1331,37 @@
             }
         }
 
-        function handleDisciplineSummaryPeriodChange() {
-            if (window.appInitialized && window.handleDisciplineSummaryPeriodChangeReal) {
-                window.handleDisciplineSummaryPeriodChangeReal();
+        function sortDisciplineSummaryByClass() {
+            if (window.appInitialized && window.sortDisciplineSummaryByClassReal) {
+                window.sortDisciplineSummaryByClassReal();
             }
         }
 
-        function updateDisciplineSummaryReport() {
-            if (window.appInitialized && window.updateDisciplineSummaryReportReal) {
-                window.updateDisciplineSummaryReportReal();
+        function sortDisciplineSummaryByName() {
+            if (window.appInitialized && window.sortDisciplineSummaryByNameReal) {
+                window.sortDisciplineSummaryByNameReal();
             }
         }
 
-        // Late summary functions (existing)
+        function sortDisciplineSummaryByCount() {
+            if (window.appInitialized && window.sortDisciplineSummaryByCountReal) {
+                window.sortDisciplineSummaryByCountReal();
+            }
+        }
+
+        function sortDisciplineSummaryByDate() {
+            if (window.appInitialized && window.sortDisciplineSummaryByDateReal) {
+                window.sortDisciplineSummaryByDateReal();
+            }
+        }
+
+        function sortDisciplineSummaryTable(column) {
+            if (window.appInitialized && window.sortDisciplineSummaryTableReal) {
+                window.sortDisciplineSummaryTableReal(column);
+            }
+        }
+
+        // Late summary functions
         function handleSummaryPeriodChange() {
             if (window.appInitialized && window.handleSummaryPeriodChangeReal) {
                 window.handleSummaryPeriodChangeReal();
@@ -1455,7 +1390,37 @@
             }
         }
 
-        // Regular report functions (existing)
+        function sortSummaryByClass() {
+            if (window.appInitialized && window.sortSummaryByClassReal) {
+                window.sortSummaryByClassReal();
+            }
+        }
+
+        function sortSummaryByName() {
+            if (window.appInitialized && window.sortSummaryByNameReal) {
+                window.sortSummaryByNameReal();
+            }
+        }
+
+        function sortSummaryByCount() {
+            if (window.appInitialized && window.sortSummaryByCountReal) {
+                window.sortSummaryByCountReal();
+            }
+        }
+
+        function sortSummaryByDate() {
+            if (window.appInitialized && window.sortSummaryByDateReal) {
+                window.sortSummaryByDateReal();
+            }
+        }
+
+        function sortSummaryTable(column) {
+            if (window.appInitialized && window.sortSummaryTableReal) {
+                window.sortSummaryTableReal(column);
+            }
+        }
+
+        // Regular report functions
         function exportToExcel() {
             if (window.appInitialized && window.exportToExcelReal) {
                 window.exportToExcelReal();
@@ -1472,28 +1437,25 @@
             }
         }
 
-        function handleDateFilterChange() {
-            if (window.appInitialized && window.handleDateFilterChangeReal) {
-                window.handleDateFilterChangeReal();
-            }
+        function sortByClass() {
+            if (window.appInitialized && window.sortByClassReal) window.sortByClassReal();
         }
 
-        // Sorting functions (existing)
-        function sortByClass() { if (window.appInitialized && window.sortByClassReal) window.sortByClassReal(); }
-        function sortByName() { if (window.appInitialized && window.sortByNameReal) window.sortByNameReal(); }
-        function sortByDate() { if (window.appInitialized && window.sortByDateReal) window.sortByDateReal(); }
-        function sortByTime() { if (window.appInitialized && window.sortByTimeReal) window.sortByTimeReal(); }
-        function sortSummaryByClass() { if (window.appInitialized && window.sortSummaryByClassReal) window.sortSummaryByClassReal(); }
-        function sortSummaryByName() { if (window.appInitialized && window.sortSummaryByNameReal) window.sortSummaryByNameReal(); }
-        function sortSummaryByCount() { if (window.appInitialized && window.sortSummaryByCountReal) window.sortSummaryByCountReal(); }
-        function sortSummaryByDate() { if (window.appInitialized && window.sortSummaryByDateReal) window.sortSummaryByDateReal(); }
-        function sortDisciplineSummaryByClass() { if (window.appInitialized && window.sortDisciplineSummaryByClassReal) window.sortDisciplineSummaryByClassReal(); }
-        function sortDisciplineSummaryByName() { if (window.appInitialized && window.sortDisciplineSummaryByNameReal) window.sortDisciplineSummaryByNameReal(); }
-        function sortDisciplineSummaryByCount() { if (window.appInitialized && window.sortDisciplineSummaryByCountReal) window.sortDisciplineSummaryByCountReal(); }
-        function sortDisciplineSummaryByDate() { if (window.appInitialized && window.sortDisciplineSummaryByDateReal) window.sortDisciplineSummaryByDateReal(); }
-        function sortTable(column) { if (window.appInitialized && window.sortTableReal) window.sortTableReal(column); }
-        function sortSummaryTable(column) { if (window.appInitialized && window.sortSummaryTableReal) window.sortSummaryTableReal(column); }
-        function sortDisciplineSummaryTable(column) { if (window.appInitialized && window.sortDisciplineSummaryTableReal) window.sortDisciplineSummaryTableReal(column); }
+        function sortByName() {
+            if (window.appInitialized && window.sortByNameReal) window.sortByNameReal();
+        }
+
+        function sortByDate() {
+            if (window.appInitialized && window.sortByDateReal) window.sortByDateReal();
+        }
+
+        function sortByTime() {
+            if (window.appInitialized && window.sortByTimeReal) window.sortByTimeReal();
+        }
+
+        function sortTable(column) {
+            if (window.appInitialized && window.sortTableReal) window.sortTableReal(column);
+        }
 
         // ============================================
         // APPLICATION CONFIGURATION
@@ -1612,13 +1574,16 @@
             let summaryData = [];
             let disciplineSummaryData = [];
 
+            // **បន្ថែមអថេរសម្រាប់រក្សាទុកលំដាប់តម្រៀបបច្ចុប្បន្ន**
+            let currentDisplayData = [];
+
             // Sorting variables
             let currentSort = { column: null, direction: 'asc' };
             let currentSummarySort = { column: null, direction: 'asc' };
             let currentDisciplineSummarySort = { column: null, direction: 'asc' };
             let currentEventSummarySort = { column: null, direction: 'asc' };
 
-            // Report type definitions - បន្ថែម flag និង event
+            // Report type definitions
             const reportTypes = {
                 late: {
                     title: "ទិន្នន័យយឺត",
@@ -1716,7 +1681,7 @@
                         batchCount++;
                         console.log(`📦 Loading batch ${batchCount} (records ${start} to ${start + batchSize - 1})`);
                         
-                        const { data, error } = await supabase
+                        let { data, error } = await supabase
                             .from(tableName)
                             .select('*')
                             .range(start, start + batchSize - 1);
@@ -1724,13 +1689,13 @@
                         if (error) {
                             console.error(`❌ Error loading batch ${batchCount}:`, error);
                             console.log('🔄 Trying without range...');
-                            const { data: fallbackData, error: fallbackError } = await supabase
+                            const fallbackResult = await supabase
                                 .from(tableName)
                                 .select('*')
                                 .limit(batchSize * 10);
                             
-                            if (fallbackError) throw fallbackError;
-                            data = fallbackData;
+                            if (fallbackResult.error) throw fallbackResult.error;
+                            data = fallbackResult.data;
                         }
                         
                         if (data && data.length > 0) {
@@ -1839,6 +1804,953 @@
                 document.getElementById('date-range-end-group').style.display = dateFilter === 'date-range' ? 'block' : 'none';
                 applyFiltersReal();
             }
+
+            // ========== UPDATE SORT ICONS ==========
+
+            function updateSortIcons(tableId, currentColumn, direction) {
+                const table = document.getElementById(tableId);
+                if (!table) return;
+                const headers = table.querySelectorAll('th');
+                headers.forEach((header, index) => {
+                    const existing = header.querySelectorAll('.sort-icon');
+                    existing.forEach(icon => icon.remove());
+                    if (index === currentColumn) {
+                        const sortIcon = document.createElement('span');
+                        sortIcon.className = 'sort-icon';
+                        sortIcon.textContent = direction === 'asc' ? '▴' : '▾';
+                        header.appendChild(sortIcon);
+                    }
+                });
+            }
+
+            // ========== REGULAR REPORT FUNCTIONS ==========
+
+            function selectReportTypeReal(type) {
+                document.querySelectorAll('.report-type-card').forEach(card => card.classList.remove('selected'));
+                document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
+                
+                currentReportType = type;
+                
+                document.getElementById('current-report-title').textContent = `របាយការណ៍${reportTypes[type].title}`;
+                document.getElementById('current-report-description').textContent = reportTypes[type].description;
+                document.getElementById('current-report-type').style.display = 'block';
+                document.getElementById('table-title').textContent = `📊 ${reportTypes[type].title}`;
+                
+                // Hide all sections first
+                document.getElementById('filter-section').style.display = 'none';
+                document.getElementById('stats-section').style.display = 'none';
+                document.getElementById('table-section').style.display = 'none';
+                document.getElementById('summary-section').style.display = 'none';
+                document.getElementById('discipline-summary-section').style.display = 'none';
+                document.getElementById('event-summary-section').style.display = 'none';
+                
+                if (type === 'event-summary') {
+                    document.getElementById('event-summary-section').style.display = 'block';
+                    loadEventSummaryReport();
+                } else if (type === 'summary') {
+                    document.getElementById('summary-section').style.display = 'block';
+                    loadSummaryReport();
+                } else if (type === 'discipline-summary') {
+                    document.getElementById('discipline-summary-section').style.display = 'block';
+                    loadDisciplineSummaryReport();
+                } else {
+                    document.getElementById('filter-section').style.display = 'block';
+                    document.getElementById('table-section').style.display = 'block';
+                    loadReportData();
+                }
+                
+                console.log(`✅ Selected report type: ${type}`);
+            }
+
+            async function loadReportData() {
+                if (!currentReportType || currentReportType === 'summary' || 
+                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary') return;
+                
+                document.getElementById('table-loading').style.display = 'block';
+                document.getElementById('table-empty').style.display = 'none';
+                document.getElementById('report-table-body').innerHTML = '';
+                
+                try {
+                    const tableName = reportTypes[currentReportType].table;
+                    allReports = await loadAllDataForReport(tableName);
+                    console.log(`✅ Loaded ${allReports.length} records`);
+                    applyFiltersReal();
+                    updateStats();
+                    populateClassFilter();
+                } catch (error) {
+                    console.error('❌ Error loading report data:', error);
+                    allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
+                    applyFiltersReal();
+                    updateStats();
+                    populateClassFilter();
+                }
+            }
+
+            function applyFiltersReal() {
+                if (!currentReportType || currentReportType === 'summary' || 
+                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary' || 
+                    allReports.length === 0) {
+                    document.getElementById('table-loading').style.display = 'none';
+                    document.getElementById('table-empty').style.display = 'block';
+                    return;
+                }
+                
+                let filtered = [...allReports];
+                const dateFilter = document.getElementById('date-filter').value;
+                const today = new Date();
+                
+                switch (dateFilter) {
+                    case 'today':
+                        const todayStr = today.toISOString().split('T')[0];
+                        filtered = filtered.filter(r => r.date === todayStr);
+                        break;
+                    case 'today-tomorrow':
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const tStr = today.toISOString().split('T')[0];
+                        const tmStr = tomorrow.toISOString().split('T')[0];
+                        filtered = filtered.filter(r => r.date === tStr || r.date === tmStr);
+                        break;
+                    case 'yesterday':
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yStr = yesterday.toISOString().split('T')[0];
+                        filtered = filtered.filter(r => r.date === yStr);
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        filtered = filtered.filter(r => new Date(r.date) >= weekAgo && new Date(r.date) <= today);
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        filtered = filtered.filter(r => new Date(r.date) >= monthAgo && new Date(r.date) <= today);
+                        break;
+                    case 'custom':
+                        const customDate = document.getElementById('custom-date').value;
+                        if (customDate) filtered = filtered.filter(r => r.date === customDate);
+                        break;
+                    case 'date-range':
+                        const startDate = document.getElementById('start-date').value;
+                        const endDate = document.getElementById('end-date').value;
+                        if (startDate && endDate) {
+                            const start = new Date(startDate);
+                            const end = new Date(endDate);
+                            start.setHours(0,0,0,0);
+                            end.setHours(23,59,59,999);
+                            filtered = filtered.filter(r => {
+                                const rd = new Date(r.date);
+                                return rd >= start && rd <= end;
+                            });
+                        }
+                        break;
+                }
+                
+                const classFilter = document.getElementById('class-filter').value;
+                if (classFilter !== 'all') filtered = filtered.filter(r => r.class === classFilter);
+                
+                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+                if (searchFilter) {
+                    filtered = filtered.filter(r => 
+                        r.name.toLowerCase().includes(searchFilter) ||
+                        (r.student_id && r.student_id.toLowerCase().includes(searchFilter)) ||
+                        (r.discipline_description && r.discipline_description.toLowerCase().includes(searchFilter))
+                    );
+                }
+                
+                filteredReports = filtered;
+                renderTable();
+                updateStats();
+            }
+
+            function renderTable() {
+                const tableBody = document.getElementById('report-table-body');
+                const loading = document.getElementById('table-loading');
+                const empty = document.getElementById('table-empty');
+                
+                loading.style.display = 'none';
+                
+                if (filteredReports.length === 0) {
+                    empty.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    document.getElementById('stats-section').style.display = 'none';
+                    currentDisplayData = [];
+                    return;
+                }
+                
+                empty.style.display = 'none';
+                document.getElementById('stats-section').style.display = 'grid';
+                
+                // **រក្សាទុកទិន្នន័យដែលកំពុងបង្ហាញ**
+                currentDisplayData = [...filteredReports];
+                
+                let html = '';
+                filteredReports.forEach((report, index) => {
+                    const dateObj = new Date(report.date);
+                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    
+                    let problemText = '';
+                    if (currentReportType === 'discipline') {
+                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                    } else if (currentReportType === 'event') {
+                        problemText = report.event_name || 'កម្មវិធីសាលា';
+                    } else if (currentReportType === 'flag') {
+                        problemText = 'គោរពទង់ជាតិ';
+                    } else {
+                        problemText = reportTypes[currentReportType]?.problemType || 'N/A';
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div><strong>${report.name}</strong></div>
+                                <div style="font-size:0.8rem;color:var(--gray);">ID: ${report.student_id}</div>
+                            </td>
+                            <td>${report.class}</td>
+                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
+                            <td class="discipline-description">${problemText}</td>
+                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                            <td>${displayDate}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+                document.getElementById('table-section').style.display = 'block';
+            }
+
+            function updateStats() {
+                if (!currentReportType || currentReportType === 'summary' || 
+                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary') return;
+                
+                const totalScans = allReports.length;
+                const today = new Date().toISOString().split('T')[0];
+                const todayScans = allReports.filter(r => r.date === today).length;
+                const uniqueStudents = new Set(allReports.map(r => r.student_id)).size;
+                
+                const counts = {};
+                allReports.forEach(r => counts[r.student_id] = (counts[r.student_id] || 0) + 1);
+                const mostFrequent = Math.max(...Object.values(counts), 0);
+                
+                document.getElementById('total-scans').textContent = totalScans;
+                document.getElementById('today-scans').textContent = todayScans;
+                document.getElementById('unique-students').textContent = uniqueStudents;
+                document.getElementById('most-frequent').textContent = mostFrequent;
+            }
+
+            function populateClassFilter() {
+                const classFilter = document.getElementById('class-filter');
+                const classes = [...new Set(allReports.map(r => r.class))].sort();
+                classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
+                classes.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c;
+                    option.textContent = c;
+                    classFilter.appendChild(option);
+                });
+            }
+
+            // ========== SORTING FUNCTIONS ==========
+
+            function sortTableReal(column) {
+                const tableBody = document.getElementById('report-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'asc';
+                }
+                
+                filteredReports.sort((a, b) => {
+                    let aVal, bVal;
+                    
+                    if (column === 0) {
+                        const aIndex = filteredReports.indexOf(a);
+                        const bIndex = filteredReports.indexOf(b);
+                        return currentSort.direction === 'asc' ? aIndex - bIndex : bIndex - aIndex;
+                    }
+                    
+                    if (column === 1) { aVal = a.name || ''; bVal = b.name || ''; }
+                    else if (column === 2) { aVal = a.class || ''; bVal = b.class || ''; }
+                    else if (column === 3) { aVal = a.gender || ''; bVal = b.gender || ''; }
+                    else if (column === 4) {
+                        if (currentReportType === 'discipline') { aVal = a.discipline_description || ''; bVal = b.discipline_description || ''; }
+                        else if (currentReportType === 'event') { aVal = a.event_name || ''; bVal = b.event_name || ''; }
+                        else { aVal = reportTypes[currentReportType]?.problemType || ''; bVal = reportTypes[currentReportType]?.problemType || ''; }
+                    }
+                    else if (column === 5) { aVal = a.scan_time || a.late_time || ''; bVal = b.scan_time || b.late_time || ''; }
+                    else if (column === 6) { aVal = a.date || ''; bVal = b.date || ''; }
+                    
+                    if (column === 6) {
+                        const aDate = new Date(aVal);
+                        const bDate = new Date(bVal);
+                        return currentSort.direction === 'asc' ? aDate - bDate : bDate - aDate;
+                    }
+                    
+                    return currentSort.direction === 'asc' ? 
+                        aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
+                });
+                
+                // **ធ្វើបច្ចុប្បន្នភាព currentDisplayData**
+                currentDisplayData = [...filteredReports];
+                
+                renderTable();
+                updateSortIcons('report-table', column, currentSort.direction);
+            }
+
+            function sortByClassReal() { sortTableReal(2); }
+            function sortByNameReal() { sortTableReal(1); }
+            function sortByDateReal() { sortTableReal(6); }
+            function sortByTimeReal() { sortTableReal(5); }
+
+            // ========== EXPORT TO EXCEL ==========
+
+            function exportToExcelReal() {
+                const dataToExport = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+                
+                if (dataToExport.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                    return;
+                }
+                
+                try {
+                    const excelData = dataToExport.map((report, index) => {
+                        const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
+                            year: 'numeric', month: 'long', day: 'numeric'
+                        });
+                        
+                        let problemText = '';
+                        if (currentReportType === 'discipline') {
+                            problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                        } else if (currentReportType === 'event') {
+                            problemText = report.event_name || 'កម្មវិធីសាលា';
+                        } else if (currentReportType === 'flag') {
+                            problemText = 'គោរពទង់ជាតិ';
+                        } else {
+                            problemText = reportTypes[currentReportType]?.problemType || 'N/A';
+                        }
+                        
+                        return {
+                            'ល.រ': index + 1,
+                            'ឈ្មោះសិស្ស': report.name,
+                            'លេខសម្គាល់': report.student_id,
+                            'ថ្នាក់': report.class,
+                            'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
+                            'បញ្ហា/ព័ត៌មាន': problemText,
+                            'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
+                            'កាលបរិច្ឆេទ': displayDate
+                        };
+                    });
+                    
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    const sheetName = reportTypes[currentReportType]?.title || 'ទិន្នន័យ';
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `report_${currentReportType}_${today}.xlsx`);
+                    console.log(`✅ Exported ${dataToExport.length} records to Excel`);
+                } catch (error) {
+                    console.error('❌ Error exporting to Excel:', error);
+                    alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+                }
+            }
+
+            // ========== PRINT REPORT ==========
+
+            function printReportReal() {
+                const dataToPrint = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+                
+                if (dataToPrint.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const dateFilter = document.getElementById('date-filter').value;
+                const periodText = {
+                    'today': 'ថ្ងៃនេះ',
+                    'today-tomorrow': 'ថ្ងៃនេះ និងថ្ងៃស្អែក',
+                    'yesterday': 'ម្សិលមិញ',
+                    'week': 'សប្តាហ៍នេះ',
+                    'month': 'ខែនេះ',
+                    'custom': 'កាលបរិច្ឆេទជាក់លាក់',
+                    'date-range': 'ចន្លោះកាលបរិច្ឆេទ'
+                }[dateFilter] || 'ទាំងអស់';
+                
+                const reportTitle = reportTypes[currentReportType]?.title || 'ទិន្នន័យ';
+                
+                const sortInfo = currentSort.column !== null ? 
+                    `តម្រៀបតាម: ${['', 'ឈ្មោះ', 'ថ្នាក់', 'ភេទ', 'បញ្ហា', 'ពេលវេលា', 'កាលបរិច្ឆេទ'][currentSort.column] || ''} (${currentSort.direction === 'asc' ? 'ឡើង' : 'ចុះ'})` : 
+                    'មិនបានតម្រៀប';
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="km">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>របាយការណ៍${reportTitle}</title>
+                        <style>
+                            body { font-family: 'Khmer OS','Arial',sans-serif; margin:20px; }
+                            .header { text-align:center; margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:20px; }
+                            .header h1 { color:#333; margin-bottom:10px; }
+                            .header .date { color:#666; }
+                            .sort-info { color:#888; font-size:0.9em; margin-top:5px; }
+                            table { width:100%; border-collapse:collapse; margin:20px 0; }
+                            th, td { border:1px solid #ddd; padding:10px; text-align:left; }
+                            th { background-color:#f5f5f5; font-weight:bold; }
+                            .footer { margin-top:30px; text-align:center; color:#666; font-size:0.9em; }
+                            .discipline-description { max-width:300px; word-wrap:break-word; }
+                            @media print { .no-print { display:none; } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>របាយការណ៍${reportTitle}</h1>
+                            <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                            <div class="date">រយៈពេល: ${periodText}</div>
+                            <div class="sort-info">${sortInfo}</div>
+                            <div class="date">ចំនួនទិន្នន័យសរុប: ${dataToPrint.length}</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ល.រ</th>
+                                    <th>ឈ្មោះសិស្ស</th>
+                                    <th>ថ្នាក់</th>
+                                    <th>ភេទ</th>
+                                    <th>បញ្ហា/ព័ត៌មាន</th>
+                                    <th>ពេលវេលា</th>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${dataToPrint.map((report, index) => {
+                                    const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
+                                        year:'numeric', month:'long', day:'numeric'
+                                    });
+                                    let problemText = '';
+                                    if (currentReportType === 'discipline') {
+                                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                                    } else if (currentReportType === 'event') {
+                                        problemText = report.event_name || 'កម្មវិធីសាលា';
+                                    } else if (currentReportType === 'flag') {
+                                        problemText = 'គោរពទង់ជាតិ';
+                                    } else {
+                                        problemText = reportTypes[currentReportType]?.problemType || 'N/A';
+                                    }
+                                    return `
+                                        <tr>
+                                            <td>${index+1}</td>
+                                            <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
+                                            <td>${report.class}</td>
+                                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
+                                            <td class="discipline-description">${problemText}</td>
+                                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                                            <td>${displayDate}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                            <p style="font-size:0.8em;color:#aaa;">${sortInfo}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => printWindow.print(), 500);
+            }
+
+            // ========== LATE SUMMARY FUNCTIONS ==========
+
+            async function loadSummaryReport() {
+                if (currentReportType !== 'summary') return;
+                document.getElementById('summary-loading').style.display = 'block';
+                document.getElementById('summary-empty').style.display = 'none';
+                document.getElementById('summary-table-body').innerHTML = '';
+                try {
+                    const tableName = "attendance_reports";
+                    allReports = await loadAllDataForReport(tableName);
+                    updateSummaryReportReal();
+                } catch (error) {
+                    allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                    updateSummaryReportReal();
+                }
+            }
+
+            function updateSummaryReportReal() {
+                if (currentReportType !== 'summary' || allReports.length === 0) {
+                    document.getElementById('summary-loading').style.display = 'none';
+                    document.getElementById('summary-empty').style.display = 'block';
+                    return;
+                }
+                
+                const period = document.getElementById('summary-period').value;
+                const minLateCount = parseInt(document.getElementById('min-late-count').value) || 1;
+                const classFilter = document.getElementById('summary-class-filter').value;
+                const today = new Date();
+                let startDate, endDate;
+                
+                switch (period) {
+                    case 'week': startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; break;
+                    case 'month': startDate = new Date(today); startDate.setMonth(today.getMonth()-1); endDate=today; break;
+                    case 'custom':
+                        const cd = document.getElementById('custom-summary-date').value;
+                        if (cd) { startDate = new Date(cd); endDate = new Date(cd); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
+                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
+                        break;
+                    case 'date-range':
+                        const sd = document.getElementById('summary-start-date').value;
+                        const ed = document.getElementById('summary-end-date').value;
+                        if (sd && ed) { startDate = new Date(sd); endDate = new Date(ed); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
+                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
+                        break;
+                    default: startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today;
+                }
+                
+                const filtered = allReports.filter(r => {
+                    const rd = new Date(r.date);
+                    return rd >= startDate && rd <= endDate;
+                });
+                
+                const counts = {}, lastDate = {}, details = {};
+                filtered.forEach(r => {
+                    const id = r.student_id;
+                    if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; }
+                    counts[id]++;
+                    const rd = new Date(r.date);
+                    if (!lastDate[id] || rd > lastDate[id]) lastDate[id] = rd;
+                });
+                
+                summaryData = Object.keys(counts)
+                    .map(id => ({
+                        student_id: id,
+                        name: details[id].name,
+                        class: details[id].class,
+                        gender: details[id].gender,
+                        late_count: counts[id],
+                        last_late_date: lastDate[id]
+                    }))
+                    .filter(s => s.late_count >= minLateCount)
+                    .filter(s => classFilter === 'all' || s.class === classFilter)
+                    .sort((a,b) => b.late_count - a.late_count);
+                
+                renderSummaryTable();
+                updateSummaryStats();
+                populateSummaryClassFilter();
+            }
+
+            function renderSummaryTable() {
+                const tableBody = document.getElementById('summary-table-body');
+                const loading = document.getElementById('summary-loading');
+                const empty = document.getElementById('summary-empty');
+                loading.style.display = 'none';
+                if (summaryData.length === 0) { empty.style.display='block'; tableBody.innerHTML=''; return; }
+                empty.style.display='none';
+                let html = '';
+                summaryData.forEach((s, i) => {
+                    const lastDate = s.last_late_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
+                    let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
+                    let statusClass = s.late_count >= 5 ? 'badge-late' : s.late_count >= 3 ? 'badge-warning' : 'badge-helpful';
+                    html += `<tr>
+                        <td>${i+1}</td>
+                        <td><div><strong>${s.name}</strong></div><div style="font-size:0.8rem;color:var(--gray);">ID: ${s.student_id}</div></td>
+                        <td>${s.class}</td>
+                        <td>${s.gender}</td>
+                        <td><strong style="color:var(--danger);font-size:1.1rem;">${s.late_count}</strong> ដង</td>
+                        <td>${lastDate}</td>
+                        <td><span class="badge ${statusClass}">${status}</span></td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = html;
+            }
+
+            function updateSummaryStats() {
+                if (summaryData.length === 0) {
+                    ['total-students-late','total-late-count','avg-late-per-student','max-late-count'].forEach(id => document.getElementById(id).textContent='0');
+                    return;
+                }
+                const total = summaryData.length;
+                const totalLate = summaryData.reduce((sum,s) => sum + s.late_count, 0);
+                document.getElementById('total-students-late').textContent = total;
+                document.getElementById('total-late-count').textContent = totalLate;
+                document.getElementById('avg-late-per-student').textContent = (totalLate/total).toFixed(1);
+                document.getElementById('max-late-count').textContent = Math.max(...summaryData.map(s => s.late_count));
+            }
+
+            function populateSummaryClassFilter() {
+                const cf = document.getElementById('summary-class-filter');
+                const classes = [...new Set(allReports.map(r => r.class))].sort();
+                cf.innerHTML = '<option value="all">ទាំងអស់</option>';
+                classes.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; cf.appendChild(opt); });
+            }
+
+            function handleSummaryPeriodChangeReal() {
+                const period = document.getElementById('summary-period').value;
+                document.getElementById('custom-summary-date-group').style.display = period === 'custom' ? 'block' : 'none';
+                document.getElementById('summary-date-range-start-group').style.display = period === 'date-range' ? 'block' : 'none';
+                document.getElementById('summary-date-range-end-group').style.display = period === 'date-range' ? 'block' : 'none';
+                updateSummaryReportReal();
+            }
+
+            function exportSummaryToExcelReal() {
+                if (summaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
+                try {
+                    const data = summaryData.map((s,i) => {
+                        const lastDate = s.last_late_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
+                        let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
+                        return {'ល.រ':i+1,'ឈ្មោះសិស្ស':s.name,'លេខសម្គាល់':s.student_id,'ថ្នាក់':s.class,'ភេទ':s.gender,'ចំនួនយឺត':s.late_count,'កាលបរិច្ឆេទយឺតចុងក្រោយ':lastDate,'ស្ថានភាព':status};
+                    });
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'ទិន្នន័យយឺត');
+                    XLSX.writeFile(wb, `summary_late_${new Date().toISOString().split('T')[0]}.xlsx`);
+                } catch(e) { alert('⚠️ មានបញ្ហា: '+e.message); }
+            }
+
+            function printSummaryReportReal() {
+                if (summaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
+                const win = window.open('','_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const period = document.getElementById('summary-period').value;
+                const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
+                
+                const sortInfo = currentSummarySort.column !== null ? 
+                    `តម្រៀបតាម: ${['', 'ឈ្មោះ', 'ថ្នាក់', 'ភេទ', 'ចំនួនយឺត', 'កាលបរិច្ឆេទ', 'ស្ថានភាព'][currentSummarySort.column] || ''} (${currentSummarySort.direction === 'asc' ? 'ឡើង' : 'ចុះ'})` : 
+                    'មិនបានតម្រៀប';
+                
+                win.document.write(`
+                    <!DOCTYPE html><html lang="km"><head><meta charset="UTF-8"><title>របាយការណ៍សង្ខេបទិន្នន័យយឺត</title>
+                    <style>
+                        body{font-family:'Khmer OS','Arial',sans-serif;margin:20px;}
+                        .header{text-align:center;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:20px;}
+                        .header h1{color:#333;margin-bottom:10px;}
+                        .header .date{color:#666;}
+                        .sort-info{color:#888;font-size:0.9em;margin-top:5px;}
+                        .summary-info{margin:20px 0;padding:15px;background:#f9f9f9;border-radius:5px;}
+                        table{width:100%;border-collapse:collapse;margin:20px 0;}
+                        th,td{border:1px solid #ddd;padding:10px;text-align:left;}
+                        th{background-color:#f5f5f5;font-weight:bold;}
+                        .footer{margin-top:30px;text-align:center;color:#666;font-size:0.9em;}
+                    </style>
+                </head><body>
+                <div class="header">
+                    <h1>របាយការណ៍សង្ខេបទិន្នន័យយឺត</h1>
+                    <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                    <div class="date">រយៈពេល: ${periodText}</div>
+                    <div class="sort-info">${sortInfo}</div>
+                    <div class="date">ចំនួនសិស្សយឺត: ${summaryData.length}</div>
+                </div>
+                <div class="summary-info">
+                    <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                    - សិស្សយឺតសរុប: ${summaryData.length} នាក់<br>
+                    - ចំនួនយឺតសរុប: ${summaryData.reduce((s,x) => s+x.late_count,0)} ដង<br>
+                    - មធ្យមយឺតតាមសិស្ស: ${(summaryData.reduce((s,x) => s+x.late_count,0)/summaryData.length).toFixed(1)} ដង<br>
+                    - ចំនួនយឺតខ្ពស់បំផុត: ${Math.max(...summaryData.map(s=>s.late_count))} ដង
+                </div>
+                <table>
+                    <thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ថ្នាក់</th><th>ភេទ</th><th>ចំនួនយឺត</th><th>កាលបរិច្ឆេទយឺតចុងក្រោយ</th><th>ស្ថានភាព</th></tr></thead>
+                    <tbody>
+                    ${summaryData.map((s,i) => {
+                        const lastDate = s.last_late_date.toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'});
+                        let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
+                        return `<tr><td>${i+1}</td><td>${s.name}<br><small>ID: ${s.student_id}</small></td><td>${s.class}</td><td>${s.gender}</td><td><strong>${s.late_count} ដង</strong></td><td>${lastDate}</td><td>${status}</td></tr>`;
+                    }).join('')}
+                    </tbody>
+                </table>
+                <div class="footer">
+                    <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    <p style="font-size:0.8em;color:#aaa;">${sortInfo}</p>
+                </div>
+                </body></html>
+                `);
+                win.document.close(); 
+                win.focus(); 
+                setTimeout(()=>win.print(),500);
+            }
+
+            function sortSummaryTableReal(column) {
+                const tableBody = document.getElementById('summary-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                if (currentSummarySort.column === column) {
+                    currentSummarySort.direction = currentSummarySort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSummarySort.column = column;
+                    currentSummarySort.direction = 'asc';
+                }
+                summaryData.sort((a, b) => {
+                    let aVal, bVal;
+                    if (column === 0) { return currentSummarySort.direction === 'asc' ? 
+                        summaryData.indexOf(a) - summaryData.indexOf(b) : summaryData.indexOf(b) - summaryData.indexOf(a); }
+                    if (column === 1) { aVal = a.name || ''; bVal = b.name || ''; }
+                    else if (column === 2) { aVal = a.class || ''; bVal = b.class || ''; }
+                    else if (column === 3) { aVal = a.gender || ''; bVal = b.gender || ''; }
+                    else if (column === 4) { aVal = a.late_count || 0; bVal = b.late_count || 0; return currentSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 5) { aVal = a.last_late_date || new Date(0); bVal = b.last_late_date || new Date(0); return currentSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 6) {
+                        let statusA = a.late_count >= 5 ? 'យឺតច្រើនណាស់' : a.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
+                        let statusB = b.late_count >= 5 ? 'យឺតច្រើនណាស់' : b.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
+                        return currentSummarySort.direction === 'asc' ? statusA.localeCompare(statusB, 'km') : statusB.localeCompare(statusA, 'km');
+                    }
+                    return currentSummarySort.direction === 'asc' ? aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
+                });
+                renderSummaryTable();
+                updateSortIcons('summary-table', column, currentSummarySort.direction);
+            }
+
+            function sortSummaryByClassReal() { sortSummaryTableReal(2); }
+            function sortSummaryByNameReal() { sortSummaryTableReal(1); }
+            function sortSummaryByCountReal() { sortSummaryTableReal(4); }
+            function sortSummaryByDateReal() { sortSummaryTableReal(5); }
+
+            // ========== DISCIPLINE SUMMARY FUNCTIONS ==========
+
+            async function loadDisciplineSummaryReport() {
+                if (currentReportType !== 'discipline-summary') return;
+                document.getElementById('discipline-summary-loading').style.display = 'block';
+                document.getElementById('discipline-summary-empty').style.display = 'none';
+                document.getElementById('discipline-summary-table-body').innerHTML = '';
+                try {
+                    const tableName = "discipline_reports";
+                    allReports = await loadAllDataForReport(tableName);
+                    updateDisciplineSummaryReportReal();
+                } catch (error) {
+                    allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
+                    updateDisciplineSummaryReportReal();
+                }
+            }
+
+            function updateDisciplineSummaryReportReal() {
+                if (currentReportType !== 'discipline-summary' || allReports.length === 0) {
+                    document.getElementById('discipline-summary-loading').style.display = 'none';
+                    document.getElementById('discipline-summary-empty').style.display = 'block';
+                    return;
+                }
+                const period = document.getElementById('discipline-summary-period').value;
+                const minCount = parseInt(document.getElementById('min-discipline-count').value) || 1;
+                const classFilter = document.getElementById('discipline-summary-class-filter').value;
+                const today = new Date();
+                let startDate, endDate;
+                switch (period) {
+                    case 'week': startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; break;
+                    case 'month': startDate = new Date(today); startDate.setMonth(today.getMonth()-1); endDate=today; break;
+                    case 'custom':
+                        const cd = document.getElementById('custom-discipline-summary-date').value;
+                        if (cd) { startDate = new Date(cd); endDate = new Date(cd); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
+                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
+                        break;
+                    case 'date-range':
+                        const sd = document.getElementById('discipline-summary-start-date').value;
+                        const ed = document.getElementById('discipline-summary-end-date').value;
+                        if (sd && ed) { startDate = new Date(sd); endDate = new Date(ed); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
+                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
+                        break;
+                    default: startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today;
+                }
+                const filtered = allReports.filter(r => {
+                    const rd = new Date(r.date);
+                    return rd >= startDate && rd <= endDate;
+                });
+                const counts = {}, lastDate = {}, details = {}, problems = {};
+                filtered.forEach(r => {
+                    const id = r.student_id;
+                    if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; problems[id]={}; }
+                    counts[id]++;
+                    const problem = r.discipline_description || 'គ្មានបញ្ហាចម្បង';
+                    problems[id][problem] = (problems[id][problem] || 0) + 1;
+                    const rd = new Date(r.date);
+                    if (!lastDate[id] || rd > lastDate[id]) lastDate[id] = rd;
+                });
+                disciplineSummaryData = Object.keys(counts)
+                    .map(id => {
+                        const mainProblem = Object.keys(problems[id]).reduce((a,b) => problems[id][a] > problems[id][b] ? a : b, 'គ្មានបញ្ហាចម្បង');
+                        return { student_id: id, name: details[id].name, class: details[id].class, gender: details[id].gender, discipline_count: counts[id], main_problem: mainProblem, last_discipline_date: lastDate[id] };
+                    })
+                    .filter(s => s.discipline_count >= minCount)
+                    .filter(s => classFilter === 'all' || s.class === classFilter)
+                    .sort((a,b) => b.discipline_count - a.discipline_count);
+                renderDisciplineSummaryTable();
+                updateDisciplineSummaryStats();
+                populateDisciplineSummaryClassFilter();
+            }
+
+            function renderDisciplineSummaryTable() {
+                const tableBody = document.getElementById('discipline-summary-table-body');
+                const loading = document.getElementById('discipline-summary-loading');
+                const empty = document.getElementById('discipline-summary-empty');
+                loading.style.display = 'none';
+                if (disciplineSummaryData.length === 0) { empty.style.display='block'; tableBody.innerHTML=''; return; }
+                empty.style.display='none';
+                let html = '';
+                disciplineSummaryData.forEach((s,i) => {
+                    const lastDate = s.last_discipline_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
+                    let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
+                    let statusClass = s.discipline_count >= 5 ? 'badge-discipline' : s.discipline_count >= 3 ? 'badge-warning' : 'badge-helpful';
+                    html += `<tr>
+                        <td>${i+1}</td>
+                        <td><div><strong>${s.name}</strong></div><div style="font-size:0.8rem;color:var(--gray);">ID: ${s.student_id}</div></td>
+                        <td>${s.class}</td>
+                        <td>${s.gender}</td>
+                        <td><strong style="color:var(--danger);font-size:1.1rem;">${s.discipline_count}</strong> ដង</td>
+                        <td class="discipline-description">${s.main_problem}</td>
+                        <td>${lastDate}</td>
+                        <td><span class="badge ${statusClass}">${status}</span></td>
+                    </tr>`;
+                });
+                tableBody.innerHTML = html;
+            }
+
+            function updateDisciplineSummaryStats() {
+                if (disciplineSummaryData.length === 0) {
+                    ['total-students-discipline','total-discipline-count','avg-discipline-per-student','max-discipline-count'].forEach(id => document.getElementById(id).textContent='0');
+                    return;
+                }
+                const total = disciplineSummaryData.length;
+                const totalDisc = disciplineSummaryData.reduce((s,x) => s + x.discipline_count, 0);
+                document.getElementById('total-students-discipline').textContent = total;
+                document.getElementById('total-discipline-count').textContent = totalDisc;
+                document.getElementById('avg-discipline-per-student').textContent = (totalDisc/total).toFixed(1);
+                document.getElementById('max-discipline-count').textContent = Math.max(...disciplineSummaryData.map(s => s.discipline_count));
+            }
+
+            function populateDisciplineSummaryClassFilter() {
+                const cf = document.getElementById('discipline-summary-class-filter');
+                const classes = [...new Set(allReports.map(r => r.class))].sort();
+                cf.innerHTML = '<option value="all">ទាំងអស់</option>';
+                classes.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; cf.appendChild(opt); });
+            }
+
+            function handleDisciplineSummaryPeriodChangeReal() {
+                const period = document.getElementById('discipline-summary-period').value;
+                document.getElementById('custom-discipline-summary-date-group').style.display = period === 'custom' ? 'block' : 'none';
+                document.getElementById('discipline-summary-date-range-start-group').style.display = period === 'date-range' ? 'block' : 'none';
+                document.getElementById('discipline-summary-date-range-end-group').style.display = period === 'date-range' ? 'block' : 'none';
+                updateDisciplineSummaryReportReal();
+            }
+
+            function exportDisciplineSummaryToExcelReal() {
+                if (disciplineSummaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
+                try {
+                    const data = disciplineSummaryData.map((s,i) => {
+                        const lastDate = s.last_discipline_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
+                        let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
+                        return {'ល.រ':i+1,'ឈ្មោះសិស្ស':s.name,'លេខសម្គាល់':s.student_id,'ថ្នាក់':s.class,'ភេទ':s.gender,'ចំនួនវិន័យ':s.discipline_count,'បញ្ហាចម្បង':s.main_problem,'កាលបរិច្ឆេទវិន័យចុងក្រោយ':lastDate,'ស្ថានភាព':status};
+                    });
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'ទិន្នន័យវិន័យ');
+                    XLSX.writeFile(wb, `summary_discipline_${new Date().toISOString().split('T')[0]}.xlsx`);
+                } catch(e) { alert('⚠️ មានបញ្ហា: '+e.message); }
+            }
+
+            function printDisciplineSummaryReportReal() {
+                if (disciplineSummaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
+                const win = window.open('','_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const period = document.getElementById('discipline-summary-period').value;
+                const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
+                
+                const sortInfo = currentDisciplineSummarySort.column !== null ? 
+                    `តម្រៀបតាម: ${['', 'ឈ្មោះ', 'ថ្នាក់', 'ភេទ', 'ចំនួនវិន័យ', 'បញ្ហាចម្បង', 'កាលបរិច្ឆេទ', 'ស្ថានភាព'][currentDisciplineSummarySort.column] || ''} (${currentDisciplineSummarySort.direction === 'asc' ? 'ឡើង' : 'ចុះ'})` : 
+                    'មិនបានតម្រៀប';
+                
+                win.document.write(`
+                    <!DOCTYPE html><html lang="km"><head><meta charset="UTF-8"><title>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</title>
+                    <style>
+                        body{font-family:'Khmer OS','Arial',sans-serif;margin:20px;}
+                        .header{text-align:center;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:20px;}
+                        .header h1{color:#333;margin-bottom:10px;}
+                        .header .date{color:#666;}
+                        .sort-info{color:#888;font-size:0.9em;margin-top:5px;}
+                        .summary-info{margin:20px 0;padding:15px;background:#f9f9f9;border-radius:5px;}
+                        table{width:100%;border-collapse:collapse;margin:20px 0;}
+                        th,td{border:1px solid #ddd;padding:10px;text-align:left;}
+                        th{background-color:#f5f5f5;font-weight:bold;}
+                        .footer{margin-top:30px;text-align:center;color:#666;font-size:0.9em;}
+                        .discipline-description{max-width:300px;word-wrap:break-word;}
+                    </style>
+                </head><body>
+                <div class="header">
+                    <h1>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</h1>
+                    <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                    <div class="date">រយៈពេល: ${periodText}</div>
+                    <div class="sort-info">${sortInfo}</div>
+                    <div class="date">ចំនួនសិស្សវិន័យ: ${disciplineSummaryData.length}</div>
+                </div>
+                <div class="summary-info">
+                    <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                    - សិស្សវិន័យសរុប: ${disciplineSummaryData.length} នាក់<br>
+                    - ចំនួនវិន័យសរុប: ${disciplineSummaryData.reduce((s,x) => s+x.discipline_count,0)} ដង<br>
+                    - មធ្យមវិន័យតាមសិស្ស: ${(disciplineSummaryData.reduce((s,x) => s+x.discipline_count,0)/disciplineSummaryData.length).toFixed(1)} ដង<br>
+                    - ចំនួនវិន័យខ្ពស់បំផុត: ${Math.max(...disciplineSummaryData.map(s=>s.discipline_count))} ដង
+                </div>
+                <table>
+                    <thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ថ្នាក់</th><th>ភេទ</th><th>ចំនួនវិន័យ</th><th>បញ្ហាចម្បង</th><th>កាលបរិច្ឆេទវិន័យចុងក្រោយ</th><th>ស្ថានភាព</th></tr></thead>
+                    <tbody>
+                    ${disciplineSummaryData.map((s,i) => {
+                        const lastDate = s.last_discipline_date.toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'});
+                        let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
+                        return `<tr><td>${i+1}</td><td>${s.name}<br><small>ID: ${s.student_id}</small></td><td>${s.class}</td><td>${s.gender}</td><td><strong>${s.discipline_count} ដង</strong></td><td class="discipline-description">${s.main_problem}</td><td>${lastDate}</td><td>${status}</td></tr>`;
+                    }).join('')}
+                    </tbody>
+                </table>
+                <div class="footer">
+                    <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                    <p style="font-size:0.8em;color:#aaa;">${sortInfo}</p>
+                </div>
+                </body></html>
+                `);
+                win.document.close(); 
+                win.focus(); 
+                setTimeout(()=>win.print(),500);
+            }
+
+            function sortDisciplineSummaryTableReal(column) {
+                const tableBody = document.getElementById('discipline-summary-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                if (currentDisciplineSummarySort.column === column) {
+                    currentDisciplineSummarySort.direction = currentDisciplineSummarySort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentDisciplineSummarySort.column = column;
+                    currentDisciplineSummarySort.direction = 'asc';
+                }
+                disciplineSummaryData.sort((a, b) => {
+                    let aVal, bVal;
+                    if (column === 0) { return currentDisciplineSummarySort.direction === 'asc' ? 
+                        disciplineSummaryData.indexOf(a) - disciplineSummaryData.indexOf(b) : disciplineSummaryData.indexOf(b) - disciplineSummaryData.indexOf(a); }
+                    if (column === 1) { aVal = a.name || ''; bVal = b.name || ''; }
+                    else if (column === 2) { aVal = a.class || ''; bVal = b.class || ''; }
+                    else if (column === 3) { aVal = a.gender || ''; bVal = b.gender || ''; }
+                    else if (column === 4) { aVal = a.discipline_count || 0; bVal = b.discipline_count || 0; return currentDisciplineSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 5) { aVal = a.main_problem || ''; bVal = b.main_problem || ''; }
+                    else if (column === 6) { aVal = a.last_discipline_date || new Date(0); bVal = b.last_discipline_date || new Date(0); return currentDisciplineSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 7) {
+                        let statusA = a.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : a.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
+                        let statusB = b.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : b.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
+                        return currentDisciplineSummarySort.direction === 'asc' ? statusA.localeCompare(statusB, 'km') : statusB.localeCompare(statusA, 'km');
+                    }
+                    return currentDisciplineSummarySort.direction === 'asc' ? aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
+                });
+                renderDisciplineSummaryTable();
+                updateSortIcons('discipline-summary-table', column, currentDisciplineSummarySort.direction);
+            }
+
+            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTableReal(2); }
+            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTableReal(1); }
+            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTableReal(4); }
+            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTableReal(6); }
 
             // ========== EVENT SUMMARY FUNCTIONS ==========
 
@@ -2117,6 +3029,10 @@
                                    period === 'month' ? 'ខែ' :
                                    period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
                 
+                const sortInfo = currentEventSummarySort.column !== null ? 
+                    `តម្រៀបតាម: ${['', 'ឈ្មោះ', 'ថ្នាក់', 'ភេទ', 'ចំនួនចូលរួម', 'កម្មវិធី', 'កាលបរិច្ឆេទ', 'ស្ថានភាព'][currentEventSummarySort.column] || ''} (${currentEventSummarySort.direction === 'asc' ? 'ឡើង' : 'ចុះ'})` : 
+                    'មិនបានតម្រៀប';
+                
                 printWindow.document.write(`
                     <!DOCTYPE html>
                     <html lang="km">
@@ -2128,6 +3044,7 @@
                             .header { text-align:center; margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:20px; }
                             .header h1 { color:#333; margin-bottom:10px; }
                             .header .date { color:#666; }
+                            .sort-info { color:#888; font-size:0.9em; margin-top:5px; }
                             .summary-info { margin:20px 0; padding:15px; background:#f9f9f9; border-radius:5px; }
                             table { width:100%; border-collapse:collapse; margin:20px 0; }
                             th, td { border:1px solid #ddd; padding:10px; text-align:left; }
@@ -2142,6 +3059,7 @@
                             <h1>របាយការណ៍សង្ខេបចូលរួមកម្មវិធី</h1>
                             <div class="date">កាលបរិច្ឆេទ: ${today}</div>
                             <div class="date">រយៈពេល: ${periodText}</div>
+                            <div class="sort-info">${sortInfo}</div>
                             <div class="date">ចំនួនសិស្សចូលរួម: ${eventSummaryData.length}</div>
                         </div>
                         <div class="summary-info">
@@ -2189,6 +3107,7 @@
                         </table>
                         <div class="footer">
                             <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                            <p style="font-size:0.8em;color:#aaa;">${sortInfo}</p>
                         </div>
                     </body>
                     </html>
@@ -2198,13 +3117,6 @@
                 printWindow.focus();
                 setTimeout(() => printWindow.print(), 500);
             }
-
-            // ========== EVENT SUMMARY SORTING FUNCTIONS ==========
-
-            function sortEventSummaryByClassReal() { sortEventSummaryTableReal(2); }
-            function sortEventSummaryByNameReal() { sortEventSummaryTableReal(1); }
-            function sortEventSummaryByCountReal() { sortEventSummaryTableReal(4); }
-            function sortEventSummaryByDateReal() { sortEventSummaryTableReal(6); }
 
             function sortEventSummaryTableReal(column) {
                 const tableBody = document.getElementById('event-summary-table-body');
@@ -2217,909 +3129,79 @@
                     currentEventSummarySort.direction = 'asc';
                 }
                 
-                rows.sort((a, b) => {
-                    const aVal = a.cells[column].textContent.trim();
-                    const bVal = b.cells[column].textContent.trim();
-                    
-                    if (column === 0 || column === 4) {
-                        const aNum = parseInt(aVal) || 0;
-                        const bNum = parseInt(bVal) || 0;
-                        return currentEventSummarySort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                eventSummaryData.sort((a, b) => {
+                    let aVal, bVal;
+                    if (column === 0) { return currentEventSummarySort.direction === 'asc' ? 
+                        eventSummaryData.indexOf(a) - eventSummaryData.indexOf(b) : eventSummaryData.indexOf(b) - eventSummaryData.indexOf(a); }
+                    if (column === 1) { aVal = a.name || ''; bVal = b.name || ''; }
+                    else if (column === 2) { aVal = a.class || ''; bVal = b.class || ''; }
+                    else if (column === 3) { aVal = a.gender || ''; bVal = b.gender || ''; }
+                    else if (column === 4) { aVal = a.event_count || 0; bVal = b.event_count || 0; return currentEventSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 5) { aVal = a.last_event_name || ''; bVal = b.last_event_name || ''; }
+                    else if (column === 6) { aVal = a.last_event_date || new Date(0); bVal = b.last_event_date || new Date(0); return currentEventSummarySort.direction === 'asc' ? aVal - bVal : bVal - aVal; }
+                    else if (column === 7) {
+                        let statusA = a.event_count >= 5 ? 'ចូលរួមច្រើនណាស់' : a.event_count >= 3 ? 'ចូលរួមច្រើន' : 'ចូលរួមតិច';
+                        let statusB = b.event_count >= 5 ? 'ចូលរួមច្រើនណាស់' : b.event_count >= 3 ? 'ចូលរួមច្រើន' : 'ចូលរួមតិច';
+                        return currentEventSummarySort.direction === 'asc' ? statusA.localeCompare(statusB, 'km') : statusB.localeCompare(statusA, 'km');
                     }
-                    if (column === 6) {
-                        const aDate = new Date(aVal);
-                        const bDate = new Date(bVal);
-                        return currentEventSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
-                    }
-                    return currentEventSummarySort.direction === 'asc' ? 
-                        aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
+                    return currentEventSummarySort.direction === 'asc' ? aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
                 });
                 
-                rows.forEach(row => tableBody.appendChild(row));
+                renderEventSummaryTable();
                 updateSortIcons('event-summary-table', column, currentEventSummarySort.direction);
             }
 
-            // ========== REGULAR REPORT FUNCTIONS (EXISTING WITH UPDATES) ==========
+            function sortEventSummaryByClassReal() { sortEventSummaryTableReal(2); }
+            function sortEventSummaryByNameReal() { sortEventSummaryTableReal(1); }
+            function sortEventSummaryByCountReal() { sortEventSummaryTableReal(4); }
+            function sortEventSummaryByDateReal() { sortEventSummaryTableReal(6); }
 
-            function selectReportTypeReal(type) {
-                document.querySelectorAll('.report-type-card').forEach(card => card.classList.remove('selected'));
-                document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
-                
-                currentReportType = type;
-                
-                document.getElementById('current-report-title').textContent = `របាយការណ៍${reportTypes[type].title}`;
-                document.getElementById('current-report-description').textContent = reportTypes[type].description;
-                document.getElementById('current-report-type').style.display = 'block';
-                document.getElementById('table-title').textContent = `📊 ${reportTypes[type].title}`;
-                
-                // Hide all sections first
-                document.getElementById('filter-section').style.display = 'none';
-                document.getElementById('stats-section').style.display = 'none';
-                document.getElementById('table-section').style.display = 'none';
-                document.getElementById('summary-section').style.display = 'none';
-                document.getElementById('discipline-summary-section').style.display = 'none';
-                document.getElementById('event-summary-section').style.display = 'none';
-                
-                if (type === 'event-summary') {
-                    document.getElementById('event-summary-section').style.display = 'block';
-                    loadEventSummaryReport();
-                } else if (type === 'summary') {
-                    document.getElementById('summary-section').style.display = 'block';
-                    loadSummaryReport();
-                } else if (type === 'discipline-summary') {
-                    document.getElementById('discipline-summary-section').style.display = 'block';
-                    loadDisciplineSummaryReport();
-                } else {
-                    document.getElementById('filter-section').style.display = 'block';
-                    document.getElementById('table-section').style.display = 'block';
-                    loadReportData();
-                }
-                
-                console.log(`✅ Selected report type: ${type}`);
-            }
+            // ========== MAKE FUNCTIONS GLOBALLY AVAILABLE ==========
 
-            // ========== LOAD REPORT DATA ==========
+            window.selectReportTypeReal = selectReportTypeReal;
+            window.applyFiltersReal = applyFiltersReal;
+            window.handleDateFilterChangeReal = handleDateFilterChangeReal;
+            window.handleEventSummaryPeriodChangeReal = handleEventSummaryPeriodChangeReal;
+            window.updateEventSummaryReportReal = updateEventSummaryReportReal;
+            window.exportEventSummaryToExcelReal = exportEventSummaryToExcelReal;
+            window.printEventSummaryReportReal = printEventSummaryReportReal;
+            window.sortEventSummaryByClassReal = sortEventSummaryByClassReal;
+            window.sortEventSummaryByNameReal = sortEventSummaryByNameReal;
+            window.sortEventSummaryByCountReal = sortEventSummaryByCountReal;
+            window.sortEventSummaryByDateReal = sortEventSummaryByDateReal;
+            window.sortEventSummaryTableReal = sortEventSummaryTableReal;
+            window.handleDisciplineSummaryPeriodChangeReal = handleDisciplineSummaryPeriodChangeReal;
+            window.updateDisciplineSummaryReportReal = updateDisciplineSummaryReportReal;
+            window.exportDisciplineSummaryToExcelReal = exportDisciplineSummaryToExcelReal;
+            window.printDisciplineSummaryReportReal = printDisciplineSummaryReportReal;
+            window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
+            window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
+            window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
+            window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
+            window.sortDisciplineSummaryTableReal = sortDisciplineSummaryTableReal;
+            window.handleSummaryPeriodChangeReal = handleSummaryPeriodChangeReal;
+            window.updateSummaryReportReal = updateSummaryReportReal;
+            window.exportSummaryToExcelReal = exportSummaryToExcelReal;
+            window.printSummaryReportReal = printSummaryReportReal;
+            window.sortSummaryByClassReal = sortSummaryByClassReal;
+            window.sortSummaryByNameReal = sortSummaryByNameReal;
+            window.sortSummaryByCountReal = sortSummaryByCountReal;
+            window.sortSummaryByDateReal = sortSummaryByDateReal;
+            window.sortSummaryTableReal = sortSummaryTableReal;
+            window.exportToExcelReal = exportToExcelReal;
+            window.printReportReal = printReportReal;
+            window.sortByClassReal = sortByClassReal;
+            window.sortByNameReal = sortByNameReal;
+            window.sortByDateReal = sortByDateReal;
+            window.sortByTimeReal = sortByTimeReal;
+            window.sortTableReal = sortTableReal;
 
-            async function loadReportData() {
-                if (!currentReportType || currentReportType === 'summary' || 
-                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary') return;
-                
-                document.getElementById('table-loading').style.display = 'block';
-                document.getElementById('table-empty').style.display = 'none';
-                document.getElementById('report-table-body').innerHTML = '';
-                
-                try {
-                    const tableName = reportTypes[currentReportType].table;
-                    allReports = await loadAllDataForReport(tableName);
-                    console.log(`✅ Loaded ${allReports.length} records`);
-                    applyFiltersReal();
-                    updateStats();
-                    populateClassFilter();
-                } catch (error) {
-                    console.error('❌ Error loading report data:', error);
-                    allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
-                    applyFiltersReal();
-                    updateStats();
-                    populateClassFilter();
-                }
-            }
+            // ========== INITIALIZE ON PAGE LOAD ==========
 
-            function applyFiltersReal() {
-                if (!currentReportType || currentReportType === 'summary' || 
-                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary' || 
-                    allReports.length === 0) {
-                    document.getElementById('table-loading').style.display = 'none';
-                    document.getElementById('table-empty').style.display = 'block';
-                    return;
-                }
-                
-                let filtered = [...allReports];
-                const dateFilter = document.getElementById('date-filter').value;
-                const today = new Date();
-                
-                switch (dateFilter) {
-                    case 'today':
-                        const todayStr = today.toISOString().split('T')[0];
-                        filtered = filtered.filter(r => r.date === todayStr);
-                        break;
-                    case 'today-tomorrow':
-                        const tomorrow = new Date(today);
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const tStr = today.toISOString().split('T')[0];
-                        const tmStr = tomorrow.toISOString().split('T')[0];
-                        filtered = filtered.filter(r => r.date === tStr || r.date === tmStr);
-                        break;
-                    case 'yesterday':
-                        const yesterday = new Date(today);
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        const yStr = yesterday.toISOString().split('T')[0];
-                        filtered = filtered.filter(r => r.date === yStr);
-                        break;
-                    case 'week':
-                        const weekAgo = new Date(today);
-                        weekAgo.setDate(weekAgo.getDate() - 7);
-                        filtered = filtered.filter(r => new Date(r.date) >= weekAgo && new Date(r.date) <= today);
-                        break;
-                    case 'month':
-                        const monthAgo = new Date(today);
-                        monthAgo.setMonth(monthAgo.getMonth() - 1);
-                        filtered = filtered.filter(r => new Date(r.date) >= monthAgo && new Date(r.date) <= today);
-                        break;
-                    case 'custom':
-                        const customDate = document.getElementById('custom-date').value;
-                        if (customDate) filtered = filtered.filter(r => r.date === customDate);
-                        break;
-                    case 'date-range':
-                        const startDate = document.getElementById('start-date').value;
-                        const endDate = document.getElementById('end-date').value;
-                        if (startDate && endDate) {
-                            const start = new Date(startDate);
-                            const end = new Date(endDate);
-                            start.setHours(0,0,0,0);
-                            end.setHours(23,59,59,999);
-                            filtered = filtered.filter(r => {
-                                const rd = new Date(r.date);
-                                return rd >= start && rd <= end;
-                            });
-                        }
-                        break;
-                }
-                
-                const classFilter = document.getElementById('class-filter').value;
-                if (classFilter !== 'all') filtered = filtered.filter(r => r.class === classFilter);
-                
-                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
-                if (searchFilter) {
-                    filtered = filtered.filter(r => 
-                        r.name.toLowerCase().includes(searchFilter) ||
-                        (r.student_id && r.student_id.toLowerCase().includes(searchFilter)) ||
-                        (r.discipline_description && r.discipline_description.toLowerCase().includes(searchFilter))
-                    );
-                }
-                
-                filteredReports = filtered;
-                renderTable();
-                updateStats();
-            }
-
-            function renderTable() {
-                const tableBody = document.getElementById('report-table-body');
-                const loading = document.getElementById('table-loading');
-                const empty = document.getElementById('table-empty');
-                
-                loading.style.display = 'none';
-                
-                if (filteredReports.length === 0) {
-                    empty.style.display = 'block';
-                    tableBody.innerHTML = '';
-                    document.getElementById('stats-section').style.display = 'none';
-                    return;
-                }
-                
-                empty.style.display = 'none';
-                document.getElementById('stats-section').style.display = 'grid';
-                
-                let html = '';
-                filteredReports.forEach((report, index) => {
-                    const dateObj = new Date(report.date);
-                    const displayDate = dateObj.toLocaleDateString('km-KH', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                    });
-                    
-                    let problemText = '';
-                    if (currentReportType === 'discipline') {
-                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
-                    } else if (currentReportType === 'event') {
-                        problemText = report.event_name || 'កម្មវិធីសាលា';
-                    } else if (currentReportType === 'flag') {
-                        problemText = 'គោរពទង់ជាតិ';
-                    } else {
-                        problemText = reportTypes[currentReportType]?.problemType || 'N/A';
-                    }
-                    
-                    html += `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>
-                                <div><strong>${report.name}</strong></div>
-                                <div style="font-size:0.8rem;color:var(--gray);">ID: ${report.student_id}</div>
-                            </td>
-                            <td>${report.class}</td>
-                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                            <td class="discipline-description">${problemText}</td>
-                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
-                            <td>${displayDate}</td>
-                        </tr>
-                    `;
-                });
-                
-                tableBody.innerHTML = html;
-                document.getElementById('table-section').style.display = 'block';
-            }
-
-            function updateStats() {
-                if (!currentReportType || currentReportType === 'summary' || 
-                    currentReportType === 'discipline-summary' || currentReportType === 'event-summary') return;
-                
-                const totalScans = allReports.length;
-                const today = new Date().toISOString().split('T')[0];
-                const todayScans = allReports.filter(r => r.date === today).length;
-                const uniqueStudents = new Set(allReports.map(r => r.student_id)).size;
-                
-                const counts = {};
-                allReports.forEach(r => counts[r.student_id] = (counts[r.student_id] || 0) + 1);
-                const mostFrequent = Math.max(...Object.values(counts), 0);
-                
-                document.getElementById('total-scans').textContent = totalScans;
-                document.getElementById('today-scans').textContent = todayScans;
-                document.getElementById('unique-students').textContent = uniqueStudents;
-                document.getElementById('most-frequent').textContent = mostFrequent;
-            }
-
-            function populateClassFilter() {
-                const classFilter = document.getElementById('class-filter');
-                const classes = [...new Set(allReports.map(r => r.class))].sort();
-                classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
-                classes.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c;
-                    option.textContent = c;
-                    classFilter.appendChild(option);
-                });
-            }
-
-            // ========== EXPORT TO EXCEL (UPDATED FOR EVENT) ==========
-
-            function exportToExcelReal() {
-                if (filteredReports.length === 0) {
-                    alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
-                    return;
-                }
-                
-                try {
-                    const excelData = filteredReports.map((report, index) => {
-                        const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
-                            year: 'numeric', month: 'long', day: 'numeric'
-                        });
-                        
-                        let problemText = '';
-                        if (currentReportType === 'discipline') {
-                            problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
-                        } else if (currentReportType === 'event') {
-                            problemText = report.event_name || 'កម្មវិធីសាលា';
-                        } else if (currentReportType === 'flag') {
-                            problemText = 'គោរពទង់ជាតិ';
-                        } else {
-                            problemText = reportTypes[currentReportType]?.problemType || 'N/A';
-                        }
-                        
-                        return {
-                            'ល.រ': index + 1,
-                            'ឈ្មោះសិស្ស': report.name,
-                            'លេខសម្គាល់': report.student_id,
-                            'ថ្នាក់': report.class,
-                            'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
-                            'បញ្ហា/ព័ត៌មាន': problemText,
-                            'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
-                            'កាលបរិច្ឆេទ': displayDate
-                        };
-                    });
-                    
-                    const ws = XLSX.utils.json_to_sheet(excelData);
-                    const wb = XLSX.utils.book_new();
-                    const sheetName = reportTypes[currentReportType]?.title || 'ទិន្នន័យ';
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                    
-                    const today = new Date().toISOString().split('T')[0];
-                    XLSX.writeFile(wb, `report_${currentReportType}_${today}.xlsx`);
-                    console.log(`✅ Exported ${filteredReports.length} records to Excel`);
-                } catch (error) {
-                    console.error('❌ Error exporting to Excel:', error);
-                    alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
-                }
-            }
-
-            // ========== PRINT REPORT (UPDATED FOR EVENT) ==========
-
-            function printReportReal() {
-                if (filteredReports.length === 0) {
-                    alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
-                    return;
-                }
-                
-                const printWindow = window.open('', '_blank');
-                const today = new Date().toLocaleDateString('km-KH');
-                const dateFilter = document.getElementById('date-filter').value;
-                const periodText = {
-                    'today': 'ថ្ងៃនេះ',
-                    'today-tomorrow': 'ថ្ងៃនេះ និងថ្ងៃស្អែក',
-                    'yesterday': 'ម្សិលមិញ',
-                    'week': 'សប្តាហ៍នេះ',
-                    'month': 'ខែនេះ',
-                    'custom': 'កាលបរិច្ឆេទជាក់លាក់',
-                    'date-range': 'ចន្លោះកាលបរិច្ឆេទ'
-                }[dateFilter] || 'ទាំងអស់';
-                
-                const reportTitle = reportTypes[currentReportType]?.title || 'ទិន្នន័យ';
-                
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html lang="km">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>របាយការណ៍${reportTitle}</title>
-                        <style>
-                            body { font-family: 'Khmer OS','Arial',sans-serif; margin:20px; }
-                            .header { text-align:center; margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:20px; }
-                            .header h1 { color:#333; margin-bottom:10px; }
-                            .header .date { color:#666; }
-                            table { width:100%; border-collapse:collapse; margin:20px 0; }
-                            th, td { border:1px solid #ddd; padding:10px; text-align:left; }
-                            th { background-color:#f5f5f5; font-weight:bold; }
-                            .footer { margin-top:30px; text-align:center; color:#666; font-size:0.9em; }
-                            .discipline-description { max-width:300px; word-wrap:break-word; }
-                            @media print { .no-print { display:none; } }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="header">
-                            <h1>របាយការណ៍${reportTitle}</h1>
-                            <div class="date">កាលបរិច្ឆេទ: ${today}</div>
-                            <div class="date">រយៈពេល: ${periodText}</div>
-                            <div class="date">ចំនួនទិន្នន័យសរុប: ${filteredReports.length}</div>
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ល.រ</th>
-                                    <th>ឈ្មោះសិស្ស</th>
-                                    <th>ថ្នាក់</th>
-                                    <th>ភេទ</th>
-                                    <th>បញ្ហា/ព័ត៌មាន</th>
-                                    <th>ពេលវេលា</th>
-                                    <th>កាលបរិច្ឆេទ</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filteredReports.map((report, index) => {
-                                    const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
-                                        year:'numeric', month:'long', day:'numeric'
-                                    });
-                                    let problemText = '';
-                                    if (currentReportType === 'discipline') {
-                                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
-                                    } else if (currentReportType === 'event') {
-                                        problemText = report.event_name || 'កម្មវិធីសាលា';
-                                    } else if (currentReportType === 'flag') {
-                                        problemText = 'គោរពទង់ជាតិ';
-                                    } else {
-                                        problemText = reportTypes[currentReportType]?.problemType || 'N/A';
-                                    }
-                                    return `
-                                        <tr>
-                                            <td>${index+1}</td>
-                                            <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
-                                            <td>${report.class}</td>
-                                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
-                                            <td class="discipline-description">${problemText}</td>
-                                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
-                                            <td>${displayDate}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
-                        </table>
-                        <div class="footer">
-                            <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
-                        </div>
-                    </body>
-                    </html>
-                `);
-                
-                printWindow.document.close();
-                printWindow.focus();
-                setTimeout(() => printWindow.print(), 500);
-            }
-
-            // ========== SORTING FUNCTIONS (EXISTING) ==========
-
-            function updateSortIcons(tableId, currentColumn, direction) {
-                const table = document.getElementById(tableId);
-                if (!table) return;
-                const headers = table.querySelectorAll('th');
-                headers.forEach((header, index) => {
-                    const existing = header.querySelectorAll('.sort-icon');
-                    existing.forEach(icon => icon.remove());
-                    if (index === currentColumn) {
-                        const sortIcon = document.createElement('span');
-                        sortIcon.className = 'sort-icon';
-                        sortIcon.textContent = direction === 'asc' ? '▴' : '▾';
-                        header.appendChild(sortIcon);
-                    }
-                });
-            }
-
-            function sortTableReal(column) {
-                const tableBody = document.getElementById('report-table-body');
-                const rows = Array.from(tableBody.querySelectorAll('tr'));
-                if (currentSort.column === column) {
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = column;
-                    currentSort.direction = 'asc';
-                }
-                rows.sort((a, b) => {
-                    const aVal = a.cells[column].textContent.trim();
-                    const bVal = b.cells[column].textContent.trim();
-                    if (column === 0) {
-                        return currentSort.direction === 'asc' ? 
-                            (parseInt(aVal)||0) - (parseInt(bVal)||0) : 
-                            (parseInt(bVal)||0) - (parseInt(aVal)||0);
-                    }
-                    return currentSort.direction === 'asc' ? 
-                        aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
-                });
-                rows.forEach(row => tableBody.appendChild(row));
-                updateSortIcons('report-table', column, currentSort.direction);
-            }
-
-            function sortSummaryTableReal(column) {
-                const tableBody = document.getElementById('summary-table-body');
-                const rows = Array.from(tableBody.querySelectorAll('tr'));
-                if (currentSummarySort.column === column) {
-                    currentSummarySort.direction = currentSummarySort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSummarySort.column = column;
-                    currentSummarySort.direction = 'asc';
-                }
-                rows.sort((a, b) => {
-                    const aVal = a.cells[column].textContent.trim();
-                    const bVal = b.cells[column].textContent.trim();
-                    if (column === 0 || column === 4) {
-                        return currentSummarySort.direction === 'asc' ? 
-                            (parseInt(aVal)||0) - (parseInt(bVal)||0) : 
-                            (parseInt(bVal)||0) - (parseInt(aVal)||0);
-                    }
-                    if (column === 5) {
-                        const aDate = new Date(aVal);
-                        const bDate = new Date(bVal);
-                        return currentSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
-                    }
-                    return currentSummarySort.direction === 'asc' ? 
-                        aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
-                });
-                rows.forEach(row => tableBody.appendChild(row));
-                updateSortIcons('summary-table', column, currentSummarySort.direction);
-            }
-
-            function sortDisciplineSummaryTableReal(column) {
-                const tableBody = document.getElementById('discipline-summary-table-body');
-                const rows = Array.from(tableBody.querySelectorAll('tr'));
-                if (currentDisciplineSummarySort.column === column) {
-                    currentDisciplineSummarySort.direction = currentDisciplineSummarySort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentDisciplineSummarySort.column = column;
-                    currentDisciplineSummarySort.direction = 'asc';
-                }
-                rows.sort((a, b) => {
-                    const aVal = a.cells[column].textContent.trim();
-                    const bVal = b.cells[column].textContent.trim();
-                    if (column === 0 || column === 4) {
-                        return currentDisciplineSummarySort.direction === 'asc' ? 
-                            (parseInt(aVal)||0) - (parseInt(bVal)||0) : 
-                            (parseInt(bVal)||0) - (parseInt(aVal)||0);
-                    }
-                    if (column === 6) {
-                        const aDate = new Date(aVal);
-                        const bDate = new Date(bVal);
-                        return currentDisciplineSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
-                    }
-                    return currentDisciplineSummarySort.direction === 'asc' ? 
-                        aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
-                });
-                rows.forEach(row => tableBody.appendChild(row));
-                updateSortIcons('discipline-summary-table', column, currentDisciplineSummarySort.direction);
-            }
-
-            function sortByClassReal() { sortTableReal(2); }
-            function sortByNameReal() { sortTableReal(1); }
-            function sortByDateReal() { sortTableReal(6); }
-            function sortByTimeReal() { sortTableReal(5); }
-            function sortSummaryByClassReal() { sortSummaryTableReal(2); }
-            function sortSummaryByNameReal() { sortSummaryTableReal(1); }
-            function sortSummaryByCountReal() { sortSummaryTableReal(4); }
-            function sortSummaryByDateReal() { sortSummaryTableReal(5); }
-            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTableReal(2); }
-            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTableReal(1); }
-            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTableReal(4); }
-            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTableReal(6); }
-
-            // ========== LOAD SUMMARY FUNCTIONS (EXISTING) ==========
-
-            async function loadSummaryReport() {
-                if (currentReportType !== 'summary') return;
-                document.getElementById('summary-loading').style.display = 'block';
-                document.getElementById('summary-empty').style.display = 'none';
-                document.getElementById('summary-table-body').innerHTML = '';
-                try {
-                    const tableName = "attendance_reports";
-                    allReports = await loadAllDataForReport(tableName);
-                    updateSummaryReportReal();
-                } catch (error) {
-                    allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
-                    updateSummaryReportReal();
-                }
-            }
-
-            function updateSummaryReportReal() {
-                if (currentReportType !== 'summary' || allReports.length === 0) {
-                    document.getElementById('summary-loading').style.display = 'none';
-                    document.getElementById('summary-empty').style.display = 'block';
-                    return;
-                }
-                
-                const period = document.getElementById('summary-period').value;
-                const minLateCount = parseInt(document.getElementById('min-late-count').value) || 1;
-                const classFilter = document.getElementById('summary-class-filter').value;
-                const today = new Date();
-                let startDate, endDate;
-                
-                switch (period) {
-                    case 'week': startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; break;
-                    case 'month': startDate = new Date(today); startDate.setMonth(today.getMonth()-1); endDate=today; break;
-                    case 'custom':
-                        const cd = document.getElementById('custom-summary-date').value;
-                        if (cd) { startDate = new Date(cd); endDate = new Date(cd); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
-                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
-                        break;
-                    case 'date-range':
-                        const sd = document.getElementById('summary-start-date').value;
-                        const ed = document.getElementById('summary-end-date').value;
-                        if (sd && ed) { startDate = new Date(sd); endDate = new Date(ed); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
-                        else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
-                        break;
-                    default: startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today;
-                }
-                
-                const filtered = allReports.filter(r => {
-                    const rd = new Date(r.date);
-                    return rd >= startDate && rd <= endDate;
-                });
-                
-                const counts = {}, lastDate = {}, details = {};
-                filtered.forEach(r => {
-                    const id = r.student_id;
-                    if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; }
-                    counts[id]++;
-                    const rd = new Date(r.date);
-                    if (!lastDate[id] || rd > lastDate[id]) lastDate[id] = rd;
-                });
-                
-                summaryData = Object.keys(counts)
-                    .map(id => ({
-                        student_id: id,
-                        name: details[id].name,
-                        class: details[id].class,
-                        gender: details[id].gender,
-                        late_count: counts[id],
-                        last_late_date: lastDate[id]
-                    }))
-                    .filter(s => s.late_count >= minLateCount)
-                    .filter(s => classFilter === 'all' || s.class === classFilter)
-                    .sort((a,b) => b.late_count - a.late_count);
-                
-                renderSummaryTable();
-                updateSummaryStats();
-                populateSummaryClassFilter();
-            }
-
-            function renderSummaryTable() {
-                const tableBody = document.getElementById('summary-table-body');
-                const loading = document.getElementById('summary-loading');
-                const empty = document.getElementById('summary-empty');
-                loading.style.display = 'none';
-                if (summaryData.length === 0) { empty.style.display='block'; tableBody.innerHTML=''; return; }
-                empty.style.display='none';
-                let html = '';
-                summaryData.forEach((s, i) => {
-                    const lastDate = s.last_late_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
-                    let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
-                    let statusClass = s.late_count >= 5 ? 'badge-late' : s.late_count >= 3 ? 'badge-warning' : 'badge-helpful';
-                    html += `<tr>
-                        <td>${i+1}</td>
-                        <td><div><strong>${s.name}</strong></div><div style="font-size:0.8rem;color:var(--gray);">ID: ${s.student_id}</div></td>
-                        <td>${s.class}</td>
-                        <td>${s.gender}</td>
-                        <td><strong style="color:var(--danger);font-size:1.1rem;">${s.late_count}</strong> ដង</td>
-                        <td>${lastDate}</td>
-                        <td><span class="badge ${statusClass}">${status}</span></td>
-                    </tr>`;
-                });
-                tableBody.innerHTML = html;
-            }
-
-            function updateSummaryStats() {
-                if (summaryData.length === 0) {
-                    ['total-students-late','total-late-count','avg-late-per-student','max-late-count'].forEach(id => document.getElementById(id).textContent='0');
-                    return;
-                }
-                const total = summaryData.length;
-                const totalLate = summaryData.reduce((sum,s) => sum + s.late_count, 0);
-                document.getElementById('total-students-late').textContent = total;
-                document.getElementById('total-late-count').textContent = totalLate;
-                document.getElementById('avg-late-per-student').textContent = (totalLate/total).toFixed(1);
-                document.getElementById('max-late-count').textContent = Math.max(...summaryData.map(s => s.late_count));
-            }
-
-            function populateSummaryClassFilter() {
-                const cf = document.getElementById('summary-class-filter');
-                const classes = [...new Set(allReports.map(r => r.class))].sort();
-                cf.innerHTML = '<option value="all">ទាំងអស់</option>';
-                classes.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; cf.appendChild(opt); });
-            }
-
-            function exportSummaryToExcelReal() {
-                if (summaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
-                try {
-                    const data = summaryData.map((s,i) => {
-                        const lastDate = s.last_late_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
-                        let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
-                        return {'ល.រ':i+1,'ឈ្មោះសិស្ស':s.name,'លេខសម្គាល់':s.student_id,'ថ្នាក់':s.class,'ភេទ':s.gender,'ចំនួនយឺត':s.late_count,'កាលបរិច្ឆេទយឺតចុងក្រោយ':lastDate,'ស្ថានភាព':status};
-                    });
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, 'ទិន្នន័យយឺត');
-                    XLSX.writeFile(wb, `summary_late_${new Date().toISOString().split('T')[0]}.xlsx`);
-                } catch(e) { alert('⚠️ មានបញ្ហា: '+e.message); }
-            }
-
-            function printSummaryReportReal() {
-                if (summaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
-                const win = window.open('','_blank');
-                const today = new Date().toLocaleDateString('km-KH');
-                const period = document.getElementById('summary-period').value;
-                const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
-                win.document.write(`
-                    <!DOCTYPE html><html lang="km"><head><meta charset="UTF-8"><title>របាយការណ៍សង្ខេបទិន្នន័យយឺត</title>
-                    <style>body{font-family:'Khmer OS','Arial',sans-serif;margin:20px;}.header{text-align:center;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:20px;}.header h1{color:#333;margin-bottom:10px;}.header .date{color:#666;}.summary-info{margin:20px 0;padding:15px;background:#f9f9f9;border-radius:5px;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background-color:#f5f5f5;font-weight:bold;}.footer{margin-top:30px;text-align:center;color:#666;font-size:0.9em;}
-</style></head><body>
-<div class="header"><h1>របាយការណ៍សង្ខេបទិន្នន័យយឺត</h1><div class="date">កាលបរិច្ឆេទ: ${today}</div><div class="date">រយៈពេល: ${periodText}</div><div class="date">ចំនួនសិស្សយឺត: ${summaryData.length}</div></div>
-<div class="summary-info"><strong>សង្ខេបទិន្នន័យ:</strong><br>- សិស្សយឺតសរុប: ${summaryData.length} នាក់<br>- ចំនួនយឺតសរុប: ${summaryData.reduce((s,x) => s+x.late_count,0)} ដង<br>- មធ្យមយឺតតាមសិស្ស: ${(summaryData.reduce((s,x) => s+x.late_count,0)/summaryData.length).toFixed(1)} ដង<br>- ចំនួនយឺតខ្ពស់បំផុត: ${Math.max(...summaryData.map(s=>s.late_count))} ដង</div>
-<table><thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ថ្នាក់</th><th>ភេទ</th><th>ចំនួនយឺត</th><th>កាលបរិច្ឆេទយឺតចុងក្រោយ</th><th>ស្ថានភាព</th></tr></thead><tbody>
-${summaryData.map((s,i) => {
-const lastDate = s.last_late_date.toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'});
-let status = s.late_count >= 5 ? 'យឺតច្រើនណាស់' : s.late_count >= 3 ? 'យឺតច្រើន' : 'យឺតតិច';
-return `<tr><td>${i+1}</td><td>${s.name}<br><small>ID: ${s.student_id}</small></td><td>${s.class}</td><td>${s.gender}</td><td><strong>${s.late_count} ដង</strong></td><td>${lastDate}</td><td>${status}</td></tr>`;
-}).join('')}
-</tbody></table>
-<div class="footer"><p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p></div>
-</body></html>`);
-win.document.close(); win.focus(); setTimeout(()=>win.print(),500);
-}
-
-// ========== DISCIPLINE SUMMARY FUNCTIONS (EXISTING) ==========
-
-async function loadDisciplineSummaryReport() {
-if (currentReportType !== 'discipline-summary') return;
-document.getElementById('discipline-summary-loading').style.display = 'block';
-document.getElementById('discipline-summary-empty').style.display = 'none';
-document.getElementById('discipline-summary-table-body').innerHTML = '';
-try {
-const tableName = "discipline_reports";
-allReports = await loadAllDataForReport(tableName);
-updateDisciplineSummaryReportReal();
-} catch (error) {
-allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
-updateDisciplineSummaryReportReal();
-}
-}
-
-function updateDisciplineSummaryReportReal() {
-if (currentReportType !== 'discipline-summary' || allReports.length === 0) {
-document.getElementById('discipline-summary-loading').style.display = 'none';
-document.getElementById('discipline-summary-empty').style.display = 'block';
-return;
-}
-const period = document.getElementById('discipline-summary-period').value;
-const minCount = parseInt(document.getElementById('min-discipline-count').value) || 1;
-const classFilter = document.getElementById('discipline-summary-class-filter').value;
-const today = new Date();
-let startDate, endDate;
-switch (period) {
-case 'week': startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; break;
-case 'month': startDate = new Date(today); startDate.setMonth(today.getMonth()-1); endDate=today; break;
-case 'custom':
-const cd = document.getElementById('custom-discipline-summary-date').value;
-if (cd) { startDate = new Date(cd); endDate = new Date(cd); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
-else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
-break;
-case 'date-range':
-const sd = document.getElementById('discipline-summary-start-date').value;
-const ed = document.getElementById('discipline-summary-end-date').value;
-if (sd && ed) { startDate = new Date(sd); endDate = new Date(ed); startDate.setHours(0,0,0,0); endDate.setHours(23,59,59,999); }
-else { startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today; }
-break;
-default: startDate = new Date(today); startDate.setDate(today.getDate()-7); endDate=today;
-}
-const filtered = allReports.filter(r => {
-const rd = new Date(r.date);
-return rd >= startDate && rd <= endDate;
-});
-const counts = {}, lastDate = {}, details = {}, problems = {};
-filtered.forEach(r => {
-const id = r.student_id;
-if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; problems[id]={}; }
-counts[id]++;
-const problem = r.discipline_description || 'គ្មានបញ្ហាចម្បង';
-problems[id][problem] = (problems[id][problem] || 0) + 1;
-const rd = new Date(r.date);
-if (!lastDate[id] || rd > lastDate[id]) lastDate[id] = rd;
-});
-disciplineSummaryData = Object.keys(counts)
-.map(id => {
-const mainProblem = Object.keys(problems[id]).reduce((a,b) => problems[id][a] > problems[id][b] ? a : b, 'គ្មានបញ្ហាចម្បង');
-return { student_id: id, name: details[id].name, class: details[id].class, gender: details[id].gender, discipline_count: counts[id], main_problem: mainProblem, last_discipline_date: lastDate[id] };
-})
-.filter(s => s.discipline_count >= minCount)
-.filter(s => classFilter === 'all' || s.class === classFilter)
-.sort((a,b) => b.discipline_count - a.discipline_count);
-renderDisciplineSummaryTable();
-updateDisciplineSummaryStats();
-populateDisciplineSummaryClassFilter();
-}
-
-function renderDisciplineSummaryTable() {
-const tableBody = document.getElementById('discipline-summary-table-body');
-const loading = document.getElementById('discipline-summary-loading');
-const empty = document.getElementById('discipline-summary-empty');
-loading.style.display = 'none';
-if (disciplineSummaryData.length === 0) { empty.style.display='block'; tableBody.innerHTML=''; return; }
-empty.style.display='none';
-let html = '';
-disciplineSummaryData.forEach((s,i) => {
-const lastDate = s.last_discipline_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
-let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
-let statusClass = s.discipline_count >= 5 ? 'badge-discipline' : s.discipline_count >= 3 ? 'badge-warning' : 'badge-helpful';
-html += `<tr>
-<td>${i+1}</td>
-<td><div><strong>${s.name}</strong></div><div style="font-size:0.8rem;color:var(--gray);">ID: ${s.student_id}</div></td>
-<td>${s.class}</td>
-<td>${s.gender}</td>
-<td><strong style="color:var(--danger);font-size:1.1rem;">${s.discipline_count}</strong> ដង</td>
-<td class="discipline-description">${s.main_problem}</td>
-<td>${lastDate}</td>
-<td><span class="badge ${statusClass}">${status}</span></td>
-</tr>`;
-});
-tableBody.innerHTML = html;
-}
-
-function updateDisciplineSummaryStats() {
-if (disciplineSummaryData.length === 0) {
-['total-students-discipline','total-discipline-count','avg-discipline-per-student','max-discipline-count'].forEach(id => document.getElementById(id).textContent='0');
-return;
-}
-const total = disciplineSummaryData.length;
-const totalDisc = disciplineSummaryData.reduce((s,x) => s + x.discipline_count, 0);
-document.getElementById('total-students-discipline').textContent = total;
-document.getElementById('total-discipline-count').textContent = totalDisc;
-document.getElementById('avg-discipline-per-student').textContent = (totalDisc/total).toFixed(1);
-document.getElementById('max-discipline-count').textContent = Math.max(...disciplineSummaryData.map(s => s.discipline_count));
-}
-
-function populateDisciplineSummaryClassFilter() {
-const cf = document.getElementById('discipline-summary-class-filter');
-const classes = [...new Set(allReports.map(r => r.class))].sort();
-cf.innerHTML = '<option value="all">ទាំងអស់</option>';
-classes.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; cf.appendChild(opt); });
-}
-
-function exportDisciplineSummaryToExcelReal() {
-if (disciplineSummaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
-try {
-const data = disciplineSummaryData.map((s,i) => {
-const lastDate = s.last_discipline_date.toLocaleDateString('km-KH', {year:'numeric',month:'long',day:'numeric'});
-let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
-return {'ល.រ':i+1,'ឈ្មោះសិស្ស':s.name,'លេខសម្គាល់':s.student_id,'ថ្នាក់':s.class,'ភេទ':s.gender,'ចំនួនវិន័យ':s.discipline_count,'បញ្ហាចម្បង':s.main_problem,'កាលបរិច្ឆេទវិន័យចុងក្រោយ':lastDate,'ស្ថានភាព':status};
-});
-const ws = XLSX.utils.json_to_sheet(data);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, 'ទិន្នន័យវិន័យ');
-XLSX.writeFile(wb, `summary_discipline_${new Date().toISOString().split('T')[0]}.xlsx`);
-} catch(e) { alert('⚠️ មានបញ្ហា: '+e.message); }
-}
-
-function printDisciplineSummaryReportReal() {
-if (disciplineSummaryData.length === 0) { alert('⚠️ មិនមានទិន្នន័យ'); return; }
-const win = window.open('','_blank');
-const today = new Date().toLocaleDateString('km-KH');
-const period = document.getElementById('discipline-summary-period').value;
-const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
-win.document.write(`
-<!DOCTYPE html><html lang="km"><head><meta charset="UTF-8"><title>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</title>
-<style>body{font-family:'Khmer OS','Arial',sans-serif;margin:20px;}.header{text-align:center;margin-bottom:30px;border-bottom:2px solid #333;padding-bottom:20px;}.header h1{color:#333;margin-bottom:10px;}.header .date{color:#666;}.summary-info{margin:20px 0;padding:15px;background:#f9f9f9;border-radius:5px;}table{width:100%;border-collapse:collapse;margin:20px 0;}th,td{border:1px solid #ddd;padding:10px;text-align:left;}th{background-color:#f5f5f5;font-weight:bold;}.footer{margin-top:30px;text-align:center;color:#666;font-size:0.9em;}.discipline-description{max-width:300px;word-wrap:break-word;}
-</style></head><body>
-<div class="header"><h1>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</h1><div class="date">កាលបរិច្ឆេទ: ${today}</div><div class="date">រយៈពេល: ${periodText}</div><div class="date">ចំនួនសិស្សវិន័យ: ${disciplineSummaryData.length}</div></div>
-<div class="summary-info"><strong>សង្ខេបទិន្នន័យ:</strong><br>- សិស្សវិន័យសរុប: ${disciplineSummaryData.length} នាក់<br>- ចំនួនវិន័យសរុប: ${disciplineSummaryData.reduce((s,x) => s+x.discipline_count,0)} ដង<br>- មធ្យមវិន័យតាមសិស្ស: ${(disciplineSummaryData.reduce((s,x) => s+x.discipline_count,0)/disciplineSummaryData.length).toFixed(1)} ដង<br>- ចំនួនវិន័យខ្ពស់បំផុត: ${Math.max(...disciplineSummaryData.map(s=>s.discipline_count))} ដង</div>
-<table><thead><tr><th>ល.រ</th><th>ឈ្មោះសិស្ស</th><th>ថ្នាក់</th><th>ភេទ</th><th>ចំនួនវិន័យ</th><th>បញ្ហាចម្បង</th><th>កាលបរិច្ឆេទវិន័យចុងក្រោយ</th><th>ស្ថានភាព</th></tr></thead><tbody>
-${disciplineSummaryData.map((s,i) => {
-const lastDate = s.last_discipline_date.toLocaleDateString('km-KH',{year:'numeric',month:'long',day:'numeric'});
-let status = s.discipline_count >= 5 ? 'វិន័យច្រើនណាស់' : s.discipline_count >= 3 ? 'វិន័យច្រើន' : 'វិន័យតិច';
-return `<tr><td>${i+1}</td><td>${s.name}<br><small>ID: ${s.student_id}</small></td><td>${s.class}</td><td>${s.gender}</td><td><strong>${s.discipline_count} ដង</strong></td><td class="discipline-description">${s.main_problem}</td><td>${lastDate}</td><td>${status}</td></tr>`;
-}).join('')}
-</tbody></table>
-<div class="footer"><p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p></div>
-</body></html>`);
-win.document.close(); win.focus(); setTimeout(()=>win.print(),500);
-}
-
-// ========== HANDLE PERIOD CHANGES ==========
-
-function handleDisciplineSummaryPeriodChangeReal() {
-const period = document.getElementById('discipline-summary-period').value;
-document.getElementById('custom-discipline-summary-date-group').style.display = period === 'custom' ? 'block' : 'none';
-document.getElementById('discipline-summary-date-range-start-group').style.display = period === 'date-range' ? 'block' : 'none';
-document.getElementById('discipline-summary-date-range-end-group').style.display = period === 'date-range' ? 'block' : 'none';
-updateDisciplineSummaryReportReal();
-}
-
-function handleSummaryPeriodChangeReal() {
-const period = document.getElementById('summary-period').value;
-document.getElementById('custom-summary-date-group').style.display = period === 'custom' ? 'block' : 'none';
-document.getElementById('summary-date-range-start-group').style.display = period === 'date-range' ? 'block' : 'none';
-document.getElementById('summary-date-range-end-group').style.display = period === 'date-range' ? 'block' : 'none';
-updateSummaryReportReal();
-}
-
-// ========== MAKE FUNCTIONS GLOBALLY AVAILABLE ==========
-
-window.selectReportTypeReal = selectReportTypeReal;
-window.applyFiltersReal = applyFiltersReal;
-window.handleDateFilterChangeReal = handleDateFilterChangeReal;
-window.handleEventSummaryPeriodChangeReal = handleEventSummaryPeriodChangeReal;
-window.updateEventSummaryReportReal = updateEventSummaryReportReal;
-window.exportEventSummaryToExcelReal = exportEventSummaryToExcelReal;
-window.printEventSummaryReportReal = printEventSummaryReportReal;
-window.sortEventSummaryByClassReal = sortEventSummaryByClassReal;
-window.sortEventSummaryByNameReal = sortEventSummaryByNameReal;
-window.sortEventSummaryByCountReal = sortEventSummaryByCountReal;
-window.sortEventSummaryByDateReal = sortEventSummaryByDateReal;
-window.sortEventSummaryTableReal = sortEventSummaryTableReal;
-window.handleDisciplineSummaryPeriodChangeReal = handleDisciplineSummaryPeriodChangeReal;
-window.updateDisciplineSummaryReportReal = updateDisciplineSummaryReportReal;
-window.exportDisciplineSummaryToExcelReal = exportDisciplineSummaryToExcelReal;
-window.printDisciplineSummaryReportReal = printDisciplineSummaryReportReal;
-window.handleSummaryPeriodChangeReal = handleSummaryPeriodChangeReal;
-window.updateSummaryReportReal = updateSummaryReportReal;
-window.exportSummaryToExcelReal = exportSummaryToExcelReal;
-window.printSummaryReportReal = printSummaryReportReal;
-window.exportToExcelReal = exportToExcelReal;
-window.printReportReal = printReportReal;
-window.sortByClassReal = sortByClassReal;
-window.sortByNameReal = sortByNameReal;
-window.sortByDateReal = sortByDateReal;
-window.sortByTimeReal = sortByTimeReal;
-window.sortSummaryByClassReal = sortSummaryByClassReal;
-window.sortSummaryByNameReal = sortSummaryByNameReal;
-window.sortSummaryByCountReal = sortSummaryByCountReal;
-window.sortSummaryByDateReal = sortSummaryByDateReal;
-window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
-window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
-window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
-window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
-window.sortTableReal = sortTableReal;
-window.sortSummaryTableReal = sortSummaryTableReal;
-window.sortDisciplineSummaryTableReal = sortDisciplineSummaryTableReal;
-
-// ========== INITIALIZE ON PAGE LOAD ==========
-
-window.onload = function() {
-console.log('📊 Report page loaded');
-window.appInitialized = true;
-selectReportTypeReal('event-summary');
-console.log('✅ Application initialized successfully');
-};
-}
-</script>
+            window.appInitialized = true;
+            selectReportTypeReal('event-summary');
+            console.log('✅ Application initialized successfully');
+        }
+    </script>
 </body>
 </html>

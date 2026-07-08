@@ -9,9 +9,14 @@
             window.location.href = 'login.html';
         }
     </script>
+    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js for statistics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -804,8 +809,8 @@
         // ============================================
         
         const TELEGRAM_CONFIG = {
-            botToken: '8377633868:AAHdcEbD8ZlEgcwCwapfMht6F48RbKbJKn4',
-            chatId: '-1003359149136',
+            botToken: 'YOUR_BOT_TOKEN_HERE',
+            chatId: 'YOUR_CHAT_ID_HERE',
             enabled: true
         };
 
@@ -995,7 +1000,15 @@
         }
 
         // ============================================
-        // PDF GENERATION
+        // CHECK IF html2pdf IS LOADED
+        // ============================================
+
+        function isHtml2pdfLoaded() {
+            return typeof html2pdf !== 'undefined';
+        }
+
+        // ============================================
+        // PDF GENERATION - FIXED WITH ERROR HANDLING
         // ============================================
 
         function generatePDFContent(type, data, title) {
@@ -1085,23 +1098,58 @@
         }
 
         async function generatePDFBlob(type, data, title) {
-            const html = generatePDFContent(type, data, title);
-            const div = document.createElement('div');
-            div.innerHTML = html;
-            div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:800px;';
-            document.body.appendChild(div);
-            
-            const blob = await new Promise(resolve => {
-                html2pdf().set({
-                    margin: 10,
-                    filename: `report_${type}_${new Date().toISOString().split('T')[0]}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, width: 800 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                }).from(div).outputPdf('blob').then(resolve).catch(() => resolve(null));
+            // Check if html2pdf is loaded
+            if (!isHtml2pdfLoaded()) {
+                console.error('❌ html2pdf library not loaded!');
+                // Try to load it dynamically
+                try {
+                    await loadHtml2pdfLibrary();
+                } catch (e) {
+                    console.error('❌ Failed to load html2pdf:', e);
+                    return null;
+                }
+            }
+
+            try {
+                const html = generatePDFContent(type, data, title);
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                div.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:800px;';
+                document.body.appendChild(div);
+                
+                const blob = await new Promise((resolve) => {
+                    html2pdf().set({
+                        margin: 10,
+                        filename: `report_${type}_${new Date().toISOString().split('T')[0]}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, width: 800 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    }).from(div).outputPdf('blob').then(resolve).catch((err) => {
+                        console.error('PDF generation error:', err);
+                        resolve(null);
+                    });
+                });
+                document.body.removeChild(div);
+                return blob;
+            } catch (error) {
+                console.error('❌ Error generating PDF:', error);
+                return null;
+            }
+        }
+
+        // Dynamic load html2pdf if not available
+        function loadHtml2pdfLibrary() {
+            return new Promise((resolve, reject) => {
+                if (typeof html2pdf !== 'undefined') {
+                    resolve();
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
             });
-            document.body.removeChild(div);
-            return blob;
         }
 
         // ============================================
@@ -1153,7 +1201,10 @@
             const title = reportTypes[currentReportType]?.title || 'របាយការណ៍';
             await sendTelegramMessage('⏳ កំពុងបង្កើត PDF...');
             const blob = await generatePDFBlob(currentReportType, data, title);
-            if (!blob) { alert('❌ មិនអាចបង្កើត PDF'); return; }
+            if (!blob) { 
+                alert('❌ មិនអាចបង្កើត PDF បាន។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
+                return; 
+            }
             
             const fileName = `report_${currentReportType}_${new Date().toISOString().split('T')[0]}.pdf`;
             await sendTelegramDocument(fileName, blob, `📄 ${title}\n📅 ${new Date().toLocaleDateString('km-KH')}\n👥 ${data.length} នាក់`);
@@ -1972,6 +2023,17 @@
             } catch (e) {
                 console.error('❌ Supabase init error:', e);
                 supabaseClient = null;
+            }
+            
+            // Try to load html2pdf if not available
+            if (!isHtml2pdfLoaded()) {
+                console.log('📄 Loading html2pdf library...');
+                try {
+                    await loadHtml2pdfLibrary();
+                    console.log('✅ html2pdf loaded successfully');
+                } catch (e) {
+                    console.warn('⚠️ html2pdf not loaded, PDF features may not work');
+                }
             }
             
             updateBotStatus();

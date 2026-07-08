@@ -339,6 +339,16 @@
             box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
         }
 
+        .btn-save {
+            background: #28a745;
+            color: white;
+        }
+        .btn-save:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
         .table-container {
             overflow-x: auto;
             margin: 25px 0;
@@ -678,6 +688,27 @@
             color: #721c24;
         }
 
+        .config-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .save-status {
+            font-size: 0.9rem;
+            color: var(--gray);
+            padding: 8px 15px;
+            background: #e9ecef;
+            border-radius: var(--border-radius);
+        }
+
+        .save-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
         @media print {
             body {
                 background: white;
@@ -838,15 +869,15 @@
                     <div class="filter-grid">
                         <div class="form-group">
                             <label for="bot-token">Bot Token</label>
-                            <input type="text" id="bot-token" class="form-control" placeholder="បញ្ចូល Bot Token" value="7947542376:AAHkKJ-OQNbrI8iArU5h0RgRwzowzTbvlxA">
+                            <input type="text" id="bot-token" class="form-control" placeholder="បញ្ចូល Bot Token">
                         </div>
                         <div class="form-group">
                             <label for="chat-id">Chat ID</label>
-                            <input type="text" id="chat-id" class="form-control" placeholder="បញ្ចូល Chat ID" value="-1002390198977">
+                            <input type="text" id="chat-id" class="form-control" placeholder="បញ្ចូល Chat ID">
                         </div>
                         <div class="form-group">
                             <label for="send-time">ម៉ោងផ្ញើប្រចាំថ្ងៃ (24h)</label>
-                            <input type="time" id="send-time" class="form-control" value="08:00">
+                            <input type="time" id="send-time" class="form-control">
                         </div>
                         <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 20px;">
                             <button class="btn btn-telegram" onclick="toggleAutoSend()">▶️ បើកដំណើរការ</button>
@@ -866,24 +897,30 @@
                     <div class="schedule-grid">
                         <div class="schedule-item">
                             <label>📋 ទិន្នន័យយឺត</label>
-                            <input type="time" id="schedule-late" value="08:00">
+                            <input type="time" id="schedule-late">
                             <span style="font-size:0.7rem;color:#888;">ប្រចាំថ្ងៃ</span>
                         </div>
                         <div class="schedule-item">
                             <label>📋 ទិន្នន័យវិន័យ</label>
-                            <input type="time" id="schedule-discipline" value="08:15">
+                            <input type="time" id="schedule-discipline">
                             <span style="font-size:0.7rem;color:#888;">ប្រចាំថ្ងៃ</span>
                         </div>
                         <div class="schedule-item">
                             <label>📊 សង្ខេបយឺត</label>
-                            <input type="time" id="schedule-summary" value="08:30">
+                            <input type="time" id="schedule-summary">
                             <span style="font-size:0.7rem;color:#888;">ម្តង/ខែ</span>
                         </div>
                         <div class="schedule-item">
                             <label>📊 សង្ខេបវិន័យ</label>
-                            <input type="time" id="schedule-discipline-summary" value="08:45">
+                            <input type="time" id="schedule-discipline-summary">
                             <span style="font-size:0.7rem;color:#888;">ម្តង/ខែ</span>
                         </div>
+                    </div>
+
+                    <div class="config-actions">
+                        <button class="btn btn-save" onclick="saveTelegramConfig()">💾 រក្សាទុកការកំណត់</button>
+                        <button class="btn btn-secondary" onclick="loadTelegramConfig()">📂 ទាញយកការកំណត់</button>
+                        <span id="save-status" class="save-status">រួចរាល់</span>
                     </div>
 
                     <div id="send-status" class="send-status" style="display: none;">
@@ -1444,6 +1481,23 @@
             }
         }
 
+        // Save/Load Telegram Config
+        function saveTelegramConfig() {
+            if (window.appInitialized && window.saveTelegramConfigReal) {
+                window.saveTelegramConfigReal();
+            } else {
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function loadTelegramConfig() {
+            if (window.appInitialized && window.loadTelegramConfigReal) {
+                window.loadTelegramConfigReal();
+            } else {
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
         // Event summary functions
         function handleEventSummaryPeriodChange() {
             if (window.appInitialized && window.handleEventSummaryPeriodChangeReal) {
@@ -1865,6 +1919,89 @@
                     fileName: "សង្ខេប_កម្មវិធី"
                 }
             };
+
+            // ========== TELEGRAM CONFIG SAVE/LOAD ==========
+
+            function saveTelegramConfigReal() {
+                try {
+                    const config = {
+                        botToken: document.getElementById('bot-token').value.trim(),
+                        chatId: document.getElementById('chat-id').value.trim(),
+                        sendTime: document.getElementById('send-time').value,
+                        scheduleLate: document.getElementById('schedule-late').value,
+                        scheduleDiscipline: document.getElementById('schedule-discipline').value,
+                        scheduleSummary: document.getElementById('schedule-summary').value,
+                        scheduleDisciplineSummary: document.getElementById('schedule-discipline-summary').value,
+                        autoSendEnabled: autoSendEnabled,
+                        savedAt: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('telegram_config', JSON.stringify(config));
+                    
+                    const statusEl = document.getElementById('save-status');
+                    statusEl.textContent = '✅ បានរក្សាទុកដោយជោគជ័យ';
+                    statusEl.className = 'save-status success';
+                    
+                    setTimeout(() => {
+                        statusEl.textContent = 'រួចរាល់';
+                        statusEl.className = 'save-status';
+                    }, 3000);
+                    
+                    console.log('✅ Telegram config saved to localStorage');
+                } catch (error) {
+                    console.error('❌ Error saving config:', error);
+                    const statusEl = document.getElementById('save-status');
+                    statusEl.textContent = '❌ មានបញ្ហាក្នុងការរក្សាទុក';
+                    statusEl.className = 'save-status error';
+                }
+            }
+
+            function loadTelegramConfigReal() {
+                try {
+                    const configJson = localStorage.getItem('telegram_config');
+                    if (!configJson) {
+                        const statusEl = document.getElementById('save-status');
+                        statusEl.textContent = '⚠️ មិនមានការកំណត់ដែលបានរក្សាទុក';
+                        statusEl.className = 'save-status error';
+                        setTimeout(() => {
+                            statusEl.textContent = 'រួចរាល់';
+                            statusEl.className = 'save-status';
+                        }, 3000);
+                        return;
+                    }
+                    
+                    const config = JSON.parse(configJson);
+                    
+                    document.getElementById('bot-token').value = config.botToken || '';
+                    document.getElementById('chat-id').value = config.chatId || '';
+                    document.getElementById('send-time').value = config.sendTime || '08:00';
+                    document.getElementById('schedule-late').value = config.scheduleLate || '08:00';
+                    document.getElementById('schedule-discipline').value = config.scheduleDiscipline || '08:15';
+                    document.getElementById('schedule-summary').value = config.scheduleSummary || '08:30';
+                    document.getElementById('schedule-discipline-summary').value = config.scheduleDisciplineSummary || '08:45';
+                    
+                    // Restore auto-send state if it was enabled
+                    if (config.autoSendEnabled && !autoSendEnabled) {
+                        toggleAutoSendReal();
+                    }
+                    
+                    const statusEl = document.getElementById('save-status');
+                    statusEl.textContent = '✅ បានទាញយកការកំណត់ដោយជោគជ័យ';
+                    statusEl.className = 'save-status success';
+                    
+                    setTimeout(() => {
+                        statusEl.textContent = 'រួចរាល់';
+                        statusEl.className = 'save-status';
+                    }, 3000);
+                    
+                    console.log('✅ Telegram config loaded from localStorage');
+                } catch (error) {
+                    console.error('❌ Error loading config:', error);
+                    const statusEl = document.getElementById('save-status');
+                    statusEl.textContent = '❌ មានបញ្ហាក្នុងការទាញយក';
+                    statusEl.className = 'save-status error';
+                }
+            }
 
             // ========== TELEGRAM FUNCTIONS ==========
 
@@ -2457,7 +2594,6 @@
                         const currentYear = today.getFullYear();
                         const currentDay = today.getDate();
                         
-                        // Check if we haven't sent this month yet
                         if (currentDay === 1) {
                             const lastSendKey = `last_summary_send_${currentYear}_${currentMonth}`;
                             const lastSend = localStorage.getItem(lastSendKey);
@@ -4073,10 +4209,16 @@
             window.sendDisciplineSummaryToTelegramReal = sendDisciplineSummaryToTelegramReal;
             window.sendEventSummaryToTelegramReal = sendEventSummaryToTelegramReal;
             window.toggleAutoSendReal = toggleAutoSendReal;
+            window.saveTelegramConfigReal = saveTelegramConfigReal;
+            window.loadTelegramConfigReal = loadTelegramConfigReal;
 
             // ========== INITIALIZE ON PAGE LOAD ==========
 
             window.appInitialized = true;
+            
+            // Load saved config on startup
+            loadTelegramConfigReal();
+            
             selectReportTypeReal('event-summary');
             console.log('✅ Application initialized successfully');
         }

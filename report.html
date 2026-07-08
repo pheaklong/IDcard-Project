@@ -12,27 +12,27 @@
     </script>
     <!-- Register Service Worker for background auto-send -->
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(function(registration) {
-                    console.log('✅ Service Worker registered successfully:', registration);
-                    // Update status if element exists
-                    const swStatus = document.getElementById('sw-status');
-                    if (swStatus) {
-                        swStatus.innerHTML = '✅ កំពុងដំណើរការ';
-                        swStatus.style.color = '#28a745';
-                    }
-                })
-                .catch(function(error) {
-                    console.log('❌ Service Worker registration failed:', error);
-                    const swStatus = document.getElementById('sw-status');
-                    if (swStatus) {
-                        swStatus.innerHTML = '❌ មិនអាចចុះឈ្មោះបាន';
-                        swStatus.style.color = '#dc3545';
-                    }
-                });
-        }
-    </script>
+    if ('serviceWorker' in navigator) {
+        // ប្រើ Path ពេញសម្រាប់ Project Site
+        navigator.serviceWorker.register('/IDcard-Project/sw.js')
+            .then(function(registration) {
+                console.log('✅ Service Worker registered successfully:', registration);
+                const swStatus = document.getElementById('sw-status');
+                if (swStatus) {
+                    swStatus.innerHTML = '✅ កំពុងដំណើរការ';
+                    swStatus.style.color = '#28a745';
+                }
+            })
+            .catch(function(error) {
+                console.log('❌ Service Worker registration failed:', error);
+                const swStatus = document.getElementById('sw-status');
+                if (swStatus) {
+                    swStatus.innerHTML = '❌ មិនអាចចុះឈ្មោះបាន';
+                    swStatus.style.color = '#dc3545';
+                }
+            });
+    }
+</script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js for statistics -->

@@ -16,6 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS for Excel export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- html2pdf for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #4361ee;
@@ -329,6 +331,36 @@
             transform: translateY(-3px);
         }
 
+        .btn-telegram-pdf {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-telegram-pdf:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-telegram-excel {
+            background: #28a745;
+            color: white;
+        }
+        .btn-telegram-excel:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-telegram-both {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-telegram-both:hover:not(:disabled) {
+            background: #138496;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(23, 162, 184, 0.3);
+        }
+
         .table-container {
             overflow-x: auto;
             margin: 25px 0;
@@ -576,6 +608,17 @@
             color: #721c24;
         }
 
+        .telegram-file-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            border: 1px solid #e9ecef;
+        }
+
         @media print {
             body {
                 background: white;
@@ -593,7 +636,8 @@
             .back-buttons,
             .btn,
             .sort-buttons,
-            .filter-section {
+            .filter-section,
+            .telegram-file-buttons {
                 display: none !important;
             }
             .data-table th {
@@ -675,6 +719,10 @@
                 flex-direction: column;
                 gap: 10px;
             }
+
+            .telegram-file-buttons {
+                flex-direction: column;
+            }
         }
 
         @media (max-width: 480px) {
@@ -742,6 +790,8 @@
                             ⏰ ផ្ញើជារៀងរាល់ថ្ងៃវេលាម៉ោង <strong>8:00 ព្រឹក</strong>
                             <span style="margin: 0 8px;">|</span>
                             📊 របាយការណ៍៖ <strong>ទិន្នន័យយឺត</strong> និង <strong>ទិន្នន័យវិន័យ</strong>
+                            <span style="margin: 0 8px;">|</span>
+                            📄 ទម្រង់៖ <strong>PDF</strong> និង <strong>Excel</strong>
                         </div>
                     </div>
                     <span style="margin-left: auto; font-size: 12px; color: #888;" id="lastSentInfo">
@@ -887,9 +937,26 @@
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
                             <button class="btn btn-primary" onclick="printReport()">🖨️ Print</button>
-                            <button class="btn btn-info" onclick="sendCurrentReportToTelegram()">🤖 ផ្ញើទៅ Telegram</button>
+                            <button class="btn btn-info" onclick="sendCurrentReportToTelegram()">🤖 ផ្ញើសារ</button>
                         </div>
                     </div>
+
+                    <!-- Telegram File Buttons -->
+                    <div class="telegram-file-buttons">
+                        <button class="btn btn-telegram-pdf" onclick="sendCurrentReportAsPDF()">
+                            📄 ផ្ញើ PDF
+                        </button>
+                        <button class="btn btn-telegram-excel" onclick="sendCurrentReportAsExcel()">
+                            📊 ផ្ញើ Excel
+                        </button>
+                        <button class="btn btn-telegram-both" onclick="sendCurrentReportAsPDFAndExcel()">
+                            📄📊 ផ្ញើទាំង PDF និង Excel
+                        </button>
+                        <span style="margin-left: auto; font-size: 12px; color: #888; align-self: center;">
+                            📤 ផ្ញើឯកសារទៅ Telegram
+                        </span>
+                    </div>
+
                     <div class="table-container">
                         <table class="data-table" id="report-table">
                             <thead>
@@ -989,8 +1056,8 @@
         // ============================================
         
         const TELEGRAM_CONFIG = {
-            botToken: '8377633868:AAHdcEbD8ZlEgcwCwapfMht6F48RbKbJKn4', // ជំនួសដោយ Bot Token របស់អ្នក
-            chatId: '745135485',     // ជំនួសដោយ Chat ID របស់អ្នក
+            botToken: 'YOUR_BOT_TOKEN_HERE', // ជំនួសដោយ Bot Token របស់អ្នក
+            chatId: 'YOUR_CHAT_ID_HERE',     // ជំនួសដោយ Chat ID របស់អ្នក
             enabled: true
         };
 
@@ -1119,6 +1186,38 @@
             }
         }
 
+        async function sendTelegramDocument(fileName, fileBlob, caption) {
+            if (!TELEGRAM_CONFIG.enabled || !TELEGRAM_CONFIG.botToken || TELEGRAM_CONFIG.botToken === 'YOUR_BOT_TOKEN_HERE') {
+                console.warn('⚠️ Telegram not configured');
+                return { ok: false, error: 'Telegram not configured' };
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('chat_id', TELEGRAM_CONFIG.chatId);
+                formData.append('document', fileBlob, fileName);
+                if (caption) {
+                    formData.append('caption', caption);
+                }
+                
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_CONFIG.botToken}/sendDocument`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.ok) {
+                    console.log(`✅ Telegram document ${fileName} sent successfully`);
+                } else {
+                    console.error('❌ Telegram API error:', result.description);
+                }
+                return result;
+            } catch (error) {
+                console.error('❌ Error sending Telegram document:', error);
+                return { ok: false, error: error.message };
+            }
+        }
+
         function updateTelegramStatus(status, message) {
             const statusEl = document.getElementById('telegramStatus');
             if (statusEl) {
@@ -1173,6 +1272,419 @@
             
             const dateStr = nextSend.toLocaleDateString('km-KH', { year: 'numeric', month: 'long', day: 'numeric' });
             el.textContent = `${dateStr} ម៉ោង 8:00 (នៅសល់ ${hours}ម ${minutes}ន)`;
+        }
+
+        // ============================================
+        // PDF GENERATION FUNCTIONS
+        // ============================================
+
+        function generatePDFContent(reportType, data, title) {
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('km-KH', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+            const timeStr = today.toLocaleTimeString('km-KH', {
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { 
+                            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+                            padding: 30px;
+                            color: #333;
+                        }
+                        .header {
+                            text-align: center;
+                            border-bottom: 3px solid #4361ee;
+                            padding-bottom: 20px;
+                            margin-bottom: 25px;
+                        }
+                        .header h1 {
+                            color: #4361ee;
+                            font-size: 24px;
+                            margin: 0 0 10px 0;
+                        }
+                        .header .subtitle {
+                            color: #666;
+                            font-size: 14px;
+                        }
+                        .header .date {
+                            color: #888;
+                            font-size: 13px;
+                            margin-top: 5px;
+                        }
+                        .summary-box {
+                            background: #f8f9fa;
+                            border-radius: 8px;
+                            padding: 15px 20px;
+                            margin: 20px 0;
+                            border-left: 4px solid #4361ee;
+                        }
+                        .summary-box .stat {
+                            display: inline-block;
+                            margin-right: 30px;
+                            margin-bottom: 10px;
+                        }
+                        .summary-box .stat-label {
+                            font-size: 12px;
+                            color: #888;
+                        }
+                        .summary-box .stat-value {
+                            font-size: 20px;
+                            font-weight: bold;
+                            color: #4361ee;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 20px 0;
+                            font-size: 13px;
+                        }
+                        th {
+                            background: #4361ee;
+                            color: white;
+                            padding: 12px 10px;
+                            text-align: left;
+                        }
+                        td {
+                            padding: 10px;
+                            border-bottom: 1px solid #e9ecef;
+                        }
+                        tr:nth-child(even) {
+                            background: #f8f9fa;
+                        }
+                        .footer {
+                            text-align: center;
+                            color: #888;
+                            font-size: 12px;
+                            margin-top: 30px;
+                            padding-top: 20px;
+                            border-top: 1px solid #e9ecef;
+                        }
+                        .badge {
+                            padding: 3px 10px;
+                            border-radius: 12px;
+                            font-size: 11px;
+                            display: inline-block;
+                        }
+                        .badge-late { background: #fff3cd; color: #856404; }
+                        .badge-discipline { background: #f8d7da; color: #721c24; }
+                        .badge-event { background: #d1ecf1; color: #0c5460; }
+                        .badge-helpful { background: #d1edff; color: #004085; }
+                        .badge-warning { background: #fff3cd; color: #856404; }
+                        .badge-flag { background: #e8daef; color: #6c3483; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>📊 ${title}</h1>
+                        <div class="subtitle">របាយការណ៍ប្រចាំថ្ងៃ</div>
+                        <div class="date">កាលបរិច្ឆេទ: ${dateStr} | ម៉ោង: ${timeStr}</div>
+                    </div>
+            `;
+
+            // Summary statistics
+            if (data.length > 0) {
+                const classCounts = {};
+                data.forEach(item => {
+                    const cls = item.class || 'មិនមាន';
+                    classCounts[cls] = (classCounts[cls] || 0) + 1;
+                });
+
+                html += `
+                    <div class="summary-box">
+                        <div class="stat">
+                            <div class="stat-label">👥 ចំនួនសិស្សសរុប</div>
+                            <div class="stat-value">${data.length}</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">🏫 ចំនួនថ្នាក់</div>
+                            <div class="stat-value">${Object.keys(classCounts).length}</div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            ${Object.keys(classCounts).map(cls => 
+                                `<span style="display:inline-block;margin-right:15px;font-size:13px;">${cls}: ${classCounts[cls]} នាក់</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Table
+            if (data.length > 0) {
+                html += `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">ល.រ</th>
+                                <th>ឈ្មោះសិស្ស</th>
+                                <th>ថ្នាក់</th>
+                                <th>ភេទ</th>
+                                <th>បញ្ហា/ព័ត៌មាន</th>
+                                <th>ពេលវេលា</th>
+                                <th>កាលបរិច្ឆេទ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach((item, index) => {
+                    const displayDate = new Date(item.date).toLocaleDateString('km-KH', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                    });
+                    
+                    let problemText = '';
+                    let badgeClass = '';
+                    if (reportType === 'discipline') {
+                        problemText = item.discipline_description || 'គ្មានការពិពណ៌នា';
+                        badgeClass = 'badge-discipline';
+                    } else if (reportType === 'event') {
+                        problemText = item.event_name || 'កម្មវិធីសាលា';
+                        badgeClass = 'badge-event';
+                    } else if (reportType === 'flag') {
+                        problemText = 'គោរពទង់ជាតិ';
+                        badgeClass = 'badge-flag';
+                    } else if (reportType === 'helpful') {
+                        problemText = 'ជំនួយ';
+                        badgeClass = 'badge-helpful';
+                    } else {
+                        problemText = reportTypes[reportType]?.problemType || 'N/A';
+                        badgeClass = 'badge-late';
+                    }
+
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <strong>${item.name}</strong>
+                                <br><span style="font-size:11px;color:#888;">ID: ${item.student_id}</span>
+                            </td>
+                            <td>${item.class}</td>
+                            <td>${item.gender || 'មិនមាន'}</td>
+                            <td><span class="badge ${badgeClass}">${problemText}</span></td>
+                            <td>${item.scan_time || item.late_time || 'N/A'}</td>
+                            <td>${displayDate}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                `;
+            } else {
+                html += `
+                    <div style="text-align:center;padding:40px;color:#888;">
+                        <div style="font-size:48px;margin-bottom:15px;">📄</div>
+                        <h3>មិនមានទិន្នន័យ</h3>
+                        <p>មិនមានទិន្នន័យសម្រាប់ថ្ងៃនេះ</p>
+                    </div>
+                `;
+            }
+
+            html += `
+                    <div class="footer">
+                        <p>របាយការណ៍នេះត្រូវបានបង្កើតដោយស្វ័យប្រវត្តិ</p>
+                        <p>បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                        <p style="font-size:10px;color:#aaa;">ប្រព័ន្ធគ្រប់គ្រងទិន្នន័យសិស្ស</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            return html;
+        }
+
+        async function generatePDFBlob(reportType, data, title) {
+            const htmlContent = generatePDFContent(reportType, data, title);
+            
+            // Create a temporary div for PDF generation
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            tempDiv.style.width = '800px';
+            document.body.appendChild(tempDiv);
+            
+            // Generate PDF using html2pdf
+            const pdfBlob = await new Promise((resolve) => {
+                html2pdf()
+                    .set({
+                        margin: [10, 10, 10, 10],
+                        filename: `report_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, width: 800 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    })
+                    .from(tempDiv)
+                    .outputPdf('blob')
+                    .then(resolve)
+                    .catch(error => {
+                        console.error('PDF generation error:', error);
+                        resolve(null);
+                    });
+            });
+            
+            // Remove temporary div
+            document.body.removeChild(tempDiv);
+            
+            return pdfBlob;
+        }
+
+        // ============================================
+        // EXCEL GENERATION FUNCTIONS
+        // ============================================
+
+        function generateExcelData(reportType, data) {
+            if (!data || data.length === 0) return null;
+
+            const excelData = data.map((item, index) => {
+                const displayDate = new Date(item.date).toLocaleDateString('km-KH', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                
+                let problemText = '';
+                if (reportType === 'discipline') {
+                    problemText = item.discipline_description || 'គ្មានការពិពណ៌នា';
+                } else if (reportType === 'event') {
+                    problemText = item.event_name || 'កម្មវិធីសាលា';
+                } else if (reportType === 'flag') {
+                    problemText = 'គោរពទង់ជាតិ';
+                } else if (reportType === 'helpful') {
+                    problemText = 'ជំនួយ';
+                } else {
+                    problemText = reportTypes[reportType]?.problemType || 'N/A';
+                }
+
+                return {
+                    'ល.រ': index + 1,
+                    'ឈ្មោះសិស្ស': item.name,
+                    'លេខសម្គាល់': item.student_id,
+                    'ថ្នាក់': item.class,
+                    'ភេទ': item.gender || 'មិនមានទិន្នន័យ',
+                    'បញ្ហា/ព័ត៌មាន': problemText,
+                    'ពេលវេលា': item.scan_time || item.late_time || 'N/A',
+                    'កាលបរិច្ឆេទ': displayDate
+                };
+            });
+
+            return excelData;
+        }
+
+        function generateExcelBlob(reportType, data) {
+            const excelData = generateExcelData(reportType, data);
+            if (!excelData) return null;
+            
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            
+            // Set column widths
+            const colWidths = [
+                { wch: 6 },  // ល.រ
+                { wch: 25 }, // ឈ្មោះសិស្ស
+                { wch: 15 }, // លេខសម្គាល់
+                { wch: 12 }, // ថ្នាក់
+                { wch: 12 }, // ភេទ
+                { wch: 30 }, // បញ្ហា/ព័ត៌មាន
+                { wch: 15 }, // ពេលវេលា
+                { wch: 20 }  // កាលបរិច្ឆេទ
+            ];
+            ws['!cols'] = colWidths;
+            
+            const wb = XLSX.utils.book_new();
+            const sheetName = reportTypes[reportType]?.title || 'ទិន្នន័យ';
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            return new Blob([wbout], { type: 'application/octet-stream' });
+        }
+
+        // ============================================
+        // SEND TO TELEGRAM FUNCTIONS
+        // ============================================
+
+        async function sendCurrentReportAsPDF() {
+            const data = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+            if (!data || data.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីផ្ញើ');
+                return;
+            }
+
+            try {
+                const title = reportTypes[currentReportType]?.title || 'របាយការណ៍';
+                await sendTelegramMessage('⏳ កំពុងបង្កើតឯកសារ PDF... សូមរង់ចាំ');
+                
+                const pdfBlob = await generatePDFBlob(currentReportType, data, title);
+                if (!pdfBlob) {
+                    alert('❌ មិនអាចបង្កើតឯកសារ PDF បាន');
+                    return;
+                }
+                
+                const fileName = `report_${currentReportType}_${new Date().toISOString().split('T')[0]}.pdf`;
+                const caption = `📊 ${title}\n📅 ${new Date().toLocaleDateString('km-KH')}\n👥 ${data.length} នាក់`;
+                
+                const result = await sendTelegramDocument(fileName, pdfBlob, caption);
+                if (result && result.ok) {
+                    alert('✅ បានផ្ញើឯកសារ PDF ទៅ Telegram ដោយជោគជ័យ');
+                } else {
+                    alert('❌ មានបញ្ហាក្នុងការផ្ញើ PDF: ' + (result?.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('❌ Error sending PDF:', error);
+                alert('❌ មានបញ្ហាក្នុងការបង្កើត ឬផ្ញើ PDF: ' + error.message);
+            }
+        }
+
+        async function sendCurrentReportAsExcel() {
+            const data = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+            if (!data || data.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីផ្ញើ');
+                return;
+            }
+
+            try {
+                await sendTelegramMessage('⏳ កំពុងបង្កើតឯកសារ Excel... សូមរង់ចាំ');
+                
+                const excelBlob = generateExcelBlob(currentReportType, data);
+                if (!excelBlob) {
+                    alert('❌ មិនអាចបង្កើតឯកសារ Excel បាន');
+                    return;
+                }
+                
+                const fileName = `report_${currentReportType}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                const title = reportTypes[currentReportType]?.title || 'របាយការណ៍';
+                const caption = `📊 ${title}\n📅 ${new Date().toLocaleDateString('km-KH')}\n👥 ${data.length} នាក់`;
+                
+                const result = await sendTelegramDocument(fileName, excelBlob, caption);
+                if (result && result.ok) {
+                    alert('✅ បានផ្ញើឯកសារ Excel ទៅ Telegram ដោយជោគជ័យ');
+                } else {
+                    alert('❌ មានបញ្ហាក្នុងការផ្ញើ Excel: ' + (result?.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('❌ Error sending Excel:', error);
+                alert('❌ មានបញ្ហាក្នុងការបង្កើត ឬផ្ញើ Excel: ' + error.message);
+            }
+        }
+
+        async function sendCurrentReportAsPDFAndExcel() {
+            const data = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+            if (!data || data.length === 0) {
+                alert('⚠️ មិនមានទិន្នន័យដើម្បីផ្ញើ');
+                return;
+            }
+
+            const confirmSend = confirm('តើអ្នកចង់ផ្ញើទាំង PDF និង Excel ទៅ Telegram មែនទេ?');
+            if (!confirmSend) return;
+
+            await sendCurrentReportAsPDF();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await sendCurrentReportAsExcel();
         }
 
         // ============================================
@@ -1260,36 +1772,6 @@
                 if (sortedData.length > 20) {
                     message += `\n... និងសិស្សផ្សេងទៀត ${sortedData.length - 20} បន្ថែមទៀត\n`;
                 }
-                
-                message += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-                message += `<b>📊 ស្ថិតិ:</b>\n`;
-                
-                const classCounts = {};
-                data.forEach(item => {
-                    const cls = item.class || 'មិនមាន';
-                    classCounts[cls] = (classCounts[cls] || 0) + 1;
-                });
-                
-                const sortedClasses = Object.keys(classCounts).sort();
-                sortedClasses.forEach(cls => {
-                    message += `   ${cls}: ${classCounts[cls]} នាក់\n`;
-                });
-                
-                if (reportType === 'discipline') {
-                    const problemCounts = {};
-                    data.forEach(item => {
-                        const problem = item.discipline_description || 'គ្មានការពិពណ៌នា';
-                        problemCounts[problem] = (problemCounts[problem] || 0) + 1;
-                    });
-                    
-                    const sortedProblems = Object.keys(problemCounts).sort((a, b) => problemCounts[b] - problemCounts[a]);
-                    if (sortedProblems.length > 0) {
-                        message += `\n<b>📌 បញ្ហាដដែលៗ:</b>\n`;
-                        sortedProblems.slice(0, 5).forEach(problem => {
-                            message += `   • ${problem}: ${problemCounts[problem]} ដង\n`;
-                        });
-                    }
-                }
             }
             
             message += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
@@ -1309,13 +1791,17 @@
                 return;
             }
             
-            console.log('🔄 Starting daily reports...');
+            console.log('🔄 Starting daily reports with PDF & Excel...');
             
             const today = new Date().toISOString().split('T')[0];
             const reportTypesList = ['late', 'discipline'];
             let sentCount = 0;
             
             try {
+                // Send intro message
+                await sendTelegramMessage(`📢 <b>របាយការណ៍ប្រចាំថ្ងៃ</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📅 ${new Date().toLocaleDateString('km-KH')}\nកំពុងផ្ញើរបាយការណ៍ជា PDF និង Excel...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
                 for (const type of reportTypesList) {
                     const tableName = reportTypes[type]?.table;
                     if (!tableName) continue;
@@ -1324,41 +1810,59 @@
                     const data = await fetchReportDataByDate(tableName, today);
                     console.log(`✅ Found ${data.length} ${type} records`);
                     
+                    // Send text summary
                     const message = generateDailyReportMessage(type, data, today);
-                    const result = await sendTelegramMessage(message);
+                    await sendTelegramMessage(message);
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                     
-                    if (result && result.ok) {
+                    if (data.length > 0) {
+                        const title = reportTypes[type]?.title || 'របាយការណ៍';
+                        
+                        // Send PDF
+                        console.log(`📄 Generating PDF for ${type}...`);
+                        const pdfBlob = await generatePDFBlob(type, data, title);
+                        if (pdfBlob) {
+                            const pdfFileName = `report_${type}_${today}.pdf`;
+                            const pdfCaption = `📄 ${title} - PDF\n📅 ${new Date().toLocaleDateString('km-KH')}`;
+                            await sendTelegramDocument(pdfFileName, pdfBlob, pdfCaption);
+                            console.log(`✅ PDF for ${type} sent`);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Send Excel
+                        console.log(`📊 Generating Excel for ${type}...`);
+                        const excelBlob = generateExcelBlob(type, data);
+                        if (excelBlob) {
+                            const excelFileName = `report_${type}_${today}.xlsx`;
+                            const excelCaption = `📊 ${title} - Excel\n📅 ${new Date().toLocaleDateString('km-KH')}`;
+                            await sendTelegramDocument(excelFileName, excelBlob, excelCaption);
+                            console.log(`✅ Excel for ${type} sent`);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
                         sentCount++;
-                        console.log(`✅ ${type} report sent successfully`);
-                    } else {
-                        console.error(`❌ Failed to send ${type} report`);
                     }
-                    
-                    await new Promise(resolve => setTimeout(resolve, 2000));
                 }
                 
                 if (sentCount > 0) {
                     localStorage.setItem('telegram_last_sent_date', today);
                     localStorage.setItem('telegram_last_sent_time', new Date().toISOString());
                     updateLastSentInfo();
-                    console.log(`✅ Daily reports completed (${sentCount} reports sent)`);
+                    console.log(`✅ Daily reports completed (${sentCount} reports sent as PDF & Excel)`);
+                    
+                    await sendTelegramMessage(`✅ <b>បានបញ្ចប់ការផ្ញើរបាយការណ៍ប្រចាំថ្ងៃ</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 ចំនួនរបាយការណ៍: ${sentCount}\n📄 PDF និង 📊 Excel ត្រូវបានផ្ញើរួចរាល់`);
                 }
                 
             } catch (error) {
                 console.error('❌ Error in sendDailyReports:', error);
+                await sendTelegramMessage(`❌ <b>មានបញ្ហាក្នុងការផ្ញើរបាយការណ៍</b>\n${error.message}`);
             }
         }
 
         async function sendBothReportsManually() {
-            const confirmSend = confirm('តើអ្នកចង់ផ្ញើរបាយការណ៍ទាំងពីរ (យឺត និងវិន័យ) ទៅ Telegram មែនទេ?');
+            const confirmSend = confirm('តើអ្នកចង់ផ្ញើរបាយការណ៍ទាំងពីរ (យឺត និងវិន័យ) ជា PDF និង Excel ទៅ Telegram មែនទេ?');
             if (!confirmSend) return;
             
-            const today = new Date().toISOString().split('T')[0];
-            const dateStr = new Date().toLocaleDateString('km-KH', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
-            
-            await sendTelegramMessage(`📢 <b>របាយការណ៍ប្រចាំថ្ងៃ ${dateStr}</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nកំពុងផ្ញើរបាយការណ៍...`);
             await sendDailyReports();
         }
 
@@ -1368,14 +1872,14 @@
                 return;
             }
             
-            const dataToSend = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
-            if (!dataToSend || dataToSend.length === 0) {
+            const data = currentDisplayData.length > 0 ? currentDisplayData : filteredReports;
+            if (!data || data.length === 0) {
                 alert('⚠️ មិនមានទិន្នន័យដើម្បីផ្ញើ');
                 return;
             }
             
             const today = new Date().toISOString().split('T')[0];
-            const message = generateDailyReportMessage(currentReportType, dataToSend, today);
+            const message = generateDailyReportMessage(currentReportType, data, today);
             const result = await sendTelegramMessage(message);
             
             if (result && result.ok) {
@@ -1409,7 +1913,7 @@
 
         function startAutoReportScheduler() {
             console.log('🔄 Starting auto-report scheduler...');
-            console.log('⏰ Reports will be sent daily at 8:00 AM');
+            console.log('⏰ Reports will be sent daily at 8:00 AM as PDF & Excel');
             
             setInterval(checkAndSendScheduledReport, 30000);
             
@@ -1661,9 +2165,6 @@
         // ============================================
 
         function sortTable(column) {
-            const tableBody = document.getElementById('report-table-body');
-            const rows = Array.from(tableBody.querySelectorAll('tr'));
-            
             if (currentSort.column === column) {
                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
             } else {
@@ -1965,41 +2466,20 @@
             }
             
             try {
-                const excelData = dataToExport.map((report, index) => {
-                    const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                    });
-                    
-                    let problemText = '';
-                    if (currentReportType === 'discipline') {
-                        problemText = report.discipline_description || 'គ្មានការពិពណ៌នា';
-                    } else if (currentReportType === 'event') {
-                        problemText = report.event_name || 'កម្មវិធីសាលា';
-                    } else if (currentReportType === 'flag') {
-                        problemText = 'គោរពទង់ជាតិ';
-                    } else {
-                        problemText = reportTypes[currentReportType]?.problemType || 'N/A';
-                    }
-                    
-                    return {
-                        'ល.រ': index + 1,
-                        'ឈ្មោះសិស្ស': report.name,
-                        'លេខសម្គាល់': report.student_id,
-                        'ថ្នាក់': report.class,
-                        'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
-                        'បញ្ហា/ព័ត៌មាន': problemText,
-                        'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
-                        'កាលបរិច្ឆេទ': displayDate
-                    };
-                });
+                const excelBlob = generateExcelBlob(currentReportType, dataToExport);
+                if (!excelBlob) {
+                    alert('❌ មិនអាចបង្កើតឯកសារ Excel បាន');
+                    return;
+                }
                 
-                const ws = XLSX.utils.json_to_sheet(excelData);
-                const wb = XLSX.utils.book_new();
-                const sheetName = reportTypes[currentReportType]?.title || 'ទិន្នន័យ';
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                
-                const today = new Date().toISOString().split('T')[0];
-                XLSX.writeFile(wb, `report_${currentReportType}_${today}.xlsx`);
+                const url = URL.createObjectURL(excelBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `report_${currentReportType}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             } catch (error) {
                 console.error('❌ Error exporting to Excel:', error);
                 alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
@@ -2111,7 +2591,7 @@
         // ============================================
 
         async function initializeApp() {
-            console.log('🔄 Initializing application...');
+            console.log('🔄 Initializing application with PDF & Excel support...');
             
             try {
                 // Initialize Supabase
@@ -2132,6 +2612,8 @@
                 updateNextSendTime();
                 
                 console.log('✅ Application initialized successfully');
+                console.log('📄 PDF & Excel support enabled');
+                console.log('⏰ Auto-send scheduled for 8:00 AM daily');
             } catch (error) {
                 console.error('❌ Error initializing app:', error);
                 alert('មានបញ្ហាក្នុងការចាប់ផ្តើមកម្មវិធី');
@@ -2167,6 +2649,9 @@
         window.printReport = printReport;
         window.sendBothReportsManually = sendBothReportsManually;
         window.sendCurrentReportToTelegram = sendCurrentReportToTelegram;
+        window.sendCurrentReportAsPDF = sendCurrentReportAsPDF;
+        window.sendCurrentReportAsExcel = sendCurrentReportAsExcel;
+        window.sendCurrentReportAsPDFAndExcel = sendCurrentReportAsPDFAndExcel;
 
         console.log('✅ All functions exposed globally');
     </script>

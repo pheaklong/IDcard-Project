@@ -10,6 +10,18 @@
             window.location.href = 'login.html';
         }
     </script>
+    <!-- Register Service Worker for background auto-send -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered successfully:', registration);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Chart.js for statistics -->
@@ -17,6 +29,7 @@
     <!-- SheetJS for Excel export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
+        /* ... (styles same as before) ... */
         :root {
             --primary: #4361ee;
             --primary-dark: #3a56d4;
@@ -240,13 +253,6 @@
             opacity: 0.9;
         }
 
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
-        }
-
         .btn {
             padding: 15px 20px;
             border: none;
@@ -446,11 +452,6 @@
             color: #004085;
         }
 
-        .badge-haircut {
-            background: #d4edda;
-            color: #155724;
-        }
-
         .badge-event {
             background: #d1ecf1;
             color: #0c5460;
@@ -598,11 +599,6 @@
             transition: width 0.3s ease;
         }
 
-        .loading-progress {
-            font-weight: bold;
-            color: var(--primary);
-        }
-
         .telegram-config {
             background: #f0f4f8;
             padding: 20px;
@@ -709,6 +705,24 @@
             color: #155724;
         }
 
+        .save-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .bg-info {
+            background: #d1ecf1;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+            border: 1px solid #bee5eb;
+        }
+
+        .bg-info p {
+            margin: 5px 0;
+            color: #0c5460;
+        }
+
         @media print {
             body {
                 background: white;
@@ -759,51 +773,37 @@
         }
 
         @media (max-width: 768px) {
-            .button-grid {
-                grid-template-columns: 1fr;
-            }
-            
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
             .report-type-grid {
                 grid-template-columns: 1fr;
             }
-            
             .filter-grid {
                 grid-template-columns: 1fr;
             }
-            
             .header h1 {
                 font-size: 1.6rem;
             }
-            
             .header p {
                 font-size: 1rem;
             }
-            
             .card-title {
                 font-size: 1.2rem;
             }
-            
             .btn {
                 padding: 14px 18px;
             }
-
             .summary-stats {
                 grid-template-columns: repeat(2, 1fr);
             }
-
             .sort-buttons {
                 gap: 8px;
             }
-
             .sort-btn {
                 padding: 8px 12px;
                 font-size: 12px;
             }
-
             .back-buttons {
                 flex-direction: column;
                 gap: 10px;
@@ -814,27 +814,21 @@
             body {
                 padding: 10px;
             }
-            
             .content {
                 padding: 20px;
             }
-            
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            
             .header {
                 padding: 25px 20px;
             }
-
             .summary-stats {
                 grid-template-columns: 1fr;
             }
-
             .sort-buttons {
                 flex-direction: column;
             }
-
             .sort-btn {
                 width: 100%;
                 justify-content: center;
@@ -866,6 +860,14 @@
             <div class="card">
                 <div class="telegram-config">
                     <h3>🤖 កំណត់រចនាសម្ព័ន្ធផ្ញើស្វ័យប្រវត្តិទៅ Telegram</h3>
+                    
+                    <div class="bg-info">
+                        <p>🔔 <strong>ស្ថានភាព Service Worker:</strong> 
+                            <span id="sw-status" style="font-weight:bold;color:#28a745;">✅ កំពុងដំណើរការ</span>
+                        </p>
+                        <p>📌 មុខងារផ្ញើស្វ័យប្រវត្តិនឹងដំណើរការទោះបីជាអ្នកបិទ Browser ក៏ដោយ។</p>
+                    </div>
+
                     <div class="filter-grid">
                         <div class="form-group">
                             <label for="bot-token">Bot Token</label>
@@ -920,6 +922,7 @@
                     <div class="config-actions">
                         <button class="btn btn-save" onclick="saveTelegramConfig()">💾 រក្សាទុកការកំណត់</button>
                         <button class="btn btn-secondary" onclick="loadTelegramConfig()">📂 ទាញយកការកំណត់</button>
+                        <button class="btn btn-warning" onclick="registerServiceWorker()">🔄 ចុះឈ្មោះ Service Worker</button>
                         <span id="save-status" class="save-status">រួចរាល់</span>
                     </div>
 
@@ -1498,6 +1501,14 @@
             }
         }
 
+        function registerServiceWorker() {
+            if (window.appInitialized && window.registerServiceWorkerReal) {
+                window.registerServiceWorkerReal();
+            } else {
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
         // Event summary functions
         function handleEventSummaryPeriodChange() {
             if (window.appInitialized && window.handleEventSummaryPeriodChangeReal) {
@@ -1814,6 +1825,51 @@
         }
 
         // ============================================
+        // SERVICE WORKER FUNCTIONS
+        // ============================================
+
+        function registerServiceWorkerReal() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker registered successfully:', registration);
+                        document.getElementById('sw-status').innerHTML = '✅ កំពុងដំណើរការ';
+                        document.getElementById('sw-status').style.color = '#28a745';
+                        
+                        // Check if there are pending tasks
+                        checkPendingTasks();
+                        
+                        const statusEl = document.getElementById('save-status');
+                        statusEl.textContent = '✅ Service Worker បានចុះឈ្មោះដោយជោគជ័យ';
+                        statusEl.className = 'save-status success';
+                        setTimeout(() => {
+                            statusEl.textContent = 'រួចរាល់';
+                            statusEl.className = 'save-status';
+                        }, 3000);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ Service Worker registration failed:', error);
+                        document.getElementById('sw-status').innerHTML = '❌ មិនអាចចុះឈ្មោះបាន';
+                        document.getElementById('sw-status').style.color = '#dc3545';
+                        
+                        const statusEl = document.getElementById('save-status');
+                        statusEl.textContent = '❌ មានបញ្ហាក្នុងការចុះឈ្មោះ Service Worker';
+                        statusEl.className = 'save-status error';
+                    });
+            } else {
+                alert('⚠️ កម្មវិធីរុករករបស់អ្នកមិនគាំទ្រ Service Worker ទេ');
+            }
+        }
+
+        function checkPendingTasks() {
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'CHECK_PENDING_TASKS'
+                });
+            }
+        }
+
+        // ============================================
         // MAIN APPLICATION
         // ============================================
 
@@ -1829,7 +1885,6 @@
             let summaryData = [];
             let disciplineSummaryData = [];
 
-            // **បន្ថែមអថេរសម្រាប់រក្សាទុកលំដាប់តម្រៀបបច្ចុប្បន្ន**
             let currentDisplayData = [];
 
             // Sorting variables
@@ -1842,8 +1897,6 @@
             let autoSendEnabled = false;
             let autoSendInterval = null;
             let scheduledTasks = {};
-            let lastSummarySendDate = null;
-            let lastDisciplineSummarySendDate = null;
 
             // Report type definitions
             const reportTypes = {
@@ -1938,6 +1991,14 @@
                     
                     localStorage.setItem('telegram_config', JSON.stringify(config));
                     
+                    // Also send config to service worker
+                    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'UPDATE_CONFIG',
+                            config: config
+                        });
+                    }
+                    
                     const statusEl = document.getElementById('save-status');
                     statusEl.textContent = '✅ បានរក្សាទុកដោយជោគជ័យ';
                     statusEl.className = 'save-status success';
@@ -2007,7 +2068,6 @@
 
             async function sendToTelegram(botToken, chatId, text, fileData, fileName) {
                 try {
-                    // Send text message first
                     const textUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
                     const textResponse = await fetch(textUrl, {
                         method: 'POST',
@@ -2023,7 +2083,6 @@
                         throw new Error(`Text send failed: ${textResponse.status}`);
                     }
                     
-                    // If file data provided, send as document
                     if (fileData && fileName) {
                         const formData = new FormData();
                         formData.append('chat_id', chatId);
@@ -2100,13 +2159,13 @@
                 }
             }
 
-            // ========== TELEGRAM SEND FUNCTIONS ==========
-
             function getTelegramConfig() {
                 const botToken = document.getElementById('bot-token').value.trim();
                 const chatId = document.getElementById('chat-id').value.trim();
                 return { botToken, chatId };
             }
+
+            // ========== TELEGRAM SEND FUNCTIONS ==========
 
             async function sendReportToTelegramReal() {
                 const { botToken, chatId } = getTelegramConfig();
@@ -2555,6 +2614,9 @@
                     toggleBtn.textContent = '▶️ បើកដំណើរការ';
                     stopAutoSend();
                 }
+                
+                // Save config with auto-send state
+                saveTelegramConfigReal();
             }
 
             function startAutoSend() {
@@ -2567,8 +2629,6 @@
                     const now = new Date();
                     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
                     
-                    // Get scheduled times
-                    const mainTime = document.getElementById('send-time').value;
                     const lateTime = document.getElementById('schedule-late').value;
                     const disciplineTime = document.getElementById('schedule-discipline').value;
                     const summaryTime = document.getElementById('schedule-summary').value;
@@ -2847,7 +2907,6 @@
                 document.getElementById('current-report-type').style.display = 'block';
                 document.getElementById('table-title').textContent = `📊 ${reportTypes[type].title}`;
                 
-                // Hide all sections first
                 document.getElementById('filter-section').style.display = 'none';
                 document.getElementById('stats-section').style.display = 'none';
                 document.getElementById('table-section').style.display = 'none';
@@ -4211,10 +4270,14 @@
             window.toggleAutoSendReal = toggleAutoSendReal;
             window.saveTelegramConfigReal = saveTelegramConfigReal;
             window.loadTelegramConfigReal = loadTelegramConfigReal;
+            window.registerServiceWorkerReal = registerServiceWorkerReal;
 
             // ========== INITIALIZE ON PAGE LOAD ==========
 
             window.appInitialized = true;
+            
+            // Register Service Worker on startup
+            registerServiceWorkerReal();
             
             // Load saved config on startup
             loadTelegramConfigReal();

@@ -4,7 +4,6 @@ const CACHE_NAME = 'report-system-v1';
 const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
 
-// Store config and pending tasks
 let config = null;
 let scheduledTasks = {};
 let isProcessing = false;
@@ -22,11 +21,11 @@ self.addEventListener('install', function(event) {
                 '/',
                 '/index.html',
                 '/login.html',
-                '/scan.html'
+                '/scan.html',
+                '/report.html'
             ]);
         })
     );
-    // Skip waiting to activate immediately
     self.skipWaiting();
 });
 
@@ -44,7 +43,6 @@ self.addEventListener('activate', function(event) {
             );
         })
     );
-    // Claim clients to control all pages
     return self.clients.claim();
 });
 
@@ -59,25 +57,29 @@ self.addEventListener('message', function(event) {
     switch (data.type) {
         case 'UPDATE_CONFIG':
             config = data.config;
-            // Save config to cache for offline use
             saveConfigToCache(config);
             console.log('✅ Config updated in Service Worker');
-            // Respond back to client
-            event.ports[0].postMessage({ status: 'success', message: 'Config updated' });
+            if (event.ports && event.ports[0]) {
+                event.ports[0].postMessage({ status: 'success', message: 'Config updated' });
+            }
             break;
 
         case 'CHECK_PENDING_TASKS':
             checkAndProcessTasks();
-            event.ports[0].postMessage({ status: 'ok', message: 'Checking tasks' });
+            if (event.ports && event.ports[0]) {
+                event.ports[0].postMessage({ status: 'ok', message: 'Checking tasks' });
+            }
             break;
 
         case 'GET_STATUS':
-            event.ports[0].postMessage({
-                status: 'ok',
-                config: config,
-                isProcessing: isProcessing,
-                tasks: scheduledTasks
-            });
+            if (event.ports && event.ports[0]) {
+                event.ports[0].postMessage({
+                    status: 'ok',
+                    config: config,
+                    isProcessing: isProcessing,
+                    tasks: scheduledTasks
+                });
+            }
             break;
 
         default:
@@ -89,19 +91,16 @@ self.addEventListener('message', function(event) {
 // BACKGROUND SYNC / PERIODIC TASKS
 // ============================================
 
-// Check for scheduled tasks every minute when service worker is active
 let checkInterval = null;
 
 self.addEventListener('activate', function(event) {
-    // Start periodic check
     if (checkInterval) {
         clearInterval(checkInterval);
     }
     checkInterval = setInterval(() => {
         checkAndProcessTasks();
-    }, 60000); // Check every minute
+    }, 60000);
 
-    // Also load saved config from cache
     loadConfigFromCache().then(savedConfig => {
         if (savedConfig) {
             config = savedConfig;
@@ -147,7 +146,6 @@ async function loadConfigFromCache() {
 // ============================================
 
 async function checkAndProcessTasks() {
-    // If no config or already processing, skip
     if (!config) {
         console.log('⚠️ No config found, skipping task check');
         return;
@@ -163,20 +161,18 @@ async function checkAndProcessTasks() {
         const now = new Date();
         const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
 
-        // Get scheduled times from config
         const lateTime = config.scheduleLate || '08:00';
         const disciplineTime = config.scheduleDiscipline || '08:15';
         const summaryTime = config.scheduleSummary || '08:30';
         const disciplineSummaryTime = config.scheduleDisciplineSummary || '08:45';
 
-        // Check if we have a valid bot token and chat ID
         if (!config.botToken || !config.chatId) {
             console.log('⚠️ Missing bot token or chat ID');
             isProcessing = false;
             return;
         }
 
-        // Check daily reports (late and discipline)
+        // Check daily reports
         if (lateTime && currentTime === lateTime && !scheduledTasks['late']) {
             scheduledTasks['late'] = true;
             console.log('⏰ Sending late report...');
@@ -229,10 +225,6 @@ async function checkAndProcessTasks() {
     }
 }
 
-// ============================================
-// CACHE HELPERS (for persistent storage)
-// ============================================
-
 async function getFromCache(key) {
     try {
         const cache = await caches.open(CACHE_NAME);
@@ -273,7 +265,6 @@ async function sendToTelegram(text, fileData, fileName) {
     }
 
     try {
-        // Send text message
         const textUrl = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
         const textResponse = await fetch(textUrl, {
             method: 'POST',
@@ -289,7 +280,6 @@ async function sendToTelegram(text, fileData, fileName) {
             throw new Error(`Text send failed: ${textResponse.status}`);
         }
 
-        // Send file if provided
         if (fileData && fileName) {
             const formData = new FormData();
             formData.append('chat_id', config.chatId);
@@ -320,7 +310,6 @@ async function sendToTelegram(text, fileData, fileName) {
 
 async function fetchAllData(tableName) {
     try {
-        // Try to fetch all data with pagination
         let allData = [];
         let start = 0;
         const batchSize = 1000;
@@ -360,7 +349,6 @@ async function fetchAllData(tableName) {
 
 function createExcelBlob(data, sheetName) {
     try {
-        // Simple CSV export as fallback (since we can't use XLSX in Service Worker)
         if (!data || data.length === 0) return null;
         
         const headers = Object.keys(data[0]);
@@ -424,7 +412,6 @@ async function sendLateReport() {
             return false;
         }
 
-        // Filter only today's data
         const today = new Date().toISOString().split('T')[0];
         const todayData = data.filter(r => r.date === today);
         
@@ -635,7 +622,6 @@ async function sendLateSummary() {
             return false;
         }
 
-        // Get last month's data
         const now = new Date();
         const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endDate = new Date(now.getFullYear(), now.getMonth(), 0);
@@ -650,7 +636,6 @@ async function sendLateSummary() {
             return false;
         }
 
-        // Group by student
         const counts = {};
         const lastDate = {};
         const details = {};
@@ -688,7 +673,6 @@ async function sendLateSummary() {
             return false;
         }
 
-        const todayStr = new Date().toLocaleDateString('km-KH');
         const monthStr = startDate.toLocaleDateString('km-KH', { month: 'long', year: 'numeric' });
 
         const excelData = summaryData.map((s, i) => {
@@ -852,7 +836,6 @@ async function sendDisciplineSummary() {
             return false;
         }
 
-        const todayStr = new Date().toLocaleDateString('km-KH');
         const monthStr = startDate.toLocaleDateString('km-KH', { month: 'long', year: 'numeric' });
 
         const excelData = summaryData.map((s, i) => {

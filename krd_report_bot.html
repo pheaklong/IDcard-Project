@@ -659,6 +659,25 @@
             color: #721c24;
         }
 
+        .send-status {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            background: #f8f9fa;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .send-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .send-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
         @media print {
             body {
                 background: white;
@@ -826,7 +845,7 @@
                             <input type="text" id="chat-id" class="form-control" placeholder="បញ្ចូល Chat ID" value="-1002390198977">
                         </div>
                         <div class="form-group">
-                            <label for="send-time">ម៉ោងផ្ញើ (24h)</label>
+                            <label for="send-time">ម៉ោងផ្ញើប្រចាំថ្ងៃ (24h)</label>
                             <input type="time" id="send-time" class="form-control" value="08:00">
                         </div>
                         <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 20px;">
@@ -834,23 +853,41 @@
                             <span id="auto-status" class="status-badge status-inactive">បិទ</span>
                         </div>
                     </div>
+                    
+                    <div style="margin-top: 15px; padding: 15px; background: #fff3cd; border-radius: var(--border-radius); border: 1px solid #ffc107;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #856404;">
+                            <strong>📌 ចំណាំ៖</strong> 
+                            របាយការណ៍ប្រចាំថ្ងៃ (ទិន្នន័យយឺត, ទិន្នន័យវិន័យ) នឹងត្រូវផ្ញើរៀងរាល់ថ្ងៃនៅម៉ោងដែលបានកំណត់។
+                            <br>
+                            របាយការណ៍សង្ខេប (សង្ខេបយឺត, សង្ខេបវិន័យ) នឹងត្រូវផ្ញើតែម្តងក្នុងមួយខែ (ថ្ងៃទី 1 នៃខែ) នៅម៉ោងដែលបានកំណត់។
+                        </p>
+                    </div>
+
                     <div class="schedule-grid">
                         <div class="schedule-item">
                             <label>📋 ទិន្នន័យយឺត</label>
                             <input type="time" id="schedule-late" value="08:00">
+                            <span style="font-size:0.7rem;color:#888;">ប្រចាំថ្ងៃ</span>
                         </div>
                         <div class="schedule-item">
                             <label>📋 ទិន្នន័យវិន័យ</label>
                             <input type="time" id="schedule-discipline" value="08:15">
+                            <span style="font-size:0.7rem;color:#888;">ប្រចាំថ្ងៃ</span>
                         </div>
                         <div class="schedule-item">
-                            <label>📋 សង្ខេបយឺត</label>
+                            <label>📊 សង្ខេបយឺត</label>
                             <input type="time" id="schedule-summary" value="08:30">
+                            <span style="font-size:0.7rem;color:#888;">ម្តង/ខែ</span>
                         </div>
                         <div class="schedule-item">
-                            <label>📋 សង្ខេបវិន័យ</label>
+                            <label>📊 សង្ខេបវិន័យ</label>
                             <input type="time" id="schedule-discipline-summary" value="08:45">
+                            <span style="font-size:0.7rem;color:#888;">ម្តង/ខែ</span>
                         </div>
+                    </div>
+
+                    <div id="send-status" class="send-status" style="display: none;">
+                        កំពុងរង់ចាំ...
                     </div>
                 </div>
             </div>
@@ -1751,6 +1788,8 @@
             let autoSendEnabled = false;
             let autoSendInterval = null;
             let scheduledTasks = {};
+            let lastSummarySendDate = null;
+            let lastDisciplineSummarySendDate = null;
 
             // Report type definitions
             const reportTypes = {
@@ -1886,7 +1925,6 @@
 
             function createPDFBlob(htmlContent, fileName) {
                 try {
-                    // Simple approach: create HTML blob that can be opened as PDF
                     const fullHtml = `
                         <!DOCTYPE html>
                         <html>
@@ -1910,6 +1948,18 @@
                 } catch (error) {
                     console.error('❌ Error creating PDF blob:', error);
                     return null;
+                }
+            }
+
+            function showSendStatus(message, isSuccess = true) {
+                const statusEl = document.getElementById('send-status');
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.textContent = message;
+                    statusEl.className = 'send-status ' + (isSuccess ? 'success' : 'error');
+                    setTimeout(() => {
+                        statusEl.style.display = 'none';
+                    }, 10000);
                 }
             }
 
@@ -1937,7 +1987,6 @@
                 const reportTitle = reportTypes[currentReportType]?.title || 'របាយការណ៍';
                 const today = new Date().toLocaleDateString('km-KH');
                 
-                // Create Excel file
                 const excelData = dataToSend.map((report, index) => {
                     const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
                         year: 'numeric', month: 'long', day: 'numeric'
@@ -1972,7 +2021,6 @@
                     return;
                 }
 
-                // Create PDF (HTML format)
                 const htmlContent = `
                     <div class="header">
                         <h1>របាយការណ៍${reportTitle}</h1>
@@ -2032,15 +2080,13 @@
 
                 const textMsg = `📊 <b>របាយការណ៍${reportTitle}</b>\n📅 កាលបរិច្ឆេទ: ${today}\n👥 ចំនួនទិន្នន័យ: ${dataToSend.length}\n\n📎 ឯកសារភ្ជាប់: Excel និង PDF`;
 
-                // Send to Telegram
                 const result = await sendToTelegram(botToken, chatId, textMsg, excelBlob, `${reportTitle}_${today}.xlsx`);
                 
                 if (result) {
-                    // Send PDF as second document
                     await sendToTelegram(botToken, chatId, '📎 ឯកសារ PDF', pdfBlob, `${reportTitle}_${today}.html`);
-                    alert('✅ បានផ្ញើរបាយការណ៍ទៅ Telegram ដោយជោគជ័យ');
+                    showSendStatus('✅ បានផ្ញើរបាយការណ៍ទៅ Telegram ដោយជោគជ័យ', true);
                 } else {
-                    alert('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram');
+                    showSendStatus('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram', false);
                 }
             }
 
@@ -2058,7 +2104,6 @@
 
                 const today = new Date().toLocaleDateString('km-KH');
                 
-                // Create Excel file
                 const excelData = summaryData.map((s, i) => {
                     const lastDate = s.last_late_date.toLocaleDateString('km-KH', {
                         year: 'numeric', month: 'long', day: 'numeric'
@@ -2082,7 +2127,6 @@
                     return;
                 }
 
-                // Create PDF (HTML format)
                 const htmlContent = `
                     <div class="header">
                         <h1>របាយការណ៍សង្ខេបទិន្នន័យយឺត</h1>
@@ -2141,9 +2185,9 @@
                 
                 if (result) {
                     await sendToTelegram(botToken, chatId, '📎 ឯកសារ PDF', pdfBlob, `សង្ខេប_យឺត_${today}.html`);
-                    alert('✅ បានផ្ញើសង្ខេបទិន្នន័យយឺតទៅ Telegram ដោយជោគជ័យ');
+                    showSendStatus('✅ បានផ្ញើសង្ខេបទិន្នន័យយឺតទៅ Telegram ដោយជោគជ័យ', true);
                 } else {
-                    alert('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram');
+                    showSendStatus('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram', false);
                 }
             }
 
@@ -2245,9 +2289,9 @@
                 
                 if (result) {
                     await sendToTelegram(botToken, chatId, '📎 ឯកសារ PDF', pdfBlob, `សង្ខេប_វិន័យ_${today}.html`);
-                    alert('✅ បានផ្ញើសង្ខេបទិន្នន័យវិន័យទៅ Telegram ដោយជោគជ័យ');
+                    showSendStatus('✅ បានផ្ញើសង្ខេបទិន្នន័យវិន័យទៅ Telegram ដោយជោគជ័យ', true);
                 } else {
-                    alert('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram');
+                    showSendStatus('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram', false);
                 }
             }
 
@@ -2350,9 +2394,9 @@
                 
                 if (result) {
                     await sendToTelegram(botToken, chatId, '📎 ឯកសារ PDF', pdfBlob, `សង្ខេប_កម្មវិធី_${today}.html`);
-                    alert('✅ បានផ្ញើសង្ខេបចូលរួមកម្មវិធីទៅ Telegram ដោយជោគជ័យ');
+                    showSendStatus('✅ បានផ្ញើសង្ខេបចូលរួមកម្មវិធីទៅ Telegram ដោយជោគជ័យ', true);
                 } else {
-                    alert('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram');
+                    showSendStatus('⚠️ មានបញ្ហាក្នុងការផ្ញើទៅ Telegram', false);
                 }
             }
 
@@ -2386,20 +2430,14 @@
                     const now = new Date();
                     const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
                     
-                    // Get all scheduled times
+                    // Get scheduled times
                     const mainTime = document.getElementById('send-time').value;
                     const lateTime = document.getElementById('schedule-late').value;
                     const disciplineTime = document.getElementById('schedule-discipline').value;
                     const summaryTime = document.getElementById('schedule-summary').value;
                     const disciplineSummaryTime = document.getElementById('schedule-discipline-summary').value;
                     
-                    // Check each schedule
-                    if (mainTime && currentTime === mainTime && !scheduledTasks['main']) {
-                        scheduledTasks['main'] = true;
-                        await sendAllReportsToTelegram();
-                        setTimeout(() => { scheduledTasks['main'] = false; }, 60000);
-                    }
-                    
+                    // Check daily reports (late and discipline)
                     if (lateTime && currentTime === lateTime && !scheduledTasks['late']) {
                         scheduledTasks['late'] = true;
                         await sendLateReportToTelegram();
@@ -2412,20 +2450,49 @@
                         setTimeout(() => { scheduledTasks['discipline'] = false; }, 60000);
                     }
                     
-                    if (summaryTime && currentTime === summaryTime && !scheduledTasks['summary']) {
-                        scheduledTasks['summary'] = true;
-                        await sendLateSummaryToTelegramReal();
-                        setTimeout(() => { scheduledTasks['summary'] = false; }, 60000);
+                    // Check monthly summaries (only on the 1st of each month)
+                    if (summaryTime && currentTime === summaryTime) {
+                        const today = new Date();
+                        const currentMonth = today.getMonth();
+                        const currentYear = today.getFullYear();
+                        const currentDay = today.getDate();
+                        
+                        // Check if we haven't sent this month yet
+                        if (currentDay === 1) {
+                            const lastSendKey = `last_summary_send_${currentYear}_${currentMonth}`;
+                            const lastSend = localStorage.getItem(lastSendKey);
+                            
+                            if (!lastSend && !scheduledTasks['summary']) {
+                                scheduledTasks['summary'] = true;
+                                await sendLateSummaryToTelegramReal();
+                                localStorage.setItem(lastSendKey, new Date().toISOString());
+                                setTimeout(() => { scheduledTasks['summary'] = false; }, 60000);
+                            }
+                        }
                     }
                     
-                    if (disciplineSummaryTime && currentTime === disciplineSummaryTime && !scheduledTasks['disciplineSummary']) {
-                        scheduledTasks['disciplineSummary'] = true;
-                        await sendDisciplineSummaryToTelegramReal();
-                        setTimeout(() => { scheduledTasks['disciplineSummary'] = false; }, 60000);
+                    if (disciplineSummaryTime && currentTime === disciplineSummaryTime) {
+                        const today = new Date();
+                        const currentMonth = today.getMonth();
+                        const currentYear = today.getFullYear();
+                        const currentDay = today.getDate();
+                        
+                        if (currentDay === 1) {
+                            const lastSendKey = `last_discipline_summary_send_${currentYear}_${currentMonth}`;
+                            const lastSend = localStorage.getItem(lastSendKey);
+                            
+                            if (!lastSend && !scheduledTasks['disciplineSummary']) {
+                                scheduledTasks['disciplineSummary'] = true;
+                                await sendDisciplineSummaryToTelegramReal();
+                                localStorage.setItem(lastSendKey, new Date().toISOString());
+                                setTimeout(() => { scheduledTasks['disciplineSummary'] = false; }, 60000);
+                            }
+                        }
                     }
                 }, 30000);
                 
                 console.log('✅ Auto-send started');
+                showSendStatus('✅ បានបើកដំណើរការផ្ញើស្វ័យប្រវត្តិ', true);
             }
 
             function stopAutoSend() {
@@ -2435,22 +2502,13 @@
                 }
                 scheduledTasks = {};
                 console.log('⏹️ Auto-send stopped');
-            }
-
-            async function sendAllReportsToTelegram() {
-                console.log('📤 Sending all reports to Telegram (auto)');
-                // Send all report types
-                await sendLateReportToTelegram();
-                await sendDisciplineReportToTelegram();
-                await sendLateSummaryToTelegramReal();
-                await sendDisciplineSummaryToTelegramReal();
+                showSendStatus('⏹️ បានបញ្ឈប់ការផ្ញើស្វ័យប្រវត្តិ', true);
             }
 
             async function sendLateReportToTelegram() {
-                // Switch to late report and send
                 const currentType = currentReportType;
                 selectReportTypeReal('late');
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 await sendReportToTelegramReal();
                 if (currentType) {
                     selectReportTypeReal(currentType);
@@ -2460,7 +2518,7 @@
             async function sendDisciplineReportToTelegram() {
                 const currentType = currentReportType;
                 selectReportTypeReal('discipline');
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
                 await sendReportToTelegramReal();
                 if (currentType) {
                     selectReportTypeReal(currentType);
@@ -2799,7 +2857,6 @@
                 empty.style.display = 'none';
                 document.getElementById('stats-section').style.display = 'grid';
                 
-                // **រក្សាទុកទិន្នន័យដែលកំពុងបង្ហាញ**
                 currentDisplayData = [...filteredReports];
                 
                 let html = '';
@@ -2914,7 +2971,6 @@
                         aVal.localeCompare(bVal, 'km') : bVal.localeCompare(aVal, 'km');
                 });
                 
-                // **ធ្វើបច្ចុប្បន្នភាព currentDisplayData**
                 currentDisplayData = [...filteredReports];
                 
                 renderTable();

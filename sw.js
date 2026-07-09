@@ -14,18 +14,7 @@ let isProcessing = false;
 
 self.addEventListener('install', function(event) {
     console.log('📦 Service Worker installing...');
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(function(cache) {
-            console.log('📦 Cache opened');
-            return cache.addAll([
-                '/',
-                '/index.html',
-                '/login.html',
-                '/scan.html',
-                '/report.html'
-            ]);
-        })
-    );
+    // Skip waiting to activate immediately
     self.skipWaiting();
 });
 

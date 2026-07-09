@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student List - High School</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #3498db;
+        --secondary-color: #3498db;
+        --update-color: #ff9800;
+        --update-hover: #e68900;
+      }
+
+      .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(88, 173, 243, 0.1);
+        }
+
+      .section-title {
+        position: relative;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+      }
+
+      .section-title:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: var(--secondary-color);
+      }
+@media (min-width: 768px) {
+  
+
+      .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .table thead {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .table tbody tr:hover {
+        background-color: #f1f1f1;
+      
+        cursor: pointer;
+    }
+  }
+
+
+      footer {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 30px 0;
+        margin-top: 50px;
+      }
+
+      .student-photo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e9ecef;
+      }
+
+      .action-buttons {
+        white-space: nowrap;
+      }
+      
+      .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
+      }
+      
+      .btn-sm i {
+        margin-right: 0.25rem;
+      }
+
+      /* Update Button Styling */
+      .btn-update {
+        background-color: var(--update-color);
+        border-color: var(--update-color);
+        color: white;
+      }
+      
+      .btn-update:hover {
+        background-color: var(--update-hover);
+        border-color: var(--update-hover);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+      }
+      
+      .btn-update:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+      }
+
+      .modal-header {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      
+      .modal-update-header {
+        background-color: var(--update-color);
+        color: white;
+      }
+
+      .modal-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 20px;
+        display: block;
+        border: 3px solid var(--secondary-color);
+      }
+      
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 10px;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Update Form Styling */
+      .update-form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+      }
+      
+      .update-form-group label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+      
+      .update-form-control {
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+      }
+      
+      .update-form-control:focus {
+        border-color: var(--update-color);
+        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+      }
+      
+      .update-form-control:read-only {
+        background-color: #f8f9fa;
+        opacity: 0.7;
+      }
+      
+      /* Button Group Styling */
+      .action-buttons .btn {
+        margin-right: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
+      
+      /* Responsive adjustments */
+      @media (max-width: 576px) {
+        .action-buttons {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+          margin-right: 0;
+          margin-bottom: 0.25rem;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>វិទ្យាល័យកំរៀង
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html"><i class="fas fa-home me-1"></i> Home</a>
+                    </li>
+                    <!--
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-list.html"><i class="fas fa-list me-1"></i> Student List</a>
+                    </li>
+                    -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="id-card.html"><i class="fas fa-id-card me-1"></i> ID Card</a>
+                    </li>
+                   <!-- 
+                    <li class="nav-item">
+                        <a class="nav-link" href="input-student.html"><i class="fas fa-id-card me-1"></i> Input student</a>
+                    </li>
+                     -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html"><i class="fas fa-user-shield me-1"></i> Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Student List Section -->
+    <section class="py-5 bg-light">
+      <div class="container">
+        <h2 class="section-title text-center">បញ្ជីឈ្មោះសិស្សនៃវិទ្យាល័យកំរៀង</h2>
+        <p class="text-center mb-5">
+          នេះជាបញ្ជីឈ្មោះសិស្សដែលបានចុះឈ្មោះសម្រាប់ឆ្នាំសិក្សា ២០២៥-២០២៦ អ្នកអាចស្វែងរក ឬតម្រៀបតាមថ្នាក់ដើម្បីរកមើលព័ត៌មានបន្ថែម។
+        </p>
+
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="input-group mb-3">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search by name or ID..."
+                id="searchInput"
+              />
+              <button class="btn btn-primary" type="button" id="searchButton">
+                Search
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="input-group mb-3">
+              <select class="form-select" id="classFilter">
+                <option value="">All Classes</option>
+                <option value="7">Grade 7</option>
+                <option value="8">Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+              </select>
+              <button
+                class="btn btn-outline-primary"
+                type="button"
+                id="filterButton"
+              >
+                Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Photo</th>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Gender</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody">
+              <!-- Student data will be populated here -->
+              <tr>
+                <td colspan="6" class="text-center">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2">កំពុងទាញយកទិន្នន័យ...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-center mt-4">
+          <a href="report.html" class="btn btn-success">
+            <i class="fas fa-file-excel me-2"></i>Export to Excel
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="deleteModalLabel">
+              <i class="fas fa-exclamation-triangle me-2"></i>លុបសិស្ស
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="text-center mb-3">
+              <i class="fas fa-user-times text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <p class="text-center">
+              តើអ្នកពិតជាចង់លុបសិស្ស <strong id="studentNameToDelete"></strong> (ID: <strong id="studentIdToDelete"></strong>) មែនទេ?
+            </p>
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>ព្រមាន:</strong> សកម្មភាពនេះមិនអាចត្រលប់បានទេ! ទិន្នន័យទាំងអស់របស់សិស្សនេះនឹងត្រូវបានលុបចោលជាអចិន្ត្រៃយ៍។
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i>បោះបង់
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+              <i class="fas fa-trash me-1"></i>លុបសិស្ស
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Student Modal -->
+    <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header modal-update-header">
+            <h5 class="modal-title" id="updateModalLabel">
+              <i class="fas fa-edit me-2"></i>កែសម្រួលព័ត៌មានសិស្ស
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="updateStudentForm">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="update-form-group">
+                    <label for="updateStudentId" class="form-label">Student ID</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentId" readonly>
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentName" class="form-label">Name</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentName" required>
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentClass" class="form-label">Class</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentClass" required placeholder="ឧទាហរណ៍: Grade 10A, Grade 11B">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentGender" class="form-label">Gender</label>
+                    <select class="form-select update-form-control" id="updateStudentGender" required>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentDob" class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control update-form-control" id="updateStudentDob">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="update-form-group">
+                    <label for="updateStudentAddress" class="form-label">Address</label>
+                    <textarea class="form-control update-form-control" id="updateStudentAddress" rows="3"></textarea>
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentPhone" class="form-label">Phone</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentPhone">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentFather" class="form-label">Father's Name</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentFather">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentMother" class="form-label">Mother's Name</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentMother">
+                  </div>
+                  <!-- New Guardian Phone Number Field -->
+                  <div class="update-form-group">
+                    <label for="updateStudentGuardianNumber" class="form-label">លេខទូរសព្ទអាណាព្យាបាល (Guardian Phone Number)</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentGuardianNumber">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentStudyYear" class="form-label">Study Year</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentStudyYear">
+                  </div>
+                  <div class="update-form-group">
+                    <label for="updateStudentPhoto" class="form-label">Photo URL</label>
+                    <input type="text" class="form-control update-form-control" id="updateStudentPhoto">
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              <i class="fas fa-times me-1"></i>បោះបង់
+            </button>
+            <button type="button" class="btn btn-update" id="confirmUpdateBtn">
+              <i class="fas fa-save me-1"></i>រក្សាទុក
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5>វិទ្យាល័យកំរៀង</h5>
+            <p>ស្ថិតនៅ ភូមិអូរដា ឃុំបឹងរាំង ស្រុកកំរៀង ខេត្តបាត់ដំបង</p>
+          </div>
+          <div class="col-md-4 mb-4 mb-md-0">
+            <h5>ព័ត៌មានលម្អិត</h5>
+            <p>
+              <i class="fas fa-map-marker-alt me-2"></i> ស្រុកកំរៀង, ខេត្តបាត់ដំបង
+            </p>
+            <p><i class="fas fa-phone me-2"></i> +885969982589</p>
+            <p><i class="fas fa-envelope me-2"></i> kr@highschool.edu</p>
+          </div>
+          <div class="col-md-4">
+            <h5>Menu</h5>
+            <ul class="list-unstyled">
+              <li><a href="index.html" class="text-white">Home</a></li>
+              <li>
+                <a href="student-list.html" class="text-white">Student List</a>
+              </li>
+              <li><a href="id-card.html" class="text-white">ID Card</a></li>
+              <li><a href="admin.html" class="text-white">Admin</a></li>
+            </ul>
+          </div>
+        </div>
+        <hr class="my-4 bg-light" />
+        <div class="text-center">
+          <p>&copy; ឆ្នាំសិក្សា ២០២៥៌-២០២៦</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+      crossorigin="anonymous"
+    ></script>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+      // Global variable to store all students and Supabase client
+      let allStudents = [];
+      let currentUpdateStudentId = null;
+      let currentDeleteStudentId = null;
+      let currentDeleteStudentName = null;
+      let supabaseClient = null;
+      
+      // Wait for DOM to be fully loaded and Supabase library to be loaded
+      document.addEventListener('DOMContentLoaded', async function() {
+        try {
+          // Initialize Supabase client
+          const supabaseUrl = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+          const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+          
+          // Check if supabase library is loaded
+          if (typeof supabase === 'undefined') {
+            throw new Error('Supabase library not loaded. Please check your internet connection.');
+          }
+          
+          // Create Supabase client
+          supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+          
+          // Test connection
+          const { data, error } = await supabaseClient
+            .from('students')
+            .select('count')
+            .limit(1);
+            
+          if (error) {
+            throw new Error('Failed to connect to database: ' + error.message);
+          }
+          
+          console.log('Supabase connected successfully');
+          
+          // Initialize page
+          initializePage();
+          
+        } catch (error) {
+          console.error('Initialization error:', error);
+          showError('កំហុសក្នុងការចាប់ផ្តើម: ' + error.message);
+        }
+      });
+
+      function initializePage() {
+        // Load initial data
+        getStudents();
+        
+        // Event listeners for search and filter
+        document.getElementById('searchButton').addEventListener('click', populateStudentTable);
+        document.getElementById('filterButton').addEventListener('click', populateStudentTable);
+        
+        // Search on Enter key press
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            populateStudentTable();
+          }
+        });
+        
+        // Event listener for confirm update button
+        document.getElementById('confirmUpdateBtn').addEventListener('click', confirmUpdate);
+        
+        // Event listener for confirm delete button
+        document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+      }
+      
+      // Show error message
+      function showError(message) {
+        const tableBody = document.getElementById("studentTableBody");
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center text-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i>${message}
+            </td>
+          </tr>
+        `;
+      }
+      
+      // Load students from Supabase
+      async function getStudents() {
+        try {
+          if (!supabaseClient) {
+            throw new Error('Database connection not established');
+          }
+          
+          const { data, error } = await supabaseClient
+            .from('students')
+            .select('*')
+            .order('id', { ascending: true });
+            
+          if (error) {
+            console.error('Error fetching students:', error);
+            showError('កំហុសក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+            return [];
+          }
+          
+          allStudents = data || [];
+          populateStudentTable();
+          return allStudents;
+        } catch (error) {
+          console.error('Error:', error);
+          showError('កំហុស: ' + error.message);
+          return [];
+        }
+      }
+      
+      // Filter students based on search and class filter
+      function filterStudents() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const classFilter = document.getElementById('classFilter').value;
+        
+        let filteredStudents = allStudents;
+        
+        // Apply search filter
+        if (searchTerm) {
+          filteredStudents = filteredStudents.filter(student => 
+            student.name.toLowerCase().includes(searchTerm) || 
+            student.id.toLowerCase().includes(searchTerm)
+          );
+        }
+        
+        // Apply class filter
+        if (classFilter) {
+          filteredStudents = filteredStudents.filter(student => 
+            student.class.includes(classFilter)
+          );
+        }
+        
+        return filteredStudents;
+      }
+      
+      // Render student table
+      function populateStudentTable() {
+        const tableBody = document.getElementById("studentTableBody");
+        const students = filterStudents();
+        
+        // Clear table
+        tableBody.innerHTML = "";
+
+        if (students.length === 0) {
+          tableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center">
+                <i class="fas fa-search me-2"></i>រកមិនឃើញសិស្ស
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        students.forEach((student) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                <td><img src="${student.photo || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTUiIGZpbGw9IiM2NjY2NjYiLz4KPHBhdGggZD0iTTI1IDc1QzI1IDY1LjA1OTQgMzMuMDU5NCA1NyA0MyA1N0g1N0M2Ni45NDA2IDU3IDc1IDY1LjA1OTQgNzUgNzVWMTAwSDI1Vjc1WiIgZmlsbD0iIzY2NjY2NiIvPgo8L3N2Zz4='}" alt="${student.name}" class="student-photo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiB�dHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTUiIGZpbGw9IiM2NjY2NjYiLz4KPHBhdGggZD0iTTI1IDc1QzI1IDY1LjA1OTQgMzMuMDU5NCA1NyA0MyA1N0g1N0M2Ni45NDA2IDU3IDc1IDY1LjA1OTQgNzUgNzVWMTAwSDI1Vjc1WiIgZmlsbD0iIzY2NjY2NiIvPgo8L3N2Zz4='"></td>
+                <td>${student.id}</td>
+                <td>${student.name}</td>
+                <td>${student.class}</td>
+                <td>${student.gender}</td>
+                <td class="action-buttons">
+                    <button class="btn btn-sm btn-info view-student" data-id="${student.id}">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="btn btn-sm btn-update update-student" data-id="${student.id}">
+                        <i class="fas fa-edit"></i> Update
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-student" data-id="${student.id}" data-name="${student.name}">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </td>
+            `;
+          tableBody.appendChild(row);
+        });
+
+        // Add event listeners for view buttons
+        document.querySelectorAll(".view-student").forEach((button) => {
+          button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-id");
+            viewStudentDetails(studentId);
+          });
+        });
+
+        // Add event listeners for update buttons
+        document.querySelectorAll(".update-student").forEach((button) => {
+          button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-id");
+            updateStudent(studentId);
+          });
+        });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll(".delete-student").forEach((button) => {
+          button.addEventListener("click", function () {
+            const studentId = this.getAttribute("data-id");
+            const studentName = this.getAttribute("data-name");
+            deleteStudent(studentId, studentName);
+          });
+        });
+      }
+      
+      // View student details (redirect to a view page or show modal)
+      function viewStudentDetails(studentId) {
+        window.location.href = `digital-card.html?id=${studentId}`;
+      }
+      
+      // Update student function
+      function updateStudent(studentId) {
+        const student = allStudents.find(s => s.id === studentId);
+        
+        if (!student) {
+          alert('សិស្សមិនត្រូវបានរកឃើញ!');
+          return;
+        }
+        
+        currentUpdateStudentId = studentId;
+        
+        // Fill form with current student data
+        document.getElementById('updateStudentId').value = student.id;
+        document.getElementById('updateStudentName').value = student.name;
+        document.getElementById('updateStudentClass').value = student.class;
+        document.getElementById('updateStudentGender').value = student.gender;
+        document.getElementById('updateStudentPhoto').value = student.photo || '';
+        document.getElementById('updateStudentAddress').value = student.address || '';
+        document.getElementById('updateStudentPhone').value = student.phone || '';
+        document.getElementById('updateStudentFather').value = student.father || '';
+        document.getElementById('updateStudentMother').value = student.mother || '';
+        document.getElementById('updateStudentStudyYear').value = student.studyYear || '';
+        document.getElementById('updateStudentDob').value = student.dob || '';
+        document.getElementById('updateStudentGuardianNumber').value = student.guardain_number || '';
+        
+        // Show modal
+        const updateModal = new bootstrap.Modal(document.getElementById('updateModal'));
+        updateModal.show();
+      }
+      
+      // Confirm update function
+      async function confirmUpdate() {
+        if (!currentUpdateStudentId || !supabaseClient) {
+          return;
+        }
+        
+        try {
+          // Get updated values from form
+          const updatedData = {
+            name: document.getElementById('updateStudentName').value,
+            class: document.getElementById('updateStudentClass').value,
+            gender: document.getElementById('updateStudentGender').value,
+            photo: document.getElementById('updateStudentPhoto').value || null,
+            address: document.getElementById('updateStudentAddress').value || null,
+            phone: document.getElementById('updateStudentPhone').value || null,
+            father: document.getElementById('updateStudentFather').value || null,
+            mother: document.getElementById('updateStudentMother').value || null,
+            studyYear: document.getElementById('updateStudentStudyYear').value || null,
+            dob: document.getElementById('updateStudentDob').value || null,
+            guardain_number: document.getElementById('updateStudentGuardianNumber').value || null
+          };
+          
+          // Validate required fields
+          if (!updatedData.name || !updatedData.class || !updatedData.gender) {
+            alert('សូមបំពេញព័ត៌មានដែលត្រូវការទាំងអស់!');
+            return;
+          }
+          
+          // Show loading state on confirm button
+          const confirmBtn = document.getElementById('confirmUpdateBtn');
+          const originalText = confirmBtn.innerHTML;
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML = '<div class="loading-spinner"></div> កំពុងរក្សាទុក...';
+          
+          // Update in Supabase
+          const { error } = await supabaseClient
+            .from('students')
+            .update(updatedData)
+            .eq('id', currentUpdateStudentId);
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Hide modal
+          const updateModalEl = document.getElementById('updateModal');
+          const updateModal = bootstrap.Modal.getInstance(updateModalEl) || new bootstrap.Modal(updateModalEl);
+          updateModal.hide();
+          
+          // Show success message
+          alert(`ព័ត៌មានសិស្សត្រូវបានកែសម្រួលដោយជោគជ័យ!`);
+          
+          // Refresh the table
+          await getStudents();
+          
+        } catch (error) {
+          console.error('Error updating student:', error);
+          
+          // Reset button state
+          const confirmBtn = document.getElementById('confirmUpdateBtn');
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i class="fas fa-save me-1"></i>រក្សាទុក';
+          
+          // Show error message
+          let errorMessage = `កំហុសក្នុងការកែសម្រួលព័ត៌មាន: ${error.message}`;
+          
+          if (error.message.includes('permission')) {
+            errorMessage = 'កំហុស: មិនមានសិទ្ធិកែសម្រួលទិន្នន័យ';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'កំហុស: បញ្ហាការតភ្ជាប់អ៊ីនធឺណិត';
+          }
+          
+          alert(errorMessage);
+        } finally {
+          // Reset global variable
+          currentUpdateStudentId = null;
+        }
+      }
+      
+      // Delete student function
+      function deleteStudent(studentId, studentName) {
+        currentDeleteStudentId = studentId;
+        currentDeleteStudentName = studentName;
+        
+        // Update modal content
+        document.getElementById('studentNameToDelete').textContent = studentName;
+        document.getElementById('studentIdToDelete').textContent = studentId;
+        
+        // Show modal
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+      }
+      
+      // Confirm delete function
+      async function confirmDelete() {
+        if (!currentDeleteStudentId || !currentDeleteStudentName || !supabaseClient) {
+          return;
+        }
+        
+        try {
+          // Show loading state on confirm button
+          const confirmBtn = document.getElementById('confirmDeleteBtn');
+          confirmBtn.disabled = true;
+          confirmBtn.innerHTML = '<div class="loading-spinner"></div> កំពុងលុប...';
+          
+          // Delete from Supabase
+          const { error } = await supabaseClient
+            .from('students')
+            .delete()
+            .eq('id', currentDeleteStudentId);
+          
+          if (error) {
+            throw error;
+          }
+          
+          // Hide modal
+          const deleteModalEl = document.getElementById('deleteModal');
+          const deleteModal = bootstrap.Modal.getInstance(deleteModalEl) || new bootstrap.Modal(deleteModalEl);
+          deleteModal.hide();
+          
+          // Show success message
+          alert(`សិស្ស "${currentDeleteStudentName}" ត្រូវបានលុបដោយជោគជ័យ!`);
+          
+          // Refresh the table
+          await getStudents();
+          
+        } catch (error) {
+          console.error('Error deleting student:', error);
+          
+          // Reset button state
+          const confirmBtn = document.getElementById('confirmDeleteBtn');
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i class="fas fa-trash me-1"></i>លុបសិស្ស';
+          
+          // Show error message
+          let errorMessage = `កំហុសក្នុងការលុបសិស្ស: ${error.message}`;
+          
+          if (error.message.includes('permission')) {
+            errorMessage = 'កំហុស: មិនមានសិទ្ធិលុបទិន្នន័យ';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMessage = 'កំហុស: បញ្ហាការតភ្ជាប់អ៊ីនធឺណិត';
+          }
+          
+          alert(errorMessage);
+        } finally {
+          // Reset global variables
+          currentDeleteStudentId = null;
+          currentDeleteStudentName = null;
+        }
+      }
+    </script>
+  </body>
+</html>

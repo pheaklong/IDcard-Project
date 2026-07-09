@@ -1,0 +1,3359 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>របាយការណ៍ទិន្នន័យ</title>
+    <script>
+        // Check login: if not logged in, redirect to login page
+        if (localStorage.getItem('adminLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js for statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --success-dark: #2fb5e0;
+            --warning: #f72585;
+            --danger: #f94144;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0,0,0,0.12);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 18px 25px;
+            background: var(--light);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .content {
+            padding: 30px 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Report Type Selection */
+        .report-type-selection {
+            margin-bottom: 25px;
+        }
+
+        .report-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .report-type-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .report-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .report-type-card.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+
+        .report-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .report-type-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .report-type-desc {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.4;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: 'Khmer OS', 'Noto Sans Khmer', 'Arial', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            height: 300px;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        /* Button Styles */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary { 
+            background: var(--primary);
+            color: white; 
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-success { 
+            background: var(--success);
+            color: white; 
+        }
+        .btn-success:hover:not(:disabled) {
+            background: var(--success-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 201, 240, 0.3);
+        }
+
+        .btn-warning { 
+            background: var(--warning);
+            color: white; 
+        }
+        .btn-warning:hover:not(:disabled) {
+            background: #e51775;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(247, 37, 133, 0.3);
+        }
+
+        .btn-info { 
+            background: var(--secondary);
+            color: white; 
+        }
+        .btn-info:hover:not(:disabled) {
+            background: #65199e;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(114, 9, 183, 0.3);
+        }
+
+        .btn-danger { 
+            background: var(--danger);
+            color: white; 
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(249, 65, 68, 0.3);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin: 25px 0;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            table-layout: auto;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: var(--transition);
+            padding-right: 30px;
+        }
+
+        .data-table th:hover {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: visible;
+            line-height: 1.4;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Sort Icon Styles */
+        .sort-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .sortable-header {
+            position: relative;
+            padding-right: 30px !important;
+        }
+
+        /* Additional styles for discipline description */
+        .discipline-description {
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.4;
+            text-align: left;
+        }
+        
+        /* Ensure table columns have proper spacing */
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) {
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        /* កំណត់ទទឹងជួរឈរ */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            min-width: 60px;
+            max-width: 60px;
+        }
+
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            min-width: 200px;
+            max-width: 200px;
+        }
+
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) {
+            min-width: 100px;
+            max-width: 100px;
+        }
+
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) {
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .data-table th:nth-child(6),
+        .data-table td:nth-child(6) {
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        .data-table th:nth-child(7),
+        .data-table td:nth-child(7) {
+            min-width: 150px;
+            max-width: 150px;
+        }
+
+        /* បង្ហាញអត្ថបទពេញលេញ */
+        .data-table td,
+        .data-table th {
+            text-overflow: clip;
+        }
+
+        /* ការធ្វើឱ្យសមរម្យសម្រាប់ទូរស័ព្ទ */
+        @media (max-width: 768px) {
+            .data-table th,
+            .data-table td {
+                font-size: 0.8rem;
+                padding: 10px 8px;
+                white-space: nowrap;
+                overflow: visible;
+            }
+            
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                min-width: 50px;
+                max-width: 50px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                min-width: 150px;
+                max-width: 150px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) {
+                min-width: 80px;
+                max-width: 80px;
+            }
+            
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
+                min-width: 100px;
+                max-width: 100px;
+            }
+            
+            .data-table th:nth-child(6),
+            .data-table td:nth-child(6) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .data-table th:nth-child(7),
+            .data-table td:nth-child(7) {
+                min-width: 120px;
+                max-width: 120px;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sort-icon {
+                right: 5px;
+                font-size: 10px;
+            }
+
+            .sortable-header {
+                padding-right: 25px !important;
+            }
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .badge-late {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-discipline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-helpful {
+            background: #d1edff;
+            color: #004085;
+        }
+
+        .badge-haircut {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Summary Report Styles */
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .summary-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-stat {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: var(--border-radius);
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Sort Button Styles */
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sort-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .sort-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Batch Loading Progress */
+        .batch-loading {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: var(--border-radius);
+            margin: 10px 0;
+        }
+
+        .batch-loading p {
+            margin: 5px 0;
+            color: var(--gray);
+        }
+
+        .batch-progress {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .batch-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .loading-progress {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .report-type-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .card-title {
+                font-size: 1.2rem;
+            }
+            
+            .btn {
+                padding: 14px 18px;
+            }
+
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sort-buttons {
+                gap: 8px;
+            }
+
+            .sort-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .back-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .sort-buttons {
+                flex-direction: column;
+            }
+
+            .sort-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 របាយការណ៍ទិន្នន័យ</h1>
+            <p>ព័ត៌មានលម្អិតអំពីទិន្នន័យសិស្សនិស្សិតទាំងអស់</p>
+        </div>
+        
+        <!-- Back Buttons -->
+        <div class="back-buttons">
+            <button class="btn btn-primary" onclick="goToHome()">
+                🏠 ត្រឡប់ទៅផ្ទះវិញ
+            </button>
+            <button class="btn btn-secondary" onclick="goToScanner()">
+                📱 ស្កេនសិស្ស
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Report Type Selection -->
+            <div class="report-type-selection">
+                <div class="card">
+                    <h2 class="card-title">📊 ជ្រើសរើសប្រភេទរបាយការណ៍</h2>
+                    <div class="report-type-grid">
+                        <div class="report-type-card" data-type="late" onclick="selectReportType('late')">
+                            <div class="report-type-icon">⏰</div>
+                            <div class="report-type-title">ទិន្នន័យយឺត</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន</div>
+                        </div>
+                        <div class="report-type-card" data-type="discipline" onclick="selectReportType('discipline')">
+                            <div class="report-type-icon">⚠️</div>
+                            <div class="report-type-title">ទិន្នន័យវិន័យ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ</div>
+                        </div>
+                        <div class="report-type-card" data-type="helpful" onclick="selectReportType('helpful')">
+                            <div class="report-type-icon">🤝</div>
+                            <div class="report-type-title">ទិន្នន័យជំនួយ</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ</div>
+                        </div>
+                        <div class="report-type-card" data-type="haircut" onclick="selectReportType('haircut')">
+                            <div class="report-type-icon">🧹</div>
+                            <div class="report-type-title">ទិន្នន័យសក់</div>
+                            <div class="report-type-desc">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាសក់</div>
+                        </div>
+                        <div class="report-type-card" data-type="summary" onclick="selectReportType('summary')">
+                            <div class="report-type-icon">📈</div>
+                            <div class="report-type-title">សង្ខេបទិន្នន័យយឺត</div>
+                            <div class="report-type-desc">របាយការណ៍សង្ខេបទិន្នន័យសិស្សយឺតតាមសប្តាហ៍/ខែ</div>
+                        </div>
+                        <div class="report-type-card" data-type="discipline-summary" onclick="selectReportType('discipline-summary')">
+                            <div class="report-type-icon">📊</div>
+                            <div class="report-type-title">សង្ខេបទិន្នន័យវិន័យ</div>
+                            <div class="report-type-desc">របាយការណ៍សង្ខេបទិន្នន័យសិស្សវិន័យតាមសប្តាហ៍/ខែ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Report Type Display -->
+            <div id="current-report-type" class="card" style="display: none;">
+                <h2 class="card-title" id="current-report-title">របាយការណ៍ទិន្នន័យវិន័យ</h2>
+                <p id="current-report-description">របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ</p>
+            </div>
+
+            <!-- Summary Report Section for Discipline -->
+            <div id="discipline-summary-section" class="card" style="display: none;">
+                <h2 class="card-title">📊 របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</h2>
+                
+                <!-- Sort Buttons -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByCount()">
+                        🔢 តម្រៀបតាមចំនួន
+                    </button>
+                    <button class="sort-btn" onclick="sortDisciplineSummaryByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="discipline-summary-period">រយៈពេល</label>
+                            <select id="discipline-summary-period" class="form-control" onchange="handleDisciplineSummaryPeriodChange()">
+                                <option value="week">សប្តាហ៍</option>
+                                <option value="month">ខែ</option>
+                                <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                                <option value="date-range">ចន្លោះកាលបរិច្ឆេទ</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="custom-discipline-summary-date-group" style="display: none;">
+                            <label for="custom-discipline-summary-date">កាលបរិច្ឆេទជាក់លាក់</label>
+                            <input type="date" id="custom-discipline-summary-date" class="form-control" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                        <div class="form-group" id="discipline-summary-date-range-start-group" style="display: none;">
+                            <label for="discipline-summary-start-date">ចាប់ផ្ដើម</label>
+                            <input type="date" id="discipline-summary-start-date" class="form-control" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                        <div class="form-group" id="discipline-summary-date-range-end-group" style="display: none;">
+                            <label for="discipline-summary-end-date">បញ្ចប់</label>
+                            <input type="date" id="discipline-summary-end-date" class="form-control" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                        <div class="form-group">
+                            <label for="discipline-summary-class-filter">ថ្នាក់</label>
+                            <select id="discipline-summary-class-filter" class="form-control" onchange="updateDisciplineSummaryReport()">
+                                <option value="all">ទាំងអស់</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="min-discipline-count">ចំនួនវិន័យអប្បបរមា</label>
+                            <input type="number" id="min-discipline-count" class="form-control" value="1" min="1" onchange="updateDisciplineSummaryReport()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="summary-card">
+                    <div class="summary-title">
+                        📊 សង្ខេបទិន្នន័យវិន័យ
+                    </div>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <div class="summary-number" id="total-students-discipline">0</div>
+                            <div class="summary-label">ទិន្នន័យវិន័យ</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="total-discipline-count">0</div>
+                            <div class="summary-label">ចំនួនវិន័យសរុប</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="avg-discipline-per-student">0</div>
+                            <div class="summary-label">មធ្យមវិន័យតាមសិស្ស</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="max-discipline-count">0</div>
+                            <div class="summary-label">ចំនួនវិន័យខ្ពស់បំផុត</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="table-container">
+                    <table class="data-table" id="discipline-summary-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(4)">ចំនួនវិន័យ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(5)">បញ្ហាចម្បង</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(6)">កាលបរិច្ឆេទវិន័យចុងក្រោយ</th>
+                                <th class="sortable-header" onclick="sortDisciplineSummaryTable(7)">ស្ថានភាព</th>
+                            </tr>
+                        </thead>
+                        <tbody id="discipline-summary-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="discipline-summary-empty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📄</div>
+                    <h3>មិនមានទិន្នន័យ</h3>
+                    <p>មិនមានទិន្នន័យវិន័យក្នុងរយៈពេលដែលបានជ្រើសរើស</p>
+                </div>
+                <div id="discipline-summary-loading" class="empty-state">
+                    <div class="loading"></div>
+                    <p>កំពុងទាញយកទិន្នន័យ...</p>
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportDisciplineSummaryToExcel()">
+                        📊 Export Summary to Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="printDisciplineSummaryReport()">
+                        🖨️ Print Summary
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Report Section for Late Students -->
+            <div id="summary-section" class="card" style="display: none;">
+                <h2 class="card-title">📈 របាយការណ៍សង្ខេបទិន្នន័យយឺត</h2>
+                
+                <!-- Sort Buttons -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortSummaryByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByCount()">
+                        🔢 តម្រៀបតាមចំនួន
+                    </button>
+                    <button class="sort-btn" onclick="sortSummaryByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                </div>
+                
+                <div class="filter-section">
+                    <div class="filter-grid">
+                        <div class="form-group">
+                            <label for="summary-period">រយៈពេល</label>
+                            <select id="summary-period" class="form-control" onchange="handleSummaryPeriodChange()">
+                                <option value="week">សប្តាហ៍</option>
+                                <option value="month">ខែ</option>
+                                <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                                <option value="date-range">ចន្លោះកាលបរិច្ឆេទ</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="custom-summary-date-group" style="display: none;">
+                            <label for="custom-summary-date">កាលបរិច្ឆេទជាក់លាក់</label>
+                            <input type="date" id="custom-summary-date" class="form-control" onchange="updateSummaryReport()">
+                        </div>
+                        <div class="form-group" id="summary-date-range-start-group" style="display: none;">
+                            <label for="summary-start-date">ចាប់ផ្ដើម</label>
+                            <input type="date" id="summary-start-date" class="form-control" onchange="updateSummaryReport()">
+                        </div>
+                        <div class="form-group" id="summary-date-range-end-group" style="display: none;">
+                            <label for="summary-end-date">បញ្ចប់</label>
+                            <input type="date" id="summary-end-date" class="form-control" onchange="updateSummaryReport()">
+                        </div>
+                        <div class="form-group">
+                            <label for="summary-class-filter">ថ្នាក់</label>
+                            <select id="summary-class-filter" class="form-control" onchange="updateSummaryReport()">
+                                <option value="all">ទាំងអស់</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="min-late-count">ចំនួនយឺតអប្បបរមា</label>
+                            <input type="number" id="min-late-count" class="form-control" value="1" min="1" onchange="updateSummaryReport()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="summary-card">
+                    <div class="summary-title">
+                        📊 សង្ខេបទិន្នន័យ
+                    </div>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <div class="summary-number" id="total-students-late">0</div>
+                            <div class="summary-label">ទិន្នន័យយឺត</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="total-late-count">0</div>
+                            <div class="summary-label">ចំនួនយឺតសរុប</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="avg-late-per-student">0</div>
+                            <div class="summary-label">មធ្យមយឺតតាមសិស្ស</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-number" id="max-late-count">0</div>
+                            <div class="summary-label">ចំនួនយឺតខ្ពស់បំផុត</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Table -->
+                <div class="table-container">
+                    <table class="data-table" id="summary-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" onclick="sortSummaryTable(0)">ល.រ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(1)">ឈ្មោះសិស្ស</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(2)">ថ្នាក់</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(3)">ភេទ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(4)">ចំនួនយឺត</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(5)">កាលបរិច្ឆេទយឺតចុងក្រោយ</th>
+                                <th class="sortable-header" onclick="sortSummaryTable(6)">ស្ថានភាព</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="summary-empty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📄</div>
+                    <h3>មិនមានទិន្នន័យ</h3>
+                    <p>មិនមានទិន្នន័យយឺតក្នុងរយៈពេលដែលបានជ្រើសរើស</p>
+                </div>
+                <div id="summary-loading" class="empty-state">
+                    <div class="loading"></div>
+                    <p>កំពុងទាញយកទិន្នន័យ...</p>
+                </div>
+
+                <!-- Export Buttons -->
+                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportSummaryToExcel()">
+                        📊 Export Summary to Excel
+                    </button>
+                    <button class="btn btn-primary" onclick="printSummaryReport()">
+                        🖨️ Print Summary
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Section for Regular Reports -->
+            <div id="filter-section" class="filter-section" style="display: none;">
+                <h3 style="margin-bottom: 20px; color: var(--primary);">🔍 ស្វែងរកទិន្នន័យ</h3>
+                
+                <!-- Sort Buttons for Regular Reports -->
+                <div class="sort-buttons">
+                    <button class="sort-btn" onclick="sortByClass()">
+                        🏫 តម្រៀបតាមថ្នាក់
+                    </button>
+                    <button class="sort-btn" onclick="sortByName()">
+                        👤 តម្រៀបតាមឈ្មោះ
+                    </button>
+                    <button class="sort-btn" onclick="sortByDate()">
+                        📅 តម្រៀបតាមកាលបរិច្ឆេទ
+                    </button>
+                    <button class="sort-btn" onclick="sortByTime()">
+                        ⏰ តម្រៀបតាមពេលវេលា
+                    </button>
+                </div>
+                
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="date-filter">កាលបរិច្ឆេទ</label>
+                        <select id="date-filter" class="form-control" onchange="handleDateFilterChange()">
+                            <option value="today">ថ្ងៃនេះ</option>
+                            <option value="today-tomorrow">ថ្ងៃនេះ និងថ្ងៃស្អែក</option>
+                            <option value="yesterday">ម្សិលមិញ</option>
+                            <option value="week">សប្តាហ៍នេះ</option>
+                            <option value="month">ខែនេះ</option>
+                            <option value="custom">កាលបរិច្ឆេទជាក់លាក់</option>
+                            <option value="date-range">ចន្លោះកាលបរិច្ឆេទ</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-date-group" style="display: none;">
+                        <label for="custom-date">កាលបរិច្ឆេទជាក់លាក់</label>
+                        <input type="date" id="custom-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-start-group" style="display: none;">
+                        <label for="start-date">ចាប់ផ្ដើម</label>
+                        <input type="date" id="start-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group" id="date-range-end-group" style="display: none;">
+                        <label for="end-date">បញ្ចប់</label>
+                        <input type="date" id="end-date" class="form-control" onchange="applyFilters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="class-filter">ថ្នាក់</label>
+                        <select id="class-filter" class="form-control" onchange="applyFilters()">
+                            <option value="all">ទាំងអស់</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="search-filter">ស្វែងរក</label>
+                        <input type="text" id="search-filter" class="form-control" placeholder="ឈ្មោះ ឬលេខសម្គាល់សិស្ស..." onkeyup="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div id="stats-section" class="stats-grid" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-scans">0</div>
+                    <div class="stat-label">ស្កេនសរុប</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="today-scans">0</div>
+                    <div class="stat-label">ស្កេនថ្ងៃនេះ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="unique-students">0</div>
+                    <div class="stat-label">សិស្សពិសេស</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="most-frequent">0</div>
+                    <div class="stat-label">ស្កេនញឹកញាប់ជាងគេ</div>
+                </div>
+            </div>
+
+            <!-- Data Table for Regular Reports -->
+            <div id="table-section" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="card-title" id="table-title">📊 ទិន្នន័យវិន័យ</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success" onclick="exportToExcel()">
+                                📊 Export to Excel
+                            </button>
+                            <button class="btn btn-primary" onclick="printReport()">
+                                🖨️ Print
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="report-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" onclick="sortTable(0)">ល.រ</th>
+                                    <th class="sortable-header" onclick="sortTable(1)">ឈ្មោះសិស្ស</th>
+                                    <th class="sortable-header" onclick="sortTable(2)">ថ្នាក់</th>
+                                    <th class="sortable-header" onclick="sortTable(3)">ភេទ</th>
+                                    <th class="sortable-header" onclick="sortTable(4)">បញ្ហា</th>
+                                    <th class="sortable-header" onclick="sortTable(5)">ពេលវេលា</th>
+                                    <th class="sortable-header" onclick="sortTable(6)">កាលបរិច្ឆេទ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="table-empty" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📄</div>
+                        <h3>មិនមានទិន្នន័យ</h3>
+                        <p>មិនមានទិន្នន័យស្កេនសិស្សវិន័យទេ</p>
+                    </div>
+                    <div id="table-loading" class="empty-state">
+                        <div class="loading"></div>
+                        <p>កំពុងទាញយកទិន្នន័យ...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // GLOBAL FUNCTIONS
+        // ============================================
+
+        // Navigation functions
+        function goToHome() {
+            window.location.href = 'index.html';
+        }
+
+        function goToScanner() {
+            window.location.href = 'scan.html';
+        }
+
+        // Temporary placeholder for selectReportType
+        function selectReportType(type) {
+            console.log('Report type selected:', type);
+            if (window.appInitialized && window.selectReportTypeReal) {
+                window.selectReportTypeReal(type);
+            } else {
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // ============================================
+        // GLOBAL FUNCTIONS FOR HTML EVENT HANDLERS
+        // ============================================
+
+        // These wrapper functions prevent "undefined" errors
+        function applyFilters() {
+            console.log('applyFilters called');
+            if (window.appInitialized && window.applyFiltersReal) {
+                window.applyFiltersReal();
+            } else {
+                console.warn('applyFiltersReal not available yet');
+            }
+        }
+
+        // Discipline summary functions
+        function exportDisciplineSummaryToExcel() {
+            console.log('exportDisciplineSummaryToExcel called');
+            if (window.appInitialized && window.exportDisciplineSummaryToExcelReal) {
+                window.exportDisciplineSummaryToExcelReal();
+            } else {
+                console.warn('exportDisciplineSummaryToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function printDisciplineSummaryReport() {
+            console.log('printDisciplineSummaryReport called');
+            if (window.appInitialized && window.printDisciplineSummaryReportReal) {
+                window.printDisciplineSummaryReportReal();
+            } else {
+                console.warn('printDisciplineSummaryReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function handleDisciplineSummaryPeriodChange() {
+            console.log('handleDisciplineSummaryPeriodChange called');
+            if (window.appInitialized && window.handleDisciplineSummaryPeriodChangeReal) {
+                window.handleDisciplineSummaryPeriodChangeReal();
+            } else {
+                console.warn('handleDisciplineSummaryPeriodChangeReal not available yet');
+            }
+        }
+
+        function updateDisciplineSummaryReport() {
+            console.log('updateDisciplineSummaryReport called');
+            if (window.appInitialized && window.updateDisciplineSummaryReportReal) {
+                window.updateDisciplineSummaryReportReal();
+            } else {
+                console.warn('updateDisciplineSummaryReportReal not available yet');
+            }
+        }
+
+        // Late summary functions
+        function handleSummaryPeriodChange() {
+            console.log('handleSummaryPeriodChange called');
+            if (window.appInitialized && window.handleSummaryPeriodChangeReal) {
+                window.handleSummaryPeriodChangeReal();
+            } else {
+                console.warn('handleSummaryPeriodChangeReal not available yet');
+            }
+        }
+
+        function updateSummaryReport() {
+            console.log('updateSummaryReport called');
+            if (window.appInitialized && window.updateSummaryReportReal) {
+                window.updateSummaryReportReal();
+            } else {
+                console.warn('updateSummaryReportReal not available yet');
+            }
+        }
+
+        function exportSummaryToExcel() {
+            console.log('exportSummaryToExcel called');
+            if (window.appInitialized && window.exportSummaryToExcelReal) {
+                window.exportSummaryToExcelReal();
+            } else {
+                console.warn('exportSummaryToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function printSummaryReport() {
+            console.log('printSummaryReport called');
+            if (window.appInitialized && window.printSummaryReportReal) {
+                window.printSummaryReportReal();
+            } else {
+                console.warn('printSummaryReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // Regular report functions
+        function exportToExcel() {
+            console.log('exportToExcel called');
+            if (window.appInitialized && window.exportToExcelReal) {
+                window.exportToExcelReal();
+            } else {
+                console.warn('exportToExcelReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        function printReport() {
+            console.log('printReport called');
+            if (window.appInitialized && window.printReportReal) {
+                window.printReportReal();
+            } else {
+                console.warn('printReportReal not available yet');
+                alert('កម្មវិធីកំពុងចាប់ផ្ដើម... សូមរង់ចាំមួយភ្លែត');
+            }
+        }
+
+        // Date filter function
+        function handleDateFilterChange() {
+            console.log('handleDateFilterChange called');
+            if (window.appInitialized && window.handleDateFilterChangeReal) {
+                window.handleDateFilterChangeReal();
+            } else {
+                console.warn('handleDateFilterChangeReal not available yet');
+            }
+        }
+
+        // ============================================
+        // GLOBAL SORTING FUNCTIONS
+        // ============================================
+
+        // Regular report sorting functions
+        function sortByClass() {
+            console.log('sortByClass called');
+            if (window.appInitialized && window.sortByClassReal) {
+                window.sortByClassReal();
+            }
+        }
+
+        function sortByName() {
+            console.log('sortByName called');
+            if (window.appInitialized && window.sortByNameReal) {
+                window.sortByNameReal();
+            }
+        }
+
+        function sortByDate() {
+            console.log('sortByDate called');
+            if (window.appInitialized && window.sortByDateReal) {
+                window.sortByDateReal();
+            }
+        }
+
+        function sortByTime() {
+            console.log('sortByTime called');
+            if (window.appInitialized && window.sortByTimeReal) {
+                window.sortByTimeReal();
+            }
+        }
+
+        // Summary report sorting functions
+        function sortSummaryByClass() {
+            console.log('sortSummaryByClass called');
+            if (window.appInitialized && window.sortSummaryByClassReal) {
+                window.sortSummaryByClassReal();
+            }
+        }
+
+        function sortSummaryByName() {
+            console.log('sortSummaryByName called');
+            if (window.appInitialized && window.sortSummaryByNameReal) {
+                window.sortSummaryByNameReal();
+            }
+        }
+
+        function sortSummaryByCount() {
+            console.log('sortSummaryByCount called');
+            if (window.appInitialized && window.sortSummaryByCountReal) {
+                window.sortSummaryByCountReal();
+            }
+        }
+
+        function sortSummaryByDate() {
+            console.log('sortSummaryByDate called');
+            if (window.appInitialized && window.sortSummaryByDateReal) {
+                window.sortSummaryByDateReal();
+            }
+        }
+
+        // Discipline summary sorting functions
+        function sortDisciplineSummaryByClass() {
+            console.log('sortDisciplineSummaryByClass called');
+            if (window.appInitialized && window.sortDisciplineSummaryByClassReal) {
+                window.sortDisciplineSummaryByClassReal();
+            }
+        }
+
+        function sortDisciplineSummaryByName() {
+            console.log('sortDisciplineSummaryByName called');
+            if (window.appInitialized && window.sortDisciplineSummaryByNameReal) {
+                window.sortDisciplineSummaryByNameReal();
+            }
+        }
+
+        function sortDisciplineSummaryByCount() {
+            console.log('sortDisciplineSummaryByCount called');
+            if (window.appInitialized && window.sortDisciplineSummaryByCountReal) {
+                window.sortDisciplineSummaryByCountReal();
+            }
+        }
+
+        function sortDisciplineSummaryByDate() {
+            console.log('sortDisciplineSummaryByDate called');
+            if (window.appInitialized && window.sortDisciplineSummaryByDateReal) {
+                window.sortDisciplineSummaryByDateReal();
+            }
+        }
+
+        // Table sorting functions
+        function sortTable(column) {
+            console.log('sortTable called for column:', column);
+            if (window.appInitialized && window.sortTableReal) {
+                window.sortTableReal(column);
+            }
+        }
+
+        function sortSummaryTable(column) {
+            console.log('sortSummaryTable called for column:', column);
+            if (window.appInitialized && window.sortSummaryTableReal) {
+                window.sortSummaryTableReal(column);
+            }
+        }
+
+        function sortDisciplineSummaryTable(column) {
+            console.log('sortDisciplineSummaryTable called for column:', column);
+            if (window.appInitialized && window.sortDisciplineSummaryTableReal) {
+                window.sortDisciplineSummaryTableReal(column);
+            }
+        }
+
+        // ============================================
+        // APPLICATION CONFIGURATION
+        // ============================================
+
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
+
+        // ============================================
+        // SUPABASE INITIALIZATION
+        // ============================================
+
+        console.log('🔍 Checking Supabase library...');
+
+        if (typeof window.supabase === 'undefined') {
+            console.warn('⚠️ Supabase library not loaded yet, waiting...');
+            
+            // Wait for Supabase library to load
+            const waitForSupabase = setInterval(() => {
+                if (typeof window.supabase !== 'undefined') {
+                    console.log('✅ Supabase library loaded');
+                    clearInterval(waitForSupabase);
+                    initializeApp();
+                }
+            }, 100);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                clearInterval(waitForSupabase);
+                if (typeof window.supabase === 'undefined') {
+                    console.error('❌ Supabase library failed to load');
+                    showError('មិនអាចទាញយក Supabase library បានទេ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត');
+                }
+            }, 5000);
+        } else {
+            // Library already loaded
+            console.log('✅ Supabase library already loaded');
+            initializeApp();
+        }
+
+        // ============================================
+        // ERROR DISPLAY FUNCTION
+        // ============================================
+
+        function showError(message) {
+            alert('❌ ' + message);
+        }
+
+        // ============================================
+        // MAIN INITIALIZATION FUNCTION
+        // ============================================
+
+        function initializeApp() {
+            console.log('🔄 Initializing application...');
+            
+            // Create Supabase client
+            let supabaseClient;
+            
+            // Check if we already have a Supabase client
+            if (window.appSupabaseClient) {
+                console.log('✅ Using existing Supabase client');
+                supabaseClient = window.appSupabaseClient;
+            } else {
+                try {
+                    console.log('🛠️ Creating new Supabase client');
+                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    window.appSupabaseClient = supabaseClient; // Store globally
+                    console.log('✅ Supabase client created successfully');
+                } catch (error) {
+                    console.error('❌ Error creating Supabase client:', error);
+                    
+                    // Create fallback client
+                    supabaseClient = createFallbackSupabaseClient();
+                    window.appSupabaseClient = supabaseClient;
+                    
+                    showError('មានបញ្ហាក្នុងការតភ្ជាប់ Supabase កម្មវិធីនឹងប្រើទិន្នន័យក្នុងកុំព្យូទ័រ');
+                }
+            }
+            
+            // Define supabase variable
+            const supabase = supabaseClient;
+            
+            // Start the main application
+            startApplication(supabase);
+        }
+
+        // ============================================
+        // FALLBACK SUPABASE CLIENT
+        // ============================================
+
+        function createFallbackSupabaseClient() {
+            console.warn('⚠️ Using fallback Supabase client');
+            return {
+                from: (tableName) => ({
+                    select: (columns = '*') => {
+                        console.log(`Fallback: select from ${tableName}`);
+                        return Promise.resolve({ 
+                            data: [], 
+                            error: { message: 'Using localStorage fallback' } 
+                        });
+                    },
+                    insert: (data) => {
+                        console.log(`Fallback: insert into ${tableName}`, data);
+                        // Save to localStorage
+                        const key = `${tableName}_local`;
+                        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+                        existing.push({
+                            ...data[0],
+                            local_timestamp: new Date().toISOString(),
+                            local_id: Date.now()
+                        });
+                        localStorage.setItem(key, JSON.stringify(existing));
+                        return Promise.resolve({ 
+                            data: [{ id: Date.now() }], 
+                            error: null 
+                        });
+                    },
+                    eq: (column, value) => ({
+                        select: (columns = '*') => {
+                            console.log(`Fallback: select where ${column}=${value}`);
+                            return Promise.resolve({ data: [], error: null });
+                        }
+                    }),
+                    order: (column, options = { ascending: true }) => ({
+                        limit: (count) => {
+                            console.log(`Fallback: order by ${column} limit ${count}`);
+                            return Promise.resolve({ data: [], error: null });
+                        }
+                    }),
+                    limit: (count) => {
+                        console.log(`Fallback: limit ${count}`);
+                        return Promise.resolve({ data: [], error: null });
+                    }
+                })
+            };
+        }
+
+        // ============================================
+        // MAIN APPLICATION FUNCTION
+        // ============================================
+
+        function startApplication(supabase) {
+            console.log('🏁 Starting main application with Supabase:', !!supabase);
+            
+            // Global variables
+            let currentReportType = null;
+            let allReports = [];
+            let filteredReports = [];
+            let chart = null;
+            let students = [];
+            let summaryData = [];
+            let disciplineSummaryData = [];
+
+            // Sorting variables
+            let currentSort = { column: null, direction: 'asc' };
+            let currentSummarySort = { column: null, direction: 'asc' };
+            let currentDisciplineSummarySort = { column: null, direction: 'asc' };
+
+            // Report type definitions
+            const reportTypes = {
+                late: {
+                    title: "ទិន្នន័យយឺត",
+                    description: "របាយការណ៍ទិន្នន័យសិស្សដែលមកយឺតពេលចូលរៀន",
+                    table: "attendance_reports",
+                    type: "late",
+                    badge: "badge-late",
+                    badgeText: "យឺត",
+                    problemType: "ទិន្នន័យយឺត"
+                },
+                discipline: {
+                    title: "ទិន្នន័យវិន័យ",
+                    description: "របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាវិន័យ",
+                    table: "discipline_reports",
+                    type: "discipline",
+                    badge: "badge-discipline",
+                    badgeText: "វិន័យ",
+                    problemType: "discipline_description"
+                },
+                helpful: {
+                    title: "ទិន្នន័យជំនួយ",
+                    description: "របាយការណ៍ទិន្នន័យសិស្សដែលជួយអ្នកដទៃ",
+                    table: "helpful_reports",
+                    type: "helpful",
+                    badge: "badge-helpful",
+                    badgeText: "ជំនួយ",
+                    problemType: "ជំនួយ"
+                },
+                haircut: {
+                    title: "ទិន្នន័យសក់",
+                    description: "របាយការណ៍ទិន្នន័យសិស្សមានបញ្ហាសក់",
+                    table: "haircut_reports",
+                    type: "haircut",
+                    badge: "badge-haircut",
+                    badgeText: "សក់",
+                    problemType: "បញ្ហាសក់"
+                },
+                summary: {
+                    title: "សង្ខេបទិន្នន័យយឺត",
+                    description: "របាយការណ៍សង្ខេបទិន្នន័យសិស្សយឺតតាមសប្តាហ៍/ខែ",
+                    table: "attendance_reports",
+                    type: "summary"
+                },
+                'discipline-summary': {
+                    title: "សង្ខេបទិន្នន័យវិន័យ",
+                    description: "របាយការណ៍សង្ខេបទិន្នន័យសិស្សវិន័យតាមសប្តាហ៍/ខែ",
+                    table: "discipline_reports",
+                    type: "discipline-summary"
+                }
+            };
+
+            // ========== NEW: BATCH LOADING FUNCTIONS ==========
+
+            // Function to fetch all data from a table with batch loading
+            async function fetchAllData(tableName, batchSize = 1000) {
+                console.log(`🔍 Fetching ALL data from ${tableName}...`);
+                
+                let allData = [];
+                let start = 0;
+                let hasMore = true;
+                let batchCount = 0;
+                let totalRecords = 0;
+                
+                try {
+                    // First, try to get count to show progress
+                    try {
+                        const { count, error: countError } = await supabase
+                            .from(tableName)
+                            .select('*', { count: 'exact', head: true });
+                        
+                        if (!countError && count !== null) {
+                            totalRecords = count;
+                            console.log(`📊 Total records in ${tableName}: ${totalRecords}`);
+                        }
+                    } catch (countErr) {
+                        console.log('⚠️ Could not get record count:', countErr);
+                    }
+                    
+                    // Show batch loading progress
+                    showBatchLoadingProgress(tableName, batchCount, 0, totalRecords);
+                    
+                    // Load data in batches
+                    while (hasMore) {
+                        batchCount++;
+                        console.log(`📦 Loading batch ${batchCount} (records ${start} to ${start + batchSize - 1})`);
+                        
+                        const { data, error } = await supabase
+                            .from(tableName)
+                            .select('*')
+                            .range(start, start + batchSize - 1);
+                        
+                        if (error) {
+                            console.error(`❌ Error loading batch ${batchCount}:`, error);
+                            
+                            // Try without range if range fails
+                            console.log('🔄 Trying without range...');
+                            const { data: fallbackData, error: fallbackError } = await supabase
+                                .from(tableName)
+                                .select('*')
+                                .limit(batchSize * 10); // Try larger limit
+                            
+                            if (fallbackError) {
+                                throw fallbackError;
+                            }
+                            
+                            data = fallbackData;
+                        }
+                        
+                        if (data && data.length > 0) {
+                            allData = allData.concat(data);
+                            start += batchSize;
+                            
+                            // Update progress
+                            showBatchLoadingProgress(tableName, batchCount, allData.length, totalRecords);
+                            
+                            // If we got less than batchSize, we've reached the end
+                            if (data.length < batchSize) {
+                                hasMore = false;
+                                console.log(`✅ Reached end of data. Last batch: ${data.length} records`);
+                            }
+                            
+                            console.log(`✅ Batch ${batchCount}: ${data.length} records, total: ${allData.length}`);
+                        } else {
+                            hasMore = false;
+                            console.log(`✅ No more data at batch ${batchCount}`);
+                        }
+                    }
+                    
+                    console.log(`🎉 Successfully loaded ${allData.length} total records from ${tableName}`);
+                    hideBatchLoadingProgress();
+                    return allData;
+                    
+                } catch (error) {
+                    console.error('❌ Error in fetchAllData:', error);
+                    hideBatchLoadingProgress();
+                    
+                    // Final fallback: try simple select
+                    console.log('🔄 Trying final fallback with simple select...');
+                    try {
+                        const { data, error: finalError } = await supabase
+                            .from(tableName)
+                            .select('*');
+                        
+                        if (finalError) {
+                            console.error('❌ Final fallback also failed:', finalError);
+                            throw finalError;
+                        }
+                        
+                        console.log(`✅ Final fallback loaded ${data?.length || 0} records`);
+                        return data || [];
+                    } catch (finalErr) {
+                        console.error('❌ All methods failed:', finalErr);
+                        return [];
+                    }
+                }
+            }
+
+            // Show batch loading progress
+            function showBatchLoadingProgress(tableName, batchNumber, loadedCount, totalCount) {
+                // Find appropriate loading element
+                let loadingElement;
+                if (currentReportType === 'summary') {
+                    loadingElement = document.getElementById('summary-loading');
+                } else if (currentReportType === 'discipline-summary') {
+                    loadingElement = document.getElementById('discipline-summary-loading');
+                } else {
+                    loadingElement = document.getElementById('table-loading');
+                }
+                
+                if (loadingElement) {
+                    const percentage = totalCount > 0 ? Math.round((loadedCount / totalCount) * 100) : 0;
+                    loadingElement.innerHTML = `
+                        <div class="loading"></div>
+                        <p>កំពុងទាញយកទិន្នន័យ...</p>
+                        <div class="batch-loading">
+                            <p>ទាញយកពី: ${tableName}</p>
+                            <p>កញ្ចប់: ${batchNumber} | ទាញយកបាន: ${loadedCount} ${totalCount > 0 ? `/ ${totalCount}` : ''}</p>
+                            ${totalCount > 0 ? `
+                                <div class="batch-progress">
+                                    <div class="batch-progress-bar" style="width: ${percentage}%"></div>
+                                </div>
+                                <p>ភាគរយ: ${percentage}%</p>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+            }
+
+            // Hide batch loading progress
+            function hideBatchLoadingProgress() {
+                // Reset loading elements to default
+                const loadingElements = [
+                    document.getElementById('summary-loading'),
+                    document.getElementById('discipline-summary-loading'),
+                    document.getElementById('table-loading')
+                ];
+                
+                loadingElements.forEach(element => {
+                    if (element) {
+                        element.innerHTML = `
+                            <div class="loading"></div>
+                            <p>កំពុងទាញយកទិន្នន័យ...</p>
+                        `;
+                    }
+                });
+            }
+
+            // Function to load all data for any report type
+            async function loadAllDataForReport(tableName) {
+                console.log(`🔄 Loading ALL data for ${tableName}...`);
+                return await fetchAllData(tableName);
+            }
+
+            // ========== DATE FILTER HANDLING ==========
+
+            // Handle date filter change for regular reports
+            function handleDateFilterChangeReal() {
+                const dateFilter = document.getElementById('date-filter').value;
+                const customDateGroup = document.getElementById('custom-date-group');
+                const dateRangeStartGroup = document.getElementById('date-range-start-group');
+                const dateRangeEndGroup = document.getElementById('date-range-end-group');
+                
+                // Hide all date input groups first
+                customDateGroup.style.display = 'none';
+                dateRangeStartGroup.style.display = 'none';
+                dateRangeEndGroup.style.display = 'none';
+                
+                // Show the appropriate group
+                if (dateFilter === 'custom') {
+                    customDateGroup.style.display = 'block';
+                } else if (dateFilter === 'date-range') {
+                    dateRangeStartGroup.style.display = 'block';
+                    dateRangeEndGroup.style.display = 'block';
+                }
+                
+                applyFiltersReal();
+            }
+
+            // Handle discipline summary period change
+            function handleDisciplineSummaryPeriodChangeReal() {
+                const period = document.getElementById('discipline-summary-period').value;
+                const customDateGroup = document.getElementById('custom-discipline-summary-date-group');
+                const dateRangeStartGroup = document.getElementById('discipline-summary-date-range-start-group');
+                const dateRangeEndGroup = document.getElementById('discipline-summary-date-range-end-group');
+                
+                // Hide all date input groups first
+                customDateGroup.style.display = 'none';
+                dateRangeStartGroup.style.display = 'none';
+                dateRangeEndGroup.style.display = 'none';
+                
+                // Show the appropriate group
+                if (period === 'custom') {
+                    customDateGroup.style.display = 'block';
+                } else if (period === 'date-range') {
+                    dateRangeStartGroup.style.display = 'block';
+                    dateRangeEndGroup.style.display = 'block';
+                }
+                
+                updateDisciplineSummaryReportReal();
+            }
+
+            // Handle summary period change
+            function handleSummaryPeriodChangeReal() {
+                const period = document.getElementById('summary-period').value;
+                const customDateGroup = document.getElementById('custom-summary-date-group');
+                const dateRangeStartGroup = document.getElementById('summary-date-range-start-group');
+                const dateRangeEndGroup = document.getElementById('summary-date-range-end-group');
+                
+                // Hide all date input groups first
+                customDateGroup.style.display = 'none';
+                dateRangeStartGroup.style.display = 'none';
+                dateRangeEndGroup.style.display = 'none';
+                
+                // Show the appropriate group
+                if (period === 'custom') {
+                    customDateGroup.style.display = 'block';
+                } else if (period === 'date-range') {
+                    dateRangeStartGroup.style.display = 'block';
+                    dateRangeEndGroup.style.display = 'block';
+                }
+                
+                updateSummaryReportReal();
+            }
+
+            // ========== SORTING FUNCTIONS ==========
+
+            // តម្រៀបតារាងទិន្នន័យ
+            function sortTableReal(column) {
+                const tableBody = document.getElementById('report-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                
+                if (currentSort.column === column) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = column;
+                    currentSort.direction = 'asc';
+                }
+                
+                rows.sort((a, b) => {
+                    const aValue = a.cells[column].textContent.trim();
+                    const bValue = b.cells[column].textContent.trim();
+                    
+                    if (column === 0) {
+                        const aNum = parseInt(aValue) || 0;
+                        const bNum = parseInt(bValue) || 0;
+                        return currentSort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                    }
+                    
+                    if (currentSort.direction === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
+                });
+                
+                rows.forEach(row => tableBody.appendChild(row));
+                updateSortIcons('report-table', column, currentSort.direction);
+            }
+
+            // តម្រៀបតារាងសង្ខេប
+            function sortSummaryTableReal(column) {
+                const tableBody = document.getElementById('summary-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                
+                if (currentSummarySort.column === column) {
+                    currentSummarySort.direction = currentSummarySort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSummarySort.column = column;
+                    currentSummarySort.direction = 'asc';
+                }
+                
+                rows.sort((a, b) => {
+                    const aValue = a.cells[column].textContent.trim();
+                    const bValue = b.cells[column].textContent.trim();
+                    
+                    if (column === 0 || column === 4) {
+                        const aNum = parseInt(aValue) || 0;
+                        const bNum = parseInt(bValue) || 0;
+                        return currentSummarySort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                    }
+                    
+                    if (column === 5) {
+                        const aDate = new Date(aValue);
+                        const bDate = new Date(bValue);
+                        return currentSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
+                    }
+                    
+                    if (currentSummarySort.direction === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
+                });
+                
+                rows.forEach(row => tableBody.appendChild(row));
+                updateSortIcons('summary-table', column, currentSummarySort.direction);
+            }
+
+            // តម្រៀបតារាងសង្ខេបវិន័យ
+            function sortDisciplineSummaryTableReal(column) {
+                const tableBody = document.getElementById('discipline-summary-table-body');
+                const rows = Array.from(tableBody.querySelectorAll('tr'));
+                
+                if (currentDisciplineSummarySort.column === column) {
+                    currentDisciplineSummarySort.direction = currentDisciplineSummarySort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentDisciplineSummarySort.column = column;
+                    currentDisciplineSummarySort.direction = 'asc';
+                }
+                
+                rows.sort((a, b) => {
+                    const aValue = a.cells[column].textContent.trim();
+                    const bValue = b.cells[column].textContent.trim();
+                    
+                    if (column === 0 || column === 4) {
+                        const aNum = parseInt(aValue) || 0;
+                        const bNum = parseInt(bValue) || 0;
+                        return currentDisciplineSummarySort.direction === 'asc' ? aNum - bNum : bNum - aNum;
+                    }
+                    
+                    if (column === 6) {
+                        const aDate = new Date(aValue);
+                        const bDate = new Date(bValue);
+                        return currentDisciplineSummarySort.direction === 'asc' ? aDate - bDate : bDate - aDate;
+                    }
+                    
+                    if (currentDisciplineSummarySort.direction === 'asc') {
+                        return aValue.localeCompare(bValue, 'km');
+                    } else {
+                        return bValue.localeCompare(aValue, 'km');
+                    }
+                });
+                
+                rows.forEach(row => tableBody.appendChild(row));
+                updateSortIcons('discipline-summary-table', column, currentDisciplineSummarySort.direction);
+            }
+
+            // បង្ហាញសញ្ញាតម្រៀប
+            function updateSortIcons(tableId, currentColumn, direction) {
+                const table = document.getElementById(tableId);
+                const headers = table.querySelectorAll('th');
+                
+                headers.forEach((header, index) => {
+                    // Remove existing sort icons
+                    const existingIcons = header.querySelectorAll('.sort-icon');
+                    existingIcons.forEach(icon => icon.remove());
+                    
+                    if (index === currentColumn) {
+                        const sortIcon = document.createElement('span');
+                        sortIcon.className = 'sort-icon';
+                        sortIcon.textContent = direction === 'asc' ? '▴' : '▾';
+                        header.appendChild(sortIcon);
+                    }
+                });
+            }
+
+            // ========== BUTTON SORTING FUNCTIONS ==========
+
+            function sortByClassReal() { sortTableReal(2); }
+            function sortByNameReal() { sortTableReal(1); }
+            function sortByDateReal() { sortTableReal(6); }
+            function sortByTimeReal() { sortTableReal(5); }
+            function sortSummaryByClassReal() { sortSummaryTableReal(2); }
+            function sortSummaryByNameReal() { sortSummaryTableReal(1); }
+            function sortSummaryByCountReal() { sortSummaryTableReal(4); }
+            function sortSummaryByDateReal() { sortSummaryTableReal(5); }
+            function sortDisciplineSummaryByClassReal() { sortDisciplineSummaryTableReal(2); }
+            function sortDisciplineSummaryByNameReal() { sortDisciplineSummaryTableReal(1); }
+            function sortDisciplineSummaryByCountReal() { sortDisciplineSummaryTableReal(4); }
+            function sortDisciplineSummaryByDateReal() { sortDisciplineSummaryTableReal(6); }
+
+            // ========== DISCIPLINE SUMMARY REPORT FUNCTIONS ==========
+
+            async function loadDisciplineSummaryReport() {
+                if (currentReportType !== 'discipline-summary') return;
+                
+                document.getElementById('discipline-summary-loading').style.display = 'block';
+                document.getElementById('discipline-summary-empty').style.display = 'none';
+                document.getElementById('discipline-summary-table-body').innerHTML = '';
+                
+                try {
+                    const tableName = "discipline_reports";
+                    console.log(`🔍 Loading ALL discipline summary data from ${tableName}...`);
+                    
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
+                    
+                    console.log(`✅ Loaded ${allReports.length} total discipline records for summary`);
+                    
+                    updateDisciplineSummaryReportReal();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading discipline summary:', error);
+                    
+                    // Fallback to localStorage
+                    allReports = JSON.parse(localStorage.getItem('disciplineReports') || '[]');
+                    console.log(`📁 Fallback to localStorage: ${allReports.length} discipline records`);
+                    
+                    updateDisciplineSummaryReportReal();
+                }
+            }
+
+            function updateDisciplineSummaryReportReal() {
+                if (currentReportType !== 'discipline-summary' || allReports.length === 0) {
+                    document.getElementById('discipline-summary-loading').style.display = 'none';
+                    document.getElementById('discipline-summary-empty').style.display = 'block';
+                    return;
+                }
+                
+                const period = document.getElementById('discipline-summary-period').value;
+                const minDisciplineCount = parseInt(document.getElementById('min-discipline-count').value) || 1;
+                const classFilter = document.getElementById('discipline-summary-class-filter').value;
+                
+                const today = new Date();
+                let startDate, endDate;
+                
+                switch (period) {
+                    case 'week':
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                        break;
+                    case 'month':
+                        startDate = new Date(today);
+                        startDate.setMonth(today.getMonth() - 1);
+                        endDate = today;
+                        break;
+                    case 'custom':
+                        const customDate = document.getElementById('custom-discipline-summary-date').value;
+                        if (customDate) {
+                            startDate = new Date(customDate);
+                            endDate = new Date(customDate);
+                            startDate.setHours(0, 0, 0, 0);
+                            endDate.setHours(23, 59, 59, 999);
+                        } else {
+                            startDate = new Date(today);
+                            startDate.setDate(today.getDate() - 7);
+                            endDate = today;
+                        }
+                        break;
+                    case 'date-range':
+                        const startDateInput = document.getElementById('discipline-summary-start-date').value;
+                        const endDateInput = document.getElementById('discipline-summary-end-date').value;
+                        if (startDateInput && endDateInput) {
+                            startDate = new Date(startDateInput);
+                            endDate = new Date(endDateInput);
+                            startDate.setHours(0, 0, 0, 0);
+                            endDate.setHours(23, 59, 59, 999);
+                        } else {
+                            startDate = new Date(today);
+                            startDate.setDate(today.getDate() - 7);
+                            endDate = today;
+                        }
+                        break;
+                    default:
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                }
+                
+                const filteredByDate = allReports.filter(report => {
+                    const reportDate = new Date(report.date);
+                    return reportDate >= startDate && reportDate <= endDate;
+                });
+                
+                const studentDisciplineCounts = {};
+                const studentLastDisciplineDate = {};
+                const studentDetails = {};
+                const studentMainProblems = {};
+                
+                filteredByDate.forEach(report => {
+                    const studentId = report.student_id;
+                    
+                    if (!studentDisciplineCounts[studentId]) {
+                        studentDisciplineCounts[studentId] = 0;
+                        studentDetails[studentId] = {
+                            name: report.name,
+                            class: report.class,
+                            gender: report.gender || 'មិនមានទិន្នន័យ'
+                        };
+                        studentMainProblems[studentId] = {};
+                    }
+                    
+                    studentDisciplineCounts[studentId]++;
+                    
+                    const problem = report.discipline_description || 'គ្មានបញ្ហាចម្បង';
+                    studentMainProblems[studentId][problem] = (studentMainProblems[studentId][problem] || 0) + 1;
+                    
+                    const reportDate = new Date(report.date);
+                    if (!studentLastDisciplineDate[studentId] || reportDate > studentLastDisciplineDate[studentId]) {
+                        studentLastDisciplineDate[studentId] = reportDate;
+                    }
+                });
+                
+                disciplineSummaryData = Object.keys(studentDisciplineCounts)
+                    .map(studentId => {
+                        const problems = studentMainProblems[studentId];
+                        const mainProblem = Object.keys(problems).reduce((a, b) => problems[a] > problems[b] ? a : b, 'គ្មានបញ្ហាចម្បង');
+                        
+                        return {
+                            student_id: studentId,
+                            name: studentDetails[studentId].name,
+                            class: studentDetails[studentId].class,
+                            gender: studentDetails[studentId].gender,
+                            discipline_count: studentDisciplineCounts[studentId],
+                            main_problem: mainProblem,
+                            last_discipline_date: studentLastDisciplineDate[studentId]
+                        };
+                    })
+                    .filter(student => student.discipline_count >= minDisciplineCount)
+                    .filter(student => classFilter === 'all' || student.class === classFilter)
+                    .sort((a, b) => b.discipline_count - a.discipline_count);
+                
+                renderDisciplineSummaryTable();
+                updateDisciplineSummaryStats();
+                populateDisciplineSummaryClassFilter();
+            }
+
+            function renderDisciplineSummaryTable() {
+                const tableBody = document.getElementById('discipline-summary-table-body');
+                const summaryLoading = document.getElementById('discipline-summary-loading');
+                const summaryEmpty = document.getElementById('discipline-summary-empty');
+                
+                summaryLoading.style.display = 'none';
+                
+                if (disciplineSummaryData.length === 0) {
+                    summaryEmpty.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    return;
+                }
+                
+                summaryEmpty.style.display = 'none';
+                
+                let html = '';
+                disciplineSummaryData.forEach((student, index) => {
+                    const lastDisciplineDate = student.last_discipline_date.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let status = '';
+                    let statusClass = '';
+                    
+                    if (student.discipline_count >= 5) {
+                        status = 'វិន័យច្រើនណាស់';
+                        statusClass = 'badge-discipline';
+                    } else if (student.discipline_count >= 3) {
+                        status = 'វិន័យច្រើន';
+                        statusClass = 'badge-warning';
+                    } else {
+                        status = 'វិន័យតិច';
+                        statusClass = 'badge-helpful';
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div><strong>${student.name}</strong></div>
+                                <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.student_id}</div>
+                            </td>
+                            <td>${student.class}</td>
+                            <td>${student.gender}</td>
+                            <td><strong style="color: var(--danger); font-size: 1.1rem;">${student.discipline_count}</strong> ដង</td>
+                            <td class="discipline-description">${student.main_problem}</td>
+                            <td>${lastDisciplineDate}</td>
+                            <td><span class="badge ${statusClass}">${status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+            }
+
+            function updateDisciplineSummaryStats() {
+                if (disciplineSummaryData.length === 0) {
+                    document.getElementById('total-students-discipline').textContent = '0';
+                    document.getElementById('total-discipline-count').textContent = '0';
+                    document.getElementById('avg-discipline-per-student').textContent = '0';
+                    document.getElementById('max-discipline-count').textContent = '0';
+                    return;
+                }
+                
+                const totalStudents = disciplineSummaryData.length;
+                const totalDisciplineCount = disciplineSummaryData.reduce((sum, student) => sum + student.discipline_count, 0);
+                const avgDisciplinePerStudent = (totalDisciplineCount / totalStudents).toFixed(1);
+                const maxDisciplineCount = Math.max(...disciplineSummaryData.map(student => student.discipline_count));
+                
+                document.getElementById('total-students-discipline').textContent = totalStudents;
+                document.getElementById('total-discipline-count').textContent = totalDisciplineCount;
+                document.getElementById('avg-discipline-per-student').textContent = avgDisciplinePerStudent;
+                document.getElementById('max-discipline-count').textContent = maxDisciplineCount;
+            }
+
+            function populateDisciplineSummaryClassFilter() {
+                const classFilter = document.getElementById('discipline-summary-class-filter');
+                const classes = [...new Set(allReports.map(report => report.class))].sort();
+                
+                classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
+                
+                classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classFilter.appendChild(option);
+                });
+            }
+
+            function exportDisciplineSummaryToExcelReal() {
+                if (disciplineSummaryData.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                    return;
+                }
+                
+                try {
+                    const excelData = disciplineSummaryData.map((student, index) => {
+                        const lastDisciplineDate = student.last_discipline_date.toLocaleDateString('km-KH', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        
+                        let status = '';
+                        if (student.discipline_count >= 5) {
+                            status = 'វិន័យច្រើនណាស់';
+                        } else if (student.discipline_count >= 3) {
+                            status = 'វិន័យច្រើន';
+                        } else {
+                            status = 'វិន័យតិច';
+                        }
+                        
+                        return {
+                            'ល.រ': index + 1,
+                            'ឈ្មោះសិស្ស': student.name,
+                            'លេខសម្គាល់': student.student_id,
+                            'ថ្នាក់': student.class,
+                            'ភេទ': student.gender,
+                            'ចំនួនវិន័យ': student.discipline_count,
+                            'បញ្ហាចម្បង': student.main_problem,
+                            'កាលបរិច្ឆេទវិន័យចុងក្រោយ': lastDisciplineDate,
+                            'ស្ថានភាព': status
+                        };
+                    });
+                    
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    const sheetName = 'ទិន្នន័យវិន័យ';
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const filename = `summary_discipline_${today}.xlsx`;
+                    
+                    XLSX.writeFile(wb, filename);
+                    
+                    console.log(`✅ Exported ${disciplineSummaryData.length} discipline summary records to Excel`);
+                } catch (error) {
+                    console.error('❌ Error exporting discipline summary to Excel:', error);
+                    alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+                }
+            }
+
+            function printDisciplineSummaryReportReal() {
+                if (disciplineSummaryData.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const period = document.getElementById('discipline-summary-period').value;
+                const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="km">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</title>
+                        <style>
+                            body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                            .header h1 { color: #333; margin-bottom: 10px; }
+                            .header .date { color: #666; }
+                            .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                            th { background-color: #f5f5f5; font-weight: bold; }
+                            .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                            .discipline-description { max-width: 300px; word-wrap: break-word; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</h1>
+                            <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                            <div class="date">រយៈពេល: ${periodText}</div>
+                            <div class="date">ចំនួនទិន្នន័យវិន័យ: ${disciplineSummaryData.length}</div>
+                        </div>
+                        <div class="summary-info">
+                            <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                            - ទិន្នន័យវិន័យសរុប: ${disciplineSummaryData.length} នាក់<br>
+                            - ចំនួនវិន័យសរុប: ${disciplineSummaryData.reduce((sum, student) => sum + student.discipline_count, 0)} ដង<br>
+                            - មធ្យមវិន័យតាមសិស្ស: ${(disciplineSummaryData.reduce((sum, student) => sum + student.discipline_count, 0) / disciplineSummaryData.length).toFixed(1)} ដង<br>
+                            - ចំនួនវិន័យខ្ពស់បំផុត: ${Math.max(...disciplineSummaryData.map(student => student.discipline_count))} ដង
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ល.រ</th>
+                                    <th>ឈ្មោះសិស្ស</th>
+                                    <th>ថ្នាក់</th>
+                                    <th>ភេទ</th>
+                                    <th>ចំនួនវិន័យ</th>
+                                    <th>បញ្ហាចម្បង</th>
+                                    <th>កាលបរិច្ឆេទវិន័យចុងក្រោយ</th>
+                                    <th>ស្ថានភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${disciplineSummaryData.map((student, index) => {
+                                    const lastDisciplineDate = student.last_discipline_date.toLocaleDateString('km-KH', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    });
+                                    
+                                    let status = '';
+                                    if (student.discipline_count >= 5) {
+                                        status = 'វិន័យច្រើនណាស់';
+                                    } else if (student.discipline_count >= 3) {
+                                        status = 'វិន័យច្រើន';
+                                    } else {
+                                        status = 'វិន័យតិច';
+                                    }
+                                    
+                                    return `
+                                        <tr>
+                                            <td>${index + 1}</td>
+                                            <td>${student.name}<br><small>ID: ${student.student_id}</small></td>
+                                            <td>${student.class}</td>
+                                            <td>${student.gender}</td>
+                                            <td><strong>${student.discipline_count} ដង</strong></td>
+                                            <td class="discipline-description">${student.main_problem}</td>
+                                            <td>${lastDisciplineDate}</td>
+                                            <td>${status}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            }
+
+            // ========== LATE STUDENTS SUMMARY REPORT FUNCTIONS ==========
+
+            async function loadSummaryReport() {
+                if (currentReportType !== 'summary') return;
+                
+                document.getElementById('summary-loading').style.display = 'block';
+                document.getElementById('summary-empty').style.display = 'none';
+                document.getElementById('summary-table-body').innerHTML = '';
+                
+                try {
+                    const tableName = "attendance_reports";
+                    console.log(`🔍 Loading ALL summary data from ${tableName}...`);
+                    
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
+                    
+                    console.log(`✅ Loaded ${allReports.length} total records for summary`);
+                    
+                    updateSummaryReportReal();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading summary data:', error);
+                    
+                    // Fallback to localStorage
+                    allReports = JSON.parse(localStorage.getItem('lateReports') || '[]');
+                    console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
+                    
+                    updateSummaryReportReal();
+                }
+            }
+
+            function updateSummaryReportReal() {
+                if (currentReportType !== 'summary' || allReports.length === 0) {
+                    document.getElementById('summary-loading').style.display = 'none';
+                    document.getElementById('summary-empty').style.display = 'block';
+                    return;
+                }
+                
+                const period = document.getElementById('summary-period').value;
+                const minLateCount = parseInt(document.getElementById('min-late-count').value) || 1;
+                const classFilter = document.getElementById('summary-class-filter').value;
+                
+                const today = new Date();
+                let startDate, endDate;
+                
+                switch (period) {
+                    case 'week':
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                        break;
+                    case 'month':
+                        startDate = new Date(today);
+                        startDate.setMonth(today.getMonth() - 1);
+                        endDate = today;
+                        break;
+                    case 'custom':
+                        const customDate = document.getElementById('custom-summary-date').value;
+                        if (customDate) {
+                            startDate = new Date(customDate);
+                            endDate = new Date(customDate);
+                            startDate.setHours(0, 0, 0, 0);
+                            endDate.setHours(23, 59, 59, 999);
+                        } else {
+                            startDate = new Date(today);
+                            startDate.setDate(today.getDate() - 7);
+                            endDate = today;
+                        }
+                        break;
+                    case 'date-range':
+                        const startDateInput = document.getElementById('summary-start-date').value;
+                        const endDateInput = document.getElementById('summary-end-date').value;
+                        if (startDateInput && endDateInput) {
+                            startDate = new Date(startDateInput);
+                            endDate = new Date(endDateInput);
+                            startDate.setHours(0, 0, 0, 0);
+                            endDate.setHours(23, 59, 59, 999);
+                        } else {
+                            startDate = new Date(today);
+                            startDate.setDate(today.getDate() - 7);
+                            endDate = today;
+                        }
+                        break;
+                    default:
+                        startDate = new Date(today);
+                        startDate.setDate(today.getDate() - 7);
+                        endDate = today;
+                }
+                
+                const filteredByDate = allReports.filter(report => {
+                    const reportDate = new Date(report.date);
+                    return reportDate >= startDate && reportDate <= endDate;
+                });
+                
+                const studentLateCounts = {};
+                const studentLastLateDate = {};
+                const studentDetails = {};
+                
+                filteredByDate.forEach(report => {
+                    const studentId = report.student_id;
+                    
+                    if (!studentLateCounts[studentId]) {
+                        studentLateCounts[studentId] = 0;
+                        studentDetails[studentId] = {
+                            name: report.name,
+                            class: report.class,
+                            gender: report.gender || 'មិនមានទិន្នន័យ'
+                        };
+                    }
+                    
+                    studentLateCounts[studentId]++;
+                    
+                    const reportDate = new Date(report.date);
+                    if (!studentLastLateDate[studentId] || reportDate > studentLastLateDate[studentId]) {
+                        studentLastLateDate[studentId] = reportDate;
+                    }
+                });
+                
+                summaryData = Object.keys(studentLateCounts)
+                    .map(studentId => ({
+                        student_id: studentId,
+                        name: studentDetails[studentId].name,
+                        class: studentDetails[studentId].class,
+                        gender: studentDetails[studentId].gender,
+                        late_count: studentLateCounts[studentId],
+                        last_late_date: studentLastLateDate[studentId]
+                    }))
+                    .filter(student => student.late_count >= minLateCount)
+                    .filter(student => classFilter === 'all' || student.class === classFilter)
+                    .sort((a, b) => b.late_count - a.late_count);
+                
+                renderSummaryTable();
+                updateSummaryStats();
+                populateSummaryClassFilter();
+            }
+
+            function renderSummaryTable() {
+                const tableBody = document.getElementById('summary-table-body');
+                const summaryLoading = document.getElementById('summary-loading');
+                const summaryEmpty = document.getElementById('summary-empty');
+                
+                summaryLoading.style.display = 'none';
+                
+                if (summaryData.length === 0) {
+                    summaryEmpty.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    return;
+                }
+                
+                summaryEmpty.style.display = 'none';
+                
+                let html = '';
+                summaryData.forEach((student, index) => {
+                    const lastLateDate = student.last_late_date.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let status = '';
+                    let statusClass = '';
+                    
+                    if (student.late_count >= 5) {
+                        status = 'យឺតច្រើនណាស់';
+                        statusClass = 'badge-late';
+                    } else if (student.late_count >= 3) {
+                        status = 'យឺតច្រើន';
+                        statusClass = 'badge-warning';
+                    } else {
+                        status = 'យឺតតិច';
+                        statusClass = 'badge-helpful';
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div><strong>${student.name}</strong></div>
+                                <div style="font-size: 0.8rem; color: var(--gray);">ID: ${student.student_id}</div>
+                            </td>
+                            <td>${student.class}</td>
+                            <td>${student.gender}</td>
+                            <td><strong style="color: var(--danger); font-size: 1.1rem;">${student.late_count}</strong> ដង</td>
+                            <td>${lastLateDate}</td>
+                            <td><span class="badge ${statusClass}">${status}</span></td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+            }
+
+            function updateSummaryStats() {
+                if (summaryData.length === 0) {
+                    document.getElementById('total-students-late').textContent = '0';
+                    document.getElementById('total-late-count').textContent = '0';
+                    document.getElementById('avg-late-per-student').textContent = '0';
+                    document.getElementById('max-late-count').textContent = '0';
+                    return;
+                }
+                
+                const totalStudents = summaryData.length;
+                const totalLateCount = summaryData.reduce((sum, student) => sum + student.late_count, 0);
+                const avgLatePerStudent = (totalLateCount / totalStudents).toFixed(1);
+                const maxLateCount = Math.max(...summaryData.map(student => student.late_count));
+                
+                document.getElementById('total-students-late').textContent = totalStudents;
+                document.getElementById('total-late-count').textContent = totalLateCount;
+                document.getElementById('avg-late-per-student').textContent = avgLatePerStudent;
+                document.getElementById('max-late-count').textContent = maxLateCount;
+                
+                document.getElementById('stats-section').style.display = 'grid';
+            }
+
+            function populateSummaryClassFilter() {
+                const classFilter = document.getElementById('summary-class-filter');
+                const classes = [...new Set(allReports.map(report => report.class))].sort();
+                
+                classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
+                
+                classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classFilter.appendChild(option);
+                });
+            }
+
+            function exportSummaryToExcelReal() {
+                if (summaryData.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                    return;
+                }
+                
+                try {
+                    const excelData = summaryData.map((student, index) => {
+                        const lastLateDate = student.last_late_date.toLocaleDateString('km-KH', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        
+                        let status = '';
+                        if (student.late_count >= 5) {
+                            status = 'យឺតច្រើនណាស់';
+                        } else if (student.late_count >= 3) {
+                            status = 'យឺតច្រើន';
+                        } else {
+                            status = 'យឺតតិច';
+                        }
+                        
+                        return {
+                            'ល.រ': index + 1,
+                            'ឈ្មោះសិស្ស': student.name,
+                            'លេខសម្គាល់': student.student_id,
+                            'ថ្នាក់': student.class,
+                            'ភេទ': student.gender,
+                            'ចំនួនយឺត': student.late_count,
+                            'កាលបរិច្ឆេទយឺតចុងក្រោយ': lastLateDate,
+                            'ស្ថានភាព': status
+                        };
+                    });
+                    
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    const sheetName = 'ទិន្នន័យយឺត';
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    const filename = `summary_late_${today}.xlsx`;
+                    
+                    XLSX.writeFile(wb, filename);
+                    
+                    console.log(`✅ Exported ${summaryData.length} summary records to Excel`);
+                } catch (error) {
+                    console.error('❌ Error exporting summary to Excel:', error);
+                    alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+                }
+            }
+
+            function printSummaryReportReal() {
+                if (summaryData.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const period = document.getElementById('summary-period').value;
+                const periodText = period === 'week' ? 'សប្តាហ៍' : period === 'month' ? 'ខែ' : period === 'date-range' ? 'ចន្លោះកាលបរិច្ឆេទ' : 'កាលបរិច្ឆេទជាក់លាក់';
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="km">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>របាយការណ៍សង្ខេបទិន្នន័យយឺត</title>
+                        <style>
+                            body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                            .header h1 { color: #333; margin-bottom: 10px; }
+                            .header .date { color: #666; }
+                            .summary-info { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                            th { background-color: #f5f5f5; font-weight: bold; }
+                            .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>របាយការណ៍សង្ខេបទិន្នន័យយឺត</h1>
+                            <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                            <div class="date">រយៈពេល: ${periodText}</div>
+                            <div class="date">ចំនួនទិន្នន័យយឺត: ${summaryData.length}</div>
+                        </div>
+                        <div class="summary-info">
+                            <strong>សង្ខេបទិន្នន័យ:</strong><br>
+                            - ទិន្នន័យយឺតសរុប: ${summaryData.length} នាក់<br>
+                            - ចំនួនយឺតសរុប: ${summaryData.reduce((sum, student) => sum + student.late_count, 0)} ដង<br>
+                            - មធ្យមយឺតតាមសិស្ស: ${(summaryData.reduce((sum, student) => sum + student.late_count, 0) / summaryData.length).toFixed(1)} ដង<br>
+                            - ចំនួនយឺតខ្ពស់បំផុត: ${Math.max(...summaryData.map(student => student.late_count))} ដង
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ល.រ</th>
+                                    <th>ឈ្មោះសិស្ស</th>
+                                    <th>ថ្នាក់</th>
+                                    <th>ភេទ</th>
+                                    <th>ចំនួនយឺត</th>
+                                    <th>កាលបរិច្ឆេទយឺតចុងក្រោយ</th>
+                                    <th>ស្ថានភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${summaryData.map((student, index) => {
+                                    const lastLateDate = student.last_late_date.toLocaleDateString('km-KH', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    });
+                                    
+                                    let status = '';
+                                    if (student.late_count >= 5) {
+                                        status = 'យឺតច្រើនណាស់';
+                                    } else if (student.late_count >= 3) {
+                                        status = 'យឺតច្រើន';
+                                    } else {
+                                        status = 'យឺតតិច';
+                                    }
+                                    
+                                    return `
+                                        <tr>
+                                            <td>${index + 1}</td>
+                                            <td>${student.name}<br><small>ID: ${student.student_id}</small></td>
+                                            <td>${student.class}</td>
+                                            <td>${student.gender}</td>
+                                            <td><strong>${student.late_count} ដង</strong></td>
+                                            <td>${lastLateDate}</td>
+                                            <td>${status}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            }
+
+            // ========== REGULAR REPORT FUNCTIONS ==========
+
+            // ជ្រើសរើសប្រភេទរបាយការណ៍ - THE REAL FUNCTION
+            function selectReportTypeReal(type) {
+                document.querySelectorAll('.report-type-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                document.querySelector(`.report-type-card[data-type="${type}"]`).classList.add('selected');
+                
+                currentReportType = type;
+                
+                document.getElementById('current-report-title').textContent = `របាយការណ៍${reportTypes[type].title}`;
+                document.getElementById('current-report-description').textContent = reportTypes[type].description;
+                document.getElementById('current-report-type').style.display = 'block';
+                
+                document.getElementById('table-title').textContent = `📊 ទិន្នន័យ${reportTypes[type].title}`;
+                
+                if (type === 'summary') {
+                    document.getElementById('filter-section').style.display = 'none';
+                    document.getElementById('stats-section').style.display = 'none';
+                    document.getElementById('table-section').style.display = 'none';
+                    document.getElementById('summary-section').style.display = 'block';
+                    document.getElementById('discipline-summary-section').style.display = 'none';
+                    loadSummaryReport();
+                } else if (type === 'discipline-summary') {
+                    document.getElementById('filter-section').style.display = 'none';
+                    document.getElementById('stats-section').style.display = 'none';
+                    document.getElementById('table-section').style.display = 'none';
+                    document.getElementById('summary-section').style.display = 'none';
+                    document.getElementById('discipline-summary-section').style.display = 'block';
+                    loadDisciplineSummaryReport();
+                } else {
+                    document.getElementById('filter-section').style.display = 'block';
+                    document.getElementById('stats-section').style.display = 'none';
+                    document.getElementById('table-section').style.display = 'none';
+                    document.getElementById('summary-section').style.display = 'none';
+                    document.getElementById('discipline-summary-section').style.display = 'none';
+                    loadReportData();
+                }
+                
+                console.log(`✅ Selected report type: ${type} - ${reportTypes[type].title}`);
+            }
+
+            // ទាញយកទិន្នន័យរបាយការណ៍
+            async function loadReportData() {
+                if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary') return;
+                
+                document.getElementById('table-loading').style.display = 'block';
+                document.getElementById('table-empty').style.display = 'none';
+                document.getElementById('report-table-body').innerHTML = '';
+                
+                try {
+                    const tableName = reportTypes[currentReportType].table;
+                    console.log(`🔍 Loading ALL data from ${tableName}...`);
+                    
+                    // Use the new batch loading function
+                    allReports = await loadAllDataForReport(tableName);
+                    
+                    console.log(`✅ Loaded ${allReports.length} total records`);
+                    
+                    applyFiltersReal();
+                    updateStats();
+                    populateClassFilter();
+                    
+                } catch (error) {
+                    console.error('❌ Error loading report data:', error);
+                    
+                    // Fallback to localStorage
+                    allReports = JSON.parse(localStorage.getItem(`${currentReportType}Reports`) || '[]');
+                    console.log(`📁 Fallback to localStorage: ${allReports.length} records`);
+                    
+                    applyFiltersReal();
+                    updateStats();
+                    populateClassFilter();
+                }
+            }
+
+            // ស្វែងរកទិន្នន័យ
+            function applyFiltersReal() {
+                if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary' || allReports.length === 0) {
+                    document.getElementById('table-loading').style.display = 'none';
+                    document.getElementById('table-empty').style.display = 'block';
+                    return;
+                }
+                
+                let filtered = [...allReports];
+                
+                const dateFilter = document.getElementById('date-filter').value;
+                const today = new Date();
+                
+                switch (dateFilter) {
+                    case 'today':
+                        const todayStr = today.toISOString().split('T')[0];
+                        filtered = filtered.filter(report => report.date === todayStr);
+                        break;
+                    case 'today-tomorrow':
+                        const todayDate = new Date();
+                        const tomorrow = new Date(todayDate);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        
+                        const todayString = todayDate.toISOString().split('T')[0];
+                        const tomorrowString = tomorrow.toISOString().split('T')[0];
+                        
+                        filtered = filtered.filter(report => 
+                            report.date === todayString || report.date === tomorrowString
+                        );
+                        break;
+                    case 'yesterday':
+                        const yesterday = new Date(today);
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const yesterdayStr = yesterday.toISOString().split('T')[0];
+                        filtered = filtered.filter(report => report.date === yesterdayStr);
+                        break;
+                    case 'week':
+                        const weekAgo = new Date(today);
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        filtered = filtered.filter(report => {
+                            const reportDate = new Date(report.date);
+                            return reportDate >= weekAgo && reportDate <= today;
+                        });
+                        break;
+                    case 'month':
+                        const monthAgo = new Date(today);
+                        monthAgo.setMonth(monthAgo.getMonth() - 1);
+                        filtered = filtered.filter(report => {
+                            const reportDate = new Date(report.date);
+                            return reportDate >= monthAgo && reportDate <= today;
+                        });
+                        break;
+                    case 'custom':
+                        const customDate = document.getElementById('custom-date').value;
+                        if (customDate) {
+                            filtered = filtered.filter(report => report.date === customDate);
+                        }
+                        break;
+                    case 'date-range':
+                        const startDate = document.getElementById('start-date').value;
+                        const endDate = document.getElementById('end-date').value;
+                        
+                        if (startDate && endDate) {
+                            filtered = filtered.filter(report => {
+                                const reportDate = new Date(report.date);
+                                const start = new Date(startDate);
+                                const end = new Date(endDate);
+                                start.setHours(0, 0, 0, 0);
+                                end.setHours(23, 59, 59, 999);
+                                return reportDate >= start && reportDate <= end;
+                            });
+                        }
+                        break;
+                }
+                
+                const classFilter = document.getElementById('class-filter').value;
+                if (classFilter !== 'all') {
+                    filtered = filtered.filter(report => report.class === classFilter);
+                }
+                
+                const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+                if (searchFilter) {
+                    filtered = filtered.filter(report => 
+                        report.name.toLowerCase().includes(searchFilter) ||
+                        (report.student_id && report.student_id.toLowerCase().includes(searchFilter)) ||
+                        (report.discipline_description && report.discipline_description.toLowerCase().includes(searchFilter))
+                    );
+                }
+                
+                filteredReports = filtered;
+                renderTable();
+                updateStats();
+            }
+
+            // បង្ហាញតារាង
+            function renderTable() {
+                const tableBody = document.getElementById('report-table-body');
+                const tableLoading = document.getElementById('table-loading');
+                const tableEmpty = document.getElementById('table-empty');
+                
+                tableLoading.style.display = 'none';
+                
+                if (filteredReports.length === 0) {
+                    tableEmpty.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    document.getElementById('stats-section').style.display = 'none';
+                    return;
+                }
+                
+                tableEmpty.style.display = 'none';
+                
+                let html = '';
+                filteredReports.forEach((report, index) => {
+                    const dateObj = new Date(report.date);
+                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    let problemTypeText = '';
+                    if (currentReportType === 'discipline') {
+                        problemTypeText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                    } else {
+                        problemTypeText = reportTypes[currentReportType].problemType;
+                    }
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <div><strong>${report.name}</strong></div>
+                                <div style="font-size: 0.8rem; color: var(--gray);">ID: ${report.student_id}</div>
+                            </td>
+                            <td>${report.class}</td>
+                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
+                            <td class="discipline-description">
+                                <div>${problemTypeText}</div>
+                            </td>
+                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                            <td>${displayDate}</td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = html;
+                document.getElementById('table-section').style.display = 'block';
+                document.getElementById('stats-section').style.display = 'grid';
+            }
+
+            // អាប់ដេតស្ថានភាព
+            function updateStats() {
+                if (!currentReportType || currentReportType === 'summary' || currentReportType === 'discipline-summary') return;
+                
+                const totalScans = allReports.length;
+                const todayScans = allReports.filter(report => {
+                    const today = new Date().toISOString().split('T')[0];
+                    return report.date === today;
+                }).length;
+                
+                const uniqueStudents = new Set(allReports.map(report => report.student_id)).size;
+                
+                const studentCounts = {};
+                allReports.forEach(report => {
+                    studentCounts[report.student_id] = (studentCounts[report.student_id] || 0) + 1;
+                });
+                
+                const mostFrequent = Math.max(...Object.values(studentCounts), 0);
+                
+                document.getElementById('total-scans').textContent = totalScans;
+                document.getElementById('today-scans').textContent = todayScans;
+                document.getElementById('unique-students').textContent = uniqueStudents;
+                document.getElementById('most-frequent').textContent = mostFrequent;
+            }
+
+            // បង្កើតជម្រើសថ្នាក់
+            function populateClassFilter() {
+                const classFilter = document.getElementById('class-filter');
+                const classes = [...new Set(allReports.map(report => report.class))].sort();
+                
+                classFilter.innerHTML = '<option value="all">ទាំងអស់</option>';
+                
+                classes.forEach(className => {
+                    const option = document.createElement('option');
+                    option.value = className;
+                    option.textContent = className;
+                    classFilter.appendChild(option);
+                });
+            }
+
+            // បញ្ចូលទៅ Excel - FIXED VERSION
+            function exportToExcelReal() {
+                if (filteredReports.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីទាញយក');
+                    return;
+                }
+                
+                // ពិនិត្យថា currentReportType ត្រឹមត្រូវ
+                if (!currentReportType || !reportTypes[currentReportType]) {
+                    alert('⚠️ មិនមានប្រភេទរបាយការណ៍');
+                    return;
+                }
+                
+                try {
+                    const excelData = filteredReports.map((report, index) => {
+                        const dateObj = new Date(report.date);
+                        const displayDate = dateObj.toLocaleDateString('km-KH', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        
+                        let problemTypeText = '';
+                        if (currentReportType === 'discipline') {
+                            problemTypeText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                        } else {
+                            problemTypeText = reportTypes[currentReportType].problemType;
+                        }
+                        
+                        return {
+                            'ល.រ': index + 1,
+                            'ឈ្មោះសិស្ស': report.name,
+                            'លេខសម្គាល់': report.student_id,
+                            'ថ្នាក់': report.class,
+                            'ភេទ': report.gender || 'មិនមានទិន្នន័យ',
+                            'បញ្ហា': problemTypeText,
+                            'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
+                            'កាលបរិច្ឆេទ': displayDate
+                        };
+                    });
+                    
+                    const ws = XLSX.utils.json_to_sheet(excelData);
+                    const wb = XLSX.utils.book_new();
+                    
+                    let sheetName = '';
+                    switch(currentReportType) {
+                        case 'late': sheetName = 'ទិន្នន័យយឺត'; break;
+                        case 'discipline': sheetName = 'ទិន្នន័យវិន័យ'; break;
+                        case 'helpful': sheetName = 'ទិន្នន័យជំនួយ'; break;
+                        case 'haircut': sheetName = 'ទិន្នន័យសក់'; break;
+                        default: sheetName = 'ទិន្នន័យ';
+                    }
+                    
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    // កែឈ្មោះឯកសារជាអក្សរឡាតាំងដើម្បីជៀសវាងបញ្ហា
+                    const filename = `report_${currentReportType}_${today}.xlsx`;
+                    
+                    XLSX.writeFile(wb, filename);
+                    
+                    console.log(`✅ Exported ${filteredReports.length} records to Excel`);
+                } catch (error) {
+                    console.error('❌ Error exporting to Excel:', error);
+                    alert('⚠️ មានបញ្ហាក្នុងការទាញយកទិន្នន័យ: ' + error.message);
+                }
+            }
+
+            // បោះពុម្ពរបាយការណ៍ - FIXED VERSION
+            function printReportReal() {
+                if (filteredReports.length === 0) {
+                    alert('⚠️ មិនមានទិន្នន័យដើម្បីបោះពុម្ព');
+                    return;
+                }
+                
+                // ពិនិត្យថា currentReportType ត្រឹមត្រូវ
+                if (!currentReportType || !reportTypes[currentReportType]) {
+                    alert('⚠️ មិនមានប្រភេទរបាយការណ៍');
+                    return;
+                }
+                
+                const printWindow = window.open('', '_blank');
+                const today = new Date().toLocaleDateString('km-KH');
+                const dateFilter = document.getElementById('date-filter').value;
+                let periodText = '';
+                
+                switch(dateFilter) {
+                    case 'today': periodText = 'ថ្ងៃនេះ'; break;
+                    case 'today-tomorrow': periodText = 'ថ្ងៃនេះ និងថ្ងៃស្អែក'; break;
+                    case 'yesterday': periodText = 'ម្សិលមិញ'; break;
+                    case 'week': periodText = 'សប្តាហ៍នេះ'; break;
+                    case 'month': periodText = 'ខែនេះ'; break;
+                    case 'custom': periodText = 'កាលបរិច្ឆេទជាក់លាក់'; break;
+                    case 'date-range': periodText = 'ចន្លោះកាលបរិច្ឆេទ'; break;
+                    default: periodText = 'ទាំងអស់';
+                }
+                
+                const reportTitle = reportTypes[currentReportType].title || 'ទិន្នន័យ';
+                
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="km">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>របាយការណ៍${reportTitle}</title>
+                        <style>
+                            body { font-family: 'Khmer OS', 'Arial', sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                            .header h1 { color: #333; margin-bottom: 10px; }
+                            .header .date { color: #666; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+                            th { background-color: #f5f5f5; font-weight: bold; }
+                            .summary { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
+                            .footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9em; }
+                            .discipline-description { max-width: 300px; word-wrap: break-word; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>របាយការណ៍${reportTitle}</h1>
+                            <div class="date">កាលបរិច្ឆេទ: ${today}</div>
+                            <div class="date">រយៈពេល: ${periodText}</div>
+                            <div class="date">ចំនួនទិន្នន័យស្កេនសរុប: ${filteredReports.length}</div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ល.រ</th>
+                                    <th>ឈ្មោះសិស្ស</th>
+                                    <th>ថ្នាក់</th>
+                                    <th>ភេទ</th>
+                                    <th>បញ្ហា</th>
+                                    <th>ពេលវេលា</th>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredReports.map((report, index) => {
+                                    const dateObj = new Date(report.date);
+                                    const displayDate = dateObj.toLocaleDateString('km-KH', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    });
+                                    
+                                    let problemTypeText = '';
+                                    if (currentReportType === 'discipline') {
+                                        problemTypeText = report.discipline_description || 'គ្មានការពិពណ៌នា';
+                                    } else {
+                                        problemTypeText = reportTypes[currentReportType].problemType;
+                                    }
+                                    
+                                    return `
+                                        <tr>
+                                            <td>${index + 1}</td>
+                                            <td>${report.name}<br><small>ID: ${report.student_id}</small></td>
+                                            <td>${report.class}</td>
+                                            <td>${report.gender || 'មិនមានទិន្នន័យ'}</td>
+                                            <td class="discipline-description">${problemTypeText}</td>
+                                            <td>${report.scan_time || report.late_time || 'N/A'}</td>
+                                            <td>${displayDate}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        <div class="footer">
+                            <p>ព័ត៌មានទិន្នន័យសិស្ស - បានបង្កើតនៅ ${new Date().toLocaleString('km-KH')}</p>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            }
+
+            // ============================================
+            // MAKE FUNCTIONS AVAILABLE GLOBALLY
+            // ============================================
+
+            // Make all functions available globally with Real suffix
+            window.selectReportTypeReal = selectReportTypeReal;
+            window.applyFiltersReal = applyFiltersReal;
+            
+            // Discipline summary functions
+            window.exportDisciplineSummaryToExcelReal = exportDisciplineSummaryToExcelReal;
+            window.printDisciplineSummaryReportReal = printDisciplineSummaryReportReal;
+            window.handleDisciplineSummaryPeriodChangeReal = handleDisciplineSummaryPeriodChangeReal;
+            window.updateDisciplineSummaryReportReal = updateDisciplineSummaryReportReal;
+            
+            // Late summary functions
+            window.handleSummaryPeriodChangeReal = handleSummaryPeriodChangeReal;
+            window.updateSummaryReportReal = updateSummaryReportReal;
+            window.exportSummaryToExcelReal = exportSummaryToExcelReal;
+            window.printSummaryReportReal = printSummaryReportReal;
+            
+            // Regular report functions
+            window.exportToExcelReal = exportToExcelReal;
+            window.printReportReal = printReportReal;
+            window.handleDateFilterChangeReal = handleDateFilterChangeReal;
+            
+            // Sorting functions
+            window.sortByClassReal = sortByClassReal;
+            window.sortByNameReal = sortByNameReal;
+            window.sortByDateReal = sortByDateReal;
+            window.sortByTimeReal = sortByTimeReal;
+            window.sortSummaryByClassReal = sortSummaryByClassReal;
+            window.sortSummaryByNameReal = sortSummaryByNameReal;
+            window.sortSummaryByCountReal = sortSummaryByCountReal;
+            window.sortSummaryByDateReal = sortSummaryByDateReal;
+            window.sortDisciplineSummaryByClassReal = sortDisciplineSummaryByClassReal;
+            window.sortDisciplineSummaryByNameReal = sortDisciplineSummaryByNameReal;
+            window.sortDisciplineSummaryByCountReal = sortDisciplineSummaryByCountReal;
+            window.sortDisciplineSummaryByDateReal = sortDisciplineSummaryByDateReal;
+            window.sortTableReal = sortTableReal;
+            window.sortSummaryTableReal = sortSummaryTableReal;
+            window.sortDisciplineSummaryTableReal = sortDisciplineSummaryTableReal;
+
+            // Initialize page
+            window.onload = function() {
+                console.log('📊 Report page loaded');
+                
+                // Add event listeners for period changes
+                const dateFilter = document.getElementById('date-filter');
+                const disciplineSummaryPeriod = document.getElementById('discipline-summary-period');
+                const summaryPeriod = document.getElementById('summary-period');
+                
+                if (dateFilter) dateFilter.addEventListener('change', handleDateFilterChangeReal);
+                if (disciplineSummaryPeriod) disciplineSummaryPeriod.addEventListener('change', handleDisciplineSummaryPeriodChangeReal);
+                if (summaryPeriod) summaryPeriod.addEventListener('change', handleSummaryPeriodChangeReal);
+                
+                // Mark app as initialized
+                window.appInitialized = true;
+                
+                // Select default report type
+                selectReportTypeReal('discipline');
+                
+                console.log('✅ Application initialized successfully');
+            };
+        }
+    </script>
+</body>
+</html>

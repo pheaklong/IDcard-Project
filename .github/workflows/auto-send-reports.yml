@@ -1,47 +1,79 @@
-name: Auto Send Reports to Telegram
+name: 🤖 Auto Send Reports to Telegram
 
 on:
+  # ដំណើរការតាមកាលវិភាគ
   schedule:
-    # ផ្ញើរៀងរាល់ថ្ងៃនៅម៉ោង 8:00 ព្រឹក (UTC+7)
-    - cron: '0 1 * * *'  # 8:00 AM ICT (1:00 AM UTC)
-    - cron: '15 1 * * *' # 8:15 AM ICT
-    - cron: '30 1 * * *' # 8:30 AM ICT
-    - cron: '45 1 * * *' # 8:45 AM ICT
-  # អាច Run ដោយដៃបាន
+    # ម៉ោងនៅទីនេះជា UTC (ប្តូរតាមតម្រូវការ)
+    # 7:00 AM ICT = 0:00 UTC
+    # 8:00 AM ICT = 1:00 UTC
+    # 9:00 AM ICT = 2:00 UTC
+    
+    # ផ្ញើទិន្នន័យយឺតប្រចាំថ្ងៃ ម៉ោង 8:00 AM ICT (1:00 AM UTC)
+    - cron: '0 1 * * *'
+    
+    # ផ្ញើទិន្នន័យវិន័យប្រចាំថ្ងៃ ម៉ោង 8:15 AM ICT (1:15 AM UTC)
+    - cron: '15 1 * * *'
+    
+    # ផ្ញើសង្ខេបយឺតប្រចាំខែ ម៉ោង 8:30 AM ICT (1:30 AM UTC)
+    - cron: '30 1 * * *'
+    
+    # ផ្ញើសង្ខេបវិន័យប្រចាំខែ ម៉ោង 8:45 AM ICT (1:45 AM UTC)
+    - cron: '45 1 * * *'
+
+  # អនុញ្ញាតឱ្យដំណើរការដោយដៃពី GitHub
   workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'ប្រភេទរបាយការណ៍ដែលចង់ផ្ញើ'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - late
+          - discipline
+          - summary
+          - discipline-summary
 
 jobs:
   send-reports:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: |
-          npm install -g axios
-          npm install -g xlsx
+          npm init -y
+          npm install axios xlsx
 
-      - name: Create report script
+      - name: 📊 Create report script
         run: |
           cat > send-reports.js << 'EOF'
           const axios = require('axios');
           const XLSX = require('xlsx');
 
-          // ========== CONFIGURATION ==========
-          // ប្តូរតម្លៃទាំងនេះតាមការកំណត់របស់អ្នក
-          const BOT_TOKEN = '7947542376:AAHkKJ-OQNbrI8iArU5h0RgRwzowzTbvlxA';
-          const CHAT_ID = '-1002390198977';
+          // ============================================
+          // CONFIGURATION - ប្តូរតម្លៃទាំងនេះតាមតម្រូវការ
+          // ============================================
+          const BOT_TOKEN = process.env.BOT_TOKEN || '7947542376:AAHkKJ-OQNbrI8iArU5h0RgRwzowzTbvlxA';
+          const CHAT_ID = process.env.CHAT_ID || '-1002390198977';
           const SUPABASE_URL = 'https://ovvlshbuayykddqrnoqx.supabase.co';
           const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92dmxzaGJ1YXl5a2RkcXJub3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjQxODgsImV4cCI6MjA3NjM0MDE4OH0.vWLDFMS16PwZga9mYehVUiL6G0ccnRzdc9OUf2OM76I';
-          // =====================================
+          // ============================================
 
-          async function fetchData(tableName) {
+          // ============================================
+          // DATA FETCHING FUNCTIONS
+          // ============================================
+
+          async function fetchAllData(tableName) {
               try {
                   let allData = [];
                   let start = 0;
@@ -56,26 +88,37 @@ jobs:
                               'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                           }
                       });
-                      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+                      if (!response.ok) {
+                          throw new Error(`HTTP error: ${response.status}`);
+                      }
+
                       const data = await response.json();
                       if (data && data.length > 0) {
                           allData = allData.concat(data);
                           start += batchSize;
-                          if (data.length < batchSize) hasMore = false;
+                          if (data.length < batchSize) {
+                              hasMore = false;
+                          }
                       } else {
                           hasMore = false;
                       }
                   }
+
                   return allData;
               } catch (error) {
-                  console.error(`Error fetching ${tableName}:`, error);
+                  console.error(`❌ Error fetching from ${tableName}:`, error.message);
                   return [];
               }
           }
 
+          // ============================================
+          // TELEGRAM SEND FUNCTIONS
+          // ============================================
+
           async function sendToTelegram(text, fileBuffer, fileName) {
               try {
-                  // Send text
+                  // Send text message
                   const textUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
                   await axios.post(textUrl, {
                       chat_id: CHAT_ID,
@@ -96,83 +139,127 @@ jobs:
                   }
                   return true;
               } catch (error) {
-                  console.error('Error sending to Telegram:', error.message);
+                  console.error('❌ Error sending to Telegram:', error.message);
                   return false;
               }
           }
 
-          function createExcelBuffer(data) {
+          // ============================================
+          // EXCEL CREATION FUNCTIONS
+          // ============================================
+
+          function createExcelBuffer(data, sheetName = 'ទិន្នន័យ') {
               try {
+                  if (!data || data.length === 0) return null;
                   const ws = XLSX.utils.json_to_sheet(data);
                   const wb = XLSX.utils.book_new();
-                  XLSX.utils.book_append_sheet(wb, ws, 'ទិន្នន័យ');
+                  XLSX.utils.book_append_sheet(wb, ws, sheetName);
                   return XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
               } catch (error) {
-                  console.error('Error creating Excel:', error);
+                  console.error('❌ Error creating Excel:', error.message);
                   return null;
               }
           }
 
+          // ============================================
+          // REPORT SEND FUNCTIONS
+          // ============================================
+
           async function sendLateReport() {
               console.log('📊 Sending late report...');
-              const data = await fetchData('attendance_reports');
-              if (!data || data.length === 0) { console.log('No data'); return; }
+              const data = await fetchAllData('attendance_reports');
+              if (!data || data.length === 0) {
+                  console.log('⚠️ No late reports found');
+                  return false;
+              }
 
               const today = new Date().toISOString().split('T')[0];
               const todayData = data.filter(r => r.date === today);
-              if (todayData.length === 0) { console.log('No today data'); return; }
+              
+              if (todayData.length === 0) {
+                  console.log('⚠️ No late reports for today');
+                  return false;
+              }
 
-              const excelData = todayData.map((r, i) => ({
-                  'ល.រ': i+1,
-                  'ឈ្មោះសិស្ស': r.name || 'N/A',
-                  'លេខសម្គាល់': r.student_id || 'N/A',
-                  'ថ្នាក់': r.class || 'N/A',
-                  'ភេទ': r.gender || 'មិនមាន',
-                  'បញ្ហា': 'យឺត',
-                  'ពេលវេលា': r.scan_time || r.late_time || 'N/A',
-                  'កាលបរិច្ឆេទ': new Date(r.date).toLocaleDateString('km-KH')
-              }));
+              const excelData = todayData.map((report, index) => {
+                  const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
+                      year: 'numeric', month: 'long', day: 'numeric'
+                  });
+                  return {
+                      'ល.រ': index + 1,
+                      'ឈ្មោះសិស្ស': report.name || 'N/A',
+                      'លេខសម្គាល់': report.student_id || 'N/A',
+                      'ថ្នាក់': report.class || 'N/A',
+                      'ភេទ': report.gender || 'មិនមាន',
+                      'បញ្ហា': 'ទិន្នន័យយឺត',
+                      'ពេលវេលា': report.scan_time || report.late_time || 'N/A',
+                      'កាលបរិច្ឆេទ': displayDate
+                  };
+              });
 
-              const buffer = createExcelBuffer(excelData);
-              if (!buffer) return;
+              const buffer = createExcelBuffer(excelData, 'ទិន្នន័យយឺត');
+              if (!buffer) return false;
 
-              const text = `📊 <b>របាយការណ៍ទិន្នន័យយឺត</b>\n📅 ${new Date().toLocaleDateString('km-KH')}\n👥 ${todayData.length} នាក់`;
-              await sendToTelegram(text, buffer, `ទិន្នន័យ_យឺត_${today}.xlsx`);
-              console.log('✅ Late report sent');
+              const textMsg = `📊 <b>របាយការណ៍ទិន្នន័យយឺត</b>\n📅 កាលបរិច្ឆេទ: ${new Date().toLocaleDateString('km-KH')}\n👥 ចំនួនទិន្នន័យ: ${todayData.length}`;
+
+              const result = await sendToTelegram(textMsg, buffer, `ទិន្នន័យ_យឺត_${today}.xlsx`);
+              if (result) {
+                  console.log('✅ Late report sent successfully');
+              }
+              return result;
           }
 
           async function sendDisciplineReport() {
               console.log('📊 Sending discipline report...');
-              const data = await fetchData('discipline_reports');
-              if (!data || data.length === 0) { console.log('No data'); return; }
+              const data = await fetchAllData('discipline_reports');
+              if (!data || data.length === 0) {
+                  console.log('⚠️ No discipline reports found');
+                  return false;
+              }
 
               const today = new Date().toISOString().split('T')[0];
               const todayData = data.filter(r => r.date === today);
-              if (todayData.length === 0) { console.log('No today data'); return; }
+              
+              if (todayData.length === 0) {
+                  console.log('⚠️ No discipline reports for today');
+                  return false;
+              }
 
-              const excelData = todayData.map((r, i) => ({
-                  'ល.រ': i+1,
-                  'ឈ្មោះសិស្ស': r.name || 'N/A',
-                  'លេខសម្គាល់': r.student_id || 'N/A',
-                  'ថ្នាក់': r.class || 'N/A',
-                  'ភេទ': r.gender || 'មិនមាន',
-                  'បញ្ហា': r.discipline_description || 'គ្មាន',
-                  'ពេលវេលា': r.scan_time || 'N/A',
-                  'កាលបរិច្ឆេទ': new Date(r.date).toLocaleDateString('km-KH')
-              }));
+              const excelData = todayData.map((report, index) => {
+                  const displayDate = new Date(report.date).toLocaleDateString('km-KH', {
+                      year: 'numeric', month: 'long', day: 'numeric'
+                  });
+                  return {
+                      'ល.រ': index + 1,
+                      'ឈ្មោះសិស្ស': report.name || 'N/A',
+                      'លេខសម្គាល់': report.student_id || 'N/A',
+                      'ថ្នាក់': report.class || 'N/A',
+                      'ភេទ': report.gender || 'មិនមាន',
+                      'បញ្ហា': report.discipline_description || 'គ្មានការពិពណ៌នា',
+                      'ពេលវេលា': report.scan_time || 'N/A',
+                      'កាលបរិច្ឆេទ': displayDate
+                  };
+              });
 
-              const buffer = createExcelBuffer(excelData);
-              if (!buffer) return;
+              const buffer = createExcelBuffer(excelData, 'ទិន្នន័យវិន័យ');
+              if (!buffer) return false;
 
-              const text = `📊 <b>របាយការណ៍ទិន្នន័យវិន័យ</b>\n📅 ${new Date().toLocaleDateString('km-KH')}\n👥 ${todayData.length} នាក់`;
-              await sendToTelegram(text, buffer, `ទិន្នន័យ_វិន័យ_${today}.xlsx`);
-              console.log('✅ Discipline report sent');
+              const textMsg = `📊 <b>របាយការណ៍ទិន្នន័យវិន័យ</b>\n📅 កាលបរិច្ឆេទ: ${new Date().toLocaleDateString('km-KH')}\n👥 ចំនួនទិន្នន័យ: ${todayData.length}`;
+
+              const result = await sendToTelegram(textMsg, buffer, `ទិន្នន័យ_វិន័យ_${today}.xlsx`);
+              if (result) {
+                  console.log('✅ Discipline report sent successfully');
+              }
+              return result;
           }
 
           async function sendLateSummary() {
               console.log('📊 Sending late summary...');
-              const data = await fetchData('attendance_reports');
-              if (!data || data.length === 0) { console.log('No data'); return; }
+              const data = await fetchAllData('attendance_reports');
+              if (!data || data.length === 0) {
+                  console.log('⚠️ No data found for late summary');
+                  return false;
+              }
 
               const now = new Date();
               const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -182,107 +269,195 @@ jobs:
                   const rd = new Date(r.date);
                   return rd >= startDate && rd <= endDate;
               });
-              if (filtered.length === 0) { console.log('No data for last month'); return; }
 
-              const counts = {}, details = {};
+              if (filtered.length === 0) {
+                  console.log('⚠️ No data for last month');
+                  return false;
+              }
+
+              const counts = {};
+              const details = {};
+              const lastDate = {};
+              
               filtered.forEach(r => {
                   const id = r.student_id;
-                  if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; }
+                  if (!counts[id]) {
+                      counts[id] = 0;
+                      details[id] = {
+                          name: r.name || 'N/A',
+                          class: r.class || 'N/A',
+                          gender: r.gender || 'មិនមាន'
+                      };
+                  }
                   counts[id]++;
-              });
-
-              const summaryData = Object.keys(counts).map(id => ({
-                  'ឈ្មោះសិស្ស': details[id].name,
-                  'លេខសម្គាល់': id,
-                  'ថ្នាក់': details[id].class,
-                  'ភេទ': details[id].gender,
-                  'ចំនួនយឺត': counts[id]
-              })).sort((a,b) => b['ចំនួនយឺត'] - a['ចំនួនយឺត']);
-
-              const buffer = createExcelBuffer(summaryData);
-              if (!buffer) return;
-
-              const monthStr = startDate.toLocaleDateString('km-KH', { month: 'long', year: 'numeric' });
-              const totalLate = summaryData.reduce((s,x) => s + x['ចំនួនយឺត'], 0);
-              const text = `📊 <b>របាយការណ៍សង្ខេបយឺត</b>\n📅 ខែ: ${monthStr}\n👥 ${summaryData.length} នាក់\n⏱️ សរុប ${totalLate} ដង`;
-              await sendToTelegram(text, buffer, `សង្ខេប_យឺត_${now.getMonth()+1}_${now.getFullYear()}.xlsx`);
-              console.log('✅ Late summary sent');
-          }
-
-          async function sendDisciplineSummary() {
-              console.log('📊 Sending discipline summary...');
-              const data = await fetchData('discipline_reports');
-              if (!data || data.length === 0) { console.log('No data'); return; }
-
-              const now = new Date();
-              const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-              const endDate = new Date(now.getFullYear(), now.getMonth(), 0);
-
-              const filtered = data.filter(r => {
                   const rd = new Date(r.date);
-                  return rd >= startDate && rd <= endDate;
-              });
-              if (filtered.length === 0) { console.log('No data for last month'); return; }
-
-              const counts = {}, details = {}, problems = {};
-              filtered.forEach(r => {
-                  const id = r.student_id;
-                  if (!counts[id]) { counts[id]=0; details[id]={name:r.name,class:r.class,gender:r.gender||'មិនមាន'}; problems[id]={}; }
-                  counts[id]++;
-                  const p = r.discipline_description || 'គ្មាន';
-                  problems[id][p] = (problems[id][p] || 0) + 1;
+                  if (!lastDate[id] || rd > lastDate[id]) {
+                      lastDate[id] = rd;
+                  }
               });
 
-              const summaryData = Object.keys(counts).map(id => {
-                  const mainProblem = Object.keys(problems[id]).reduce((a,b) => problems[id][a] > problems[id][b] ? a : b);
-                  return {
+              const summaryData = Object.keys(counts)
+                  .map(id => ({
                       'ឈ្មោះសិស្ស': details[id].name,
                       'លេខសម្គាល់': id,
                       'ថ្នាក់': details[id].class,
                       'ភេទ': details[id].gender,
-                      'ចំនួនវិន័យ': counts[id],
-                      'បញ្ហាចម្បង': mainProblem
-                  };
-              }).sort((a,b) => b['ចំនួនវិន័យ'] - a['ចំនួនវិន័យ']);
+                      'ចំនួនយឺត': counts[id],
+                      'កាលបរិច្ឆេទយឺតចុងក្រោយ': lastDate[id].toLocaleDateString('km-KH', {
+                          year: 'numeric', month: 'long', day: 'numeric'
+                      })
+                  }))
+                  .sort((a, b) => b['ចំនួនយឺត'] - a['ចំនួនយឺត']);
 
-              const buffer = createExcelBuffer(summaryData);
-              if (!buffer) return;
+              const buffer = createExcelBuffer(summaryData, 'សង្ខេបយឺត');
+              if (!buffer) return false;
 
+              const totalLate = summaryData.reduce((sum, s) => sum + s['ចំនួនយឺត'], 0);
               const monthStr = startDate.toLocaleDateString('km-KH', { month: 'long', year: 'numeric' });
-              const totalDisc = summaryData.reduce((s,x) => s + x['ចំនួនវិន័យ'], 0);
-              const text = `📊 <b>របាយការណ៍សង្ខេបវិន័យ</b>\n📅 ខែ: ${monthStr}\n👥 ${summaryData.length} នាក់\n⚠️ សរុប ${totalDisc} ដង`;
-              await sendToTelegram(text, buffer, `សង្ខេប_វិន័យ_${now.getMonth()+1}_${now.getFullYear()}.xlsx`);
-              console.log('✅ Discipline summary sent');
+              
+              const textMsg = `📊 <b>របាយការណ៍សង្ខេបទិន្នន័យយឺត</b>\n📅 ខែ: ${monthStr}\n👥 ចំនួនសិស្សយឺត: ${summaryData.length}\n⏱️ ចំនួនយឺតសរុប: ${totalLate}`;
+
+              const result = await sendToTelegram(textMsg, buffer, `សង្ខេប_យឺត_${now.getMonth()+1}_${now.getFullYear()}.xlsx`);
+              if (result) {
+                  console.log('✅ Late summary sent successfully');
+              }
+              return result;
           }
 
-          // ========== MAIN ==========
+          async function sendDisciplineSummary() {
+              console.log('📊 Sending discipline summary...');
+              const data = await fetchAllData('discipline_reports');
+              if (!data || data.length === 0) {
+                  console.log('⚠️ No data found for discipline summary');
+                  return false;
+              }
+
+              const now = new Date();
+              const startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+              const endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+
+              const filtered = data.filter(r => {
+                  const rd = new Date(r.date);
+                  return rd >= startDate && rd <= endDate;
+              });
+
+              if (filtered.length === 0) {
+                  console.log('⚠️ No data for last month');
+                  return false;
+              }
+
+              const counts = {};
+              const details = {};
+              const problems = {};
+              const lastDate = {};
+              
+              filtered.forEach(r => {
+                  const id = r.student_id;
+                  if (!counts[id]) {
+                      counts[id] = 0;
+                      details[id] = {
+                          name: r.name || 'N/A',
+                          class: r.class || 'N/A',
+                          gender: r.gender || 'មិនមាន'
+                      };
+                      problems[id] = {};
+                  }
+                  counts[id]++;
+                  const problem = r.discipline_description || 'គ្មានបញ្ហាចម្បង';
+                  problems[id][problem] = (problems[id][problem] || 0) + 1;
+                  const rd = new Date(r.date);
+                  if (!lastDate[id] || rd > lastDate[id]) {
+                      lastDate[id] = rd;
+                  }
+              });
+
+              const summaryData = Object.keys(counts)
+                  .map(id => {
+                      const mainProblem = Object.keys(problems[id]).reduce((a, b) => 
+                          problems[id][a] > problems[id][b] ? a : b, 'គ្មានបញ្ហាចម្បង'
+                      );
+                      return {
+                          'ឈ្មោះសិស្ស': details[id].name,
+                          'លេខសម្គាល់': id,
+                          'ថ្នាក់': details[id].class,
+                          'ភេទ': details[id].gender,
+                          'ចំនួនវិន័យ': counts[id],
+                          'បញ្ហាចម្បង': mainProblem,
+                          'កាលបរិច្ឆេទវិន័យចុងក្រោយ': lastDate[id].toLocaleDateString('km-KH', {
+                              year: 'numeric', month: 'long', day: 'numeric'
+                          })
+                      };
+                  })
+                  .sort((a, b) => b['ចំនួនវិន័យ'] - a['ចំនួនវិន័យ']);
+
+              const buffer = createExcelBuffer(summaryData, 'សង្ខេបវិន័យ');
+              if (!buffer) return false;
+
+              const totalDisc = summaryData.reduce((sum, s) => sum + s['ចំនួនវិន័យ'], 0);
+              const monthStr = startDate.toLocaleDateString('km-KH', { month: 'long', year: 'numeric' });
+              
+              const textMsg = `📊 <b>របាយការណ៍សង្ខេបទិន្នន័យវិន័យ</b>\n📅 ខែ: ${monthStr}\n👥 ចំនួនសិស្សវិន័យ: ${summaryData.length}\n⚠️ ចំនួនវិន័យសរុប: ${totalDisc}`;
+
+              const result = await sendToTelegram(textMsg, buffer, `សង្ខេប_វិន័យ_${now.getMonth()+1}_${now.getFullYear()}.xlsx`);
+              if (result) {
+                  console.log('✅ Discipline summary sent successfully');
+              }
+              return result;
+          }
+
+          // ============================================
+          // MAIN EXECUTION
+          // ============================================
+
           async function main() {
               const now = new Date();
               const hours = now.getHours();
               const minutes = now.getMinutes();
               const time = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
               const day = now.getDate();
+              const reportType = process.env.REPORT_TYPE || 'all';
 
-              console.log(`🕐 Running at ${time}, day ${day}`);
+              console.log(`🕐 Running at ${time} UTC, day ${day}`);
+              console.log(`📋 Report type: ${reportType}`);
 
-              // ផ្ញើប្រចាំថ្ងៃ
-              if (time === '08:00') await sendLateReport();
-              if (time === '08:15') await sendDisciplineReport();
+              let results = [];
 
-              // ផ្ញើសង្ខេបប្រចាំខែ (ថ្ងៃទី 1)
+              if (reportType === 'all' || reportType === 'late') {
+                  results.push(await sendLateReport());
+              }
+              if (reportType === 'all' || reportType === 'discipline') {
+                  results.push(await sendDisciplineReport());
+              }
+              // Monthly summaries (only on the 1st of each month)
               if (day === 1) {
-                  if (time === '08:30') await sendLateSummary();
-                  if (time === '08:45') await sendDisciplineSummary();
+                  if (reportType === 'all' || reportType === 'summary') {
+                      results.push(await sendLateSummary());
+                  }
+                  if (reportType === 'all' || reportType === 'discipline-summary') {
+                      results.push(await sendDisciplineSummary());
+                  }
               }
 
-              console.log('✅ All done');
+              const successCount = results.filter(r => r === true).length;
+              console.log(`✅ Completed: ${successCount}/${results.length} reports sent successfully`);
           }
 
           main().catch(console.error);
           EOF
 
-      - name: Run report script
+      - name: 🚀 Run report script
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN || '7947542376:AAHkKJ-OQNbrI8iArU5h0RgRwzowzTbvlxA' }}
+          CHAT_ID: ${{ secrets.CHAT_ID || '-1002390198977' }}
+          REPORT_TYPE: ${{ github.event.inputs.report_type || 'all' }}
         run: node send-reports.js
+
+      - name: 📝 Save execution log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-log
+          path: |
+            send-reports.js
+            *.xlsx
+          retention-days: 7

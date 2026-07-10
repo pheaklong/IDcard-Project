@@ -2,11 +2,18 @@
   "name": "auto-send-reports",
   "version": "1.0.0",
   "description": "Auto send reports to Telegram via GitHub Actions",
+  "main": "scripts/send-reports.js",
   "scripts": {
-    "start": "node send-reports.js"
+    "start": "node scripts/send-reports.js",
+    "test": "node scripts/send-reports.js"
   },
   "dependencies": {
-    "axios": "^1.6.0",
+    "axios": "^1.6.2",
     "xlsx": "^0.18.5"
-  }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Your Name",
+  "license": "MIT"
 }
